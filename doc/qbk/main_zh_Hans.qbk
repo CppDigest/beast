@@ -167,20 +167,20 @@
 [import ../../include/boost/beast/version.hpp]
 [import ../../test/beast/core/rate_policy.cpp]
 
-__new__ indicates a new or updated section in this version.
+__new__ 表示此版本中新增或更新的部分。
 
-__example__ contains example source code.
+__example__ 包含示例源代码。
 
-__video__ contains video presentation content
+__video__ 包含视频演示内容
 
-[section:quickref Reference]
+[section:quickref 参考]
 
-__new__ indicates an item that was recently added.
+__new__ 表示最近添加的项目。
 
 [xinclude quickref.xml]
 [endsect]
 [block'''<reference id="beast_hidden"><title>This Page Intentionally Left Blank 1/2</title>''']
-[section:ref This Page Intentionally Left Blank 2/2]
+[section:ref 此页故意留空 2/2]
 [include reference.qbk]
 [endsect]
 [block'''</reference>''']
