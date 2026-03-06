@@ -1,0 +1,160 @@
+[/
+    Copyright (c) 2025 Mohammad Nejati
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+    Official repository: https://github.com/boostorg/beast
+]
+
+
+[section SSL/TLS 证书]
+
+[/-----------------------------------------------------------------------------]
+
+[heading 证书颁发机构]
+
+证书颁发机构（CA）是一个可信实体，负责签署数字证书，使用户能够验证其真实性。用户无需存储每个服务器的所有单独证书（由于数量庞大且频繁更新，这种做法不切实际），只需存储一组有限的根证书，即可在需要时验证服务器证书的真实性。
+
+Boost.Asio 提供了多种加载证书颁发机构证书的方法：
+
+* [@boost:/doc/html/boost_asio/reference/ssl__context/add_certificate_authority.html `net::ssl::context::add_certificate_authority`]
+* [@boost:/doc/html/boost_asio/reference/ssl__context/add_verify_path.html `net::ssl::context::add_verify_path`]
+* [@boost:/doc/html/boost_asio/reference/ssl__context/load_verify_file.html `net::ssl::context::load_verify_file`]
+* [@boost:/doc/html/boost_asio/reference/ssl__context/set_default_verify_paths.html `net::ssl::context::set_default_verify_paths`]
+
+必须设置对等验证，以便在证书验证失败时使 TLS/SSL 握手失败：
+
+[snippet_core_6]
+
+客户端还必须验证证书中的主机名或 IP 地址是否与预期的一致。辅助函数对象 [@boost:/doc/html/boost_asio/reference/ssl__host_name_verification.html `net::ssl::host_name_verification`] 可根据 RFC 6125 中描述的规则执行此验证：
+
+[snippet_core_7]
+
+服务器也可以请求并验证客户端证书以对客户端进行身份验证：
+
+[snippet_core_8]
+
+[/-----------------------------------------------------------------------------]
+
+[heading 服务器证书]
+
+服务器证书是一种数字证书，用于确认服务器作为客户端的合法目标身份。它包含可验证的签名，确保其由受信任的证书颁发机构（CA）颁发。
+
+当服务器证书由中间证书颁发机构颁发，且客户端缺少这些中间证书时，服务器应向客户端提供所有相关证书。这样客户端就可以根据根证书验证证书链中的最终证书。
+
+以下 Boost.Asio 方法可用于加载证书或证书链：
+
+* [@boost:/doc/html/boost_asio/reference/ssl__context/use_certificate.html `net::ssl::context::use_certificate`]
+* [@boost:/doc/html/boost_asio/reference/ssl__context/use_certificate_file.html `net::ssl::context::use_certificate_file`]
+* [@boost:/doc/html/boost_asio/reference/ssl__context/use_certificate_chain.html `net::ssl::context::use_certificate_chain`]
+* [@boost:/doc/html/boost_asio/reference/ssl__context/use_certificate_chain_file.html `net::ssl::context::use_certificate_chain_file`]
+
+[/-----------------------------------------------------------------------------]
+
+[heading 客户端证书]
+
+服务器可以通过要求并验证客户端证书来对客户端进行身份验证，从而阻止没有有效证书和私钥的客户端访问。服务器通过修改对等验证设置来强制执行此操作：
+
+[snippet_core_8]
+
+如果使用此功能，必须将必要的 CA 证书加载到服务器的 SSL 上下文中，以便验证客户端的证书。
+
+[/-----------------------------------------------------------------------------]
+
+[heading 通用名称和主题备用名称]
+
+主题备用名称（SAN）是 X.509 证书中的一个扩展，允许将多个域名、子域名或 IP 地址与单个 SSL/TLS 证书关联。在此之前，证书主题中的通用名字段只能包含单个主机名。
+
+[@https://datatracker.ietf.org/doc/html/rfc6125#appendix-B.2 RFC 6125]
+建议如果证书包含 SAN dNSName 字段，客户端必须忽略主题 CN 字段。一些现代浏览器（如 Google Chrome）仅检查 SSL/TLS 证书中的 SAN 部分，并拒绝仅包含 CN 字段的证书。
+
+[/-----------------------------------------------------------------------------]
+
+[heading 私钥]
+
+在 SSL/TLS 握手期间需要证书的私钥，以证明证书提供者是其合法所有者。
+
+以下 Boost.Asio 方法可用于加载私钥：
+
+* [@boost:/doc/html/boost_asio/reference/ssl__context/use_private_key.html `net::ssl::context::use_private_key`]
+* [@boost:/doc/html/boost_asio/reference/ssl__context/use_private_key_file.html `net::ssl::context::use_private_key_file`]
+* [@boost:/doc/html/boost_asio/reference/ssl__context/use_rsa_private_key.html `net::ssl::context::use_rsa_private_key`]
+* [@boost:/doc/html/boost_asio/reference/ssl__context/use_rsa_private_key_file.html `net::ssl::context::use_rsa_private_key_file`]
+
+如果私钥受密码保护，可使用 [@boost:/doc/html/boost_asio/reference/ssl__context/set_password_callback.html net::ssl::context::set_password_callback] 指定一个可调用对象来获取密码。
+
+[/-----------------------------------------------------------------------------]
+
+[heading 自签名和自颁发证书]
+
+自颁发证书是指颁发者和主题为同一实体的证书。
+
+自签名证书是一种自颁发证书，其数字签名可以使用证书内的公钥进行验证。
+
+[warning
+    安装不受信任的自颁发或自签名 CA 证书会带来
+    significant security risk, as there are no restrictions on the domains for
+    which it can issue certificates. This allows attackers to generate
+    fraudulent certificates for any public domain, enabling man-in-the-middle
+    attacks if they gain access to your network.
+]
+
+[/-----------------------------------------------------------------------------]
+
+[heading Diffie-Hellman (DH) 参数]
+
+Diffie-Hellman (DH) 密钥交换是一种加密协议，允许双方在不安全的通信信道上安全地建立共享密钥。密钥交换过程涉及双方就一组称为 Diffie-Hellman 参数的参数达成一致，其中包括一个大素数 `p` 和一个生成器 `g`。由于生成这些参数是一项计算密集型任务，用户可能更倾向于在启动时提供预计算的值。
+
+以下 Boost.Asio 方法可用于加载 DH 参数：
+
+* [@boost:/doc/html/boost_asio/reference/ssl__context/use_tmp_dh.html `net::ssl::context::use_tmp_dh`]
+* [@boost:/doc/html/boost_asio/reference/ssl__context/use_tmp_dh_file.html `net::ssl::context::use_tmp_dh_file`]
+
+如果未提供 DH 参数，OpenSSL 将拒绝执行任何使用基于 DHE 的密码套件的握手，但仍可与其他密码套件（如基于 ECDHE 的套件）配合使用。
+
+[/-----------------------------------------------------------------------------]
+
+[heading 自颁发证书示例]
+
+在以下示例中，我们将生成一个自签名的 CA 证书，并使用它来颁发服务器和客户端证书。
+
+* 生成 CA 证书：
+
+``` openssl req -new -newkey rsa:4096 -keyout ca.key -x509 -out ca.crt -subj "/CN=localhost" -days 365 ```
+
+
+* 生成服务器 CSR：
+
+``` openssl req -new -newkey rsa:4096 -keyout server.key -out server.csr -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1" ```
+
+
+* 使用我们的 CA 签署服务器 CSR： 
+
+``` openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -copy_extensions copy -days 365 -out server.crt ```
+
+
+* 生成客户端 CSR：
+
+``` openssl req -new -newkey rsa:4096 -keyout client.key -out client.csr -subj "/CN=client.1" ```
+
+
+* 使用我们的 CA 签署客户端 CSR： 
+
+``` openssl x509 -req -in client.csr -CA ca.crt -CAkey ca.key -days 365 -out client.crt ```
+
+* 生成 DH 参数文件：
+
+``` openssl dhparam -out dh4096.pem 4096 ```
+
+服务器示例：[path_link example/doc/ssl/server.cpp server.cpp]
+
+请注意，服务器的配置方式要求请求并验证客户端证书。您可以通过注释掉示例中的相关行来禁用此功能。
+
+您可以使用以下 cURL 命令测试服务器：
+
+``` curl https://localhost:8080 --cacert ca.crt --cert client.crt --key client.key ```
+
+此外，您也可以使用客户端示例：[path_link example/doc/ssl/client.cpp client.cpp]
+
+[endsect]

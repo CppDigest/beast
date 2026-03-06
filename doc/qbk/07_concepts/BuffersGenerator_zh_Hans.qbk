@@ -1,0 +1,109 @@
+[/
+    Copyright (c) 2016-2022 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+    Official repository: https://github.com/boostorg/beast
+]
+
+[section:BuffersGenerator 缓冲区生成器]
+
+[*BuffersGenerator] 提供了一个通用接口，用于生成序列化数据以供顺序处理。
+
+生成器将被要求生成缓冲区。消费代码将发出信号表示已消费了多少数据，并重复请求缓冲区，直到没有更多数据可用，或者生成器指示出现错误条件。
+
+通过这种方式，序列化器可以被适配为 [*BuffersGenerator]，例如 [link beast.ref.boost__beast__http__message_generator `http::message_generator`]，它为各种具体的 HTTP 消息类型提供了类型擦除接口。
+
+[link beast.ref.boost__beast__write `write`] 和 [link beast.ref.boost__beast__async_write `async_write`] 操作的重载作为自由函数提供。这些操作将消费 [*BuffersGenerator] 的输出，并通过将数据分别写入 __SyncWriteStream__ 或 __AsyncWriteStream__ 来处理数据。
+
+[heading 关联类型]
+
+* [link beast.ref.boost__beast__is_buffers_generator `is_buffers_generator`]
+* __ConstBufferSequence__
+
+[heading 要求]
+
+在此表中：
+
+* `G` 表示满足 [*BuffersGenerator] 要求的类型。
+* `g` 表示类型为 `G` 的值。
+* `c` 表示类型为 `G` 的可能为常量的值。
+* `n` 是类型为 `std::size_t` 的值。
+* `ec` 是类型为 [link beast.ref.boost__beast__error_code `error_code&`] 的值。
+
+[table 合法表达式
+[[表达式] [类型] [语义、前置/后置条件]]
+[
+    [`G::const_buffers_type`]
+    []
+    [一个满足 __ConstBufferSequence__ 要求的类型。这是 `g.prepare(ec)` 返回的缓冲区类型。]
+][
+    [`c.is_done()`]
+    [`bool`]
+    [调用以询问生成器的完成状态。
+
+当不会产生新的缓冲区且先前产生的缓冲区已被完全消费时，生成器即告完成。
+
+[*注意：] 一旦生成器完成，再在 `g` 上调用 `prepare` 的结果是未指定的。]
+][
+    [`g.prepare(ec)`]
+    [`G::const_buffers_type`]
+    [调用以要求生成器生成包含待处理数据的缓冲区。
+
+返回值是表示未消费数据的 __ConstBufferSequence__。
+
+该函数将确保如果没有错误，则 `ec.failed()` 为 `false`；如果有错误，则设置为相应的错误码。
+
+如果没有未消费数据可用，此操作应取得进展以最终达到完成状态。
+
+在完成或遇到错误后调用 `prepare` 的结果由生成器实现定义。通常不能假定这样做有意义或安全。
+
+返回缓冲区的容量由生成器实现定义。
+
+[*注意：] 之前调用 `prepare` 获得的任何缓冲区均失效。]
+][
+    [`g.consume(n)`]
+    []
+    [调用此函数以通知生成器的消费者（调用者）已处理了前次调用 `prepare` 返回的部分数据。
+
+`n` 的值表示已处理的数据量（以字节计）。
+
+当 `n` 超过上次调用 `prepare` 返回的字节数时，`consume` 的行为应如同 `n` 等于该数字。
+
+剩余的未消费数据将在后续调用 `prepare` 时返回。
+
+[*注意：] 之前调用 `prepare` 获得的任何缓冲区均失效。]
+][
+    [`is_buffers_generator<G>`]
+    [`std::bool_constant`]
+    [对于 `G` 是 `std::true_type` 的别名，否则是 `std::false_type` 的别名。]
+]]
+
+[heading 范例]
+
+```
+    // A buffer sequence generator
+    struct BuffersGenerator
+    {
+        using const_buffers_type = net::const_buffer;
+
+        bool is_done() const;
+        const_buffers_type prepare( error_code& ec );
+        void consume( std::size_t n );
+    };
+
+    static_assert(
+        is_buffers_generator<BuffersGenerator>::value, "");
+```
+
+[heading 模型]
+
+* [link beast.ref.boost__beast__http__message_generator `http::message_generator`]
+
+[heading 算法]
+
+* [link beast.ref.boost__beast__async_write `async_write`]
+* [link beast.ref.boost__beast__write `write`] 
+
+[endsect]

@@ -1,0 +1,97 @@
+[/
+    Copyright (c) 2013-2016 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+]
+
+[section:File 文件]
+
+[*文件]概念抽象了对底层文件系统中文件的访问。为支持其他平台接口，用户可以编写满足这些要求的自定义[*文件]类型。
+
+[heading 关联类型]
+
+* [link beast.ref.boost__beast__file_mode `file_mode`]
+* [link beast.ref.boost__beast__is_file `is_file`]
+
+[heading 要求]
+
+在此表中：
+
+* `F` 是[*文件]类型
+* `f` 是 `F` 的实例
+* `p` 是 `char const*` 类型的值，指向空终止字符串
+      terminated utf-8 encoded string.
+* `m` 是[link beast.ref.boost__beast__file_mode `file_mode`]的实例
+* `n` 是字节数，可转换为 `std::size_t`
+* `o` 是文件中的字节偏移量，可转换为 `std::uint64_t`
+* `b` 是任何指向内存的非 const 指针
+* `c` 是任何可能为 const 的内存指针
+* `ec` 是[link beast.ref.boost__beast__error_code `error_code`]类型的引用
+
+[table 有效表达式
+[[表达式] [类型] [语义、前置/后置条件]]
+[[操作] [返回类型] [语义、前置/后置条件]]
+[
+    [`F()`]
+    [ ]
+    [可默认构造]
+]
+[
+    [`f.~F()`]
+    [ ]
+    [可析构。若 `f` 引用已打开文件，则首先尝试关闭文件（忽略错误），如同调用 `close`。]
+]
+[
+    [`f.is_open()`]
+    [`bool`]
+    [若 `f` 引用已打开文件则返回 `true`，否则返回 `false`。]
+]
+[
+    [`f.close(ec)`]
+    []
+    [若 `f` 引用已打开文件，此函数尝试关闭该文件。无论是否发生错误，后续调用 `f.is_open()` 都将返回 `false`。若无错误则确保 `!ec` 为 `true`；若发生错误则设置为相应错误码。]
+]
+[
+    [`f.open(p,m,ec)`]
+    []
+    [尝试以 `m` 指定模式打开 `p` 指定路径的文件。成功时，后续调用 `f.is_open()` 将返回 `true`。若 `f` 已引用打开文件，则首先尝试关闭文件（忽略错误），如同调用 `close`。若无错误则确保 `!ec` 为 `true`；若发生错误则设置为相应错误码。]
+]
+[
+    [`f.size(ec)`]
+    [`std::uint64_t`]
+    [若 `f` 引用已打开文件，此函数尝试确定文件大小并返回值。若未引用打开文件，则将 `ec` 设为 `errc::invalid_argument` 并返回 0。若无错误则确保 `!ec` 为 `true`；若发生错误则设置为相应错误码。]
+]
+[
+    [`f.pos(ec)`]
+    [`std::uint64_t`]
+    [若 `f` 引用已打开文件，此函数尝试确定当前文件偏移量并返回。若未引用打开文件，则将 `ec` 设为 `errc::invalid_argument` 并返回 0。若无错误则确保 `!ec` 为 `true`；若发生错误则设置为相应错误码。]
+]
+[
+    [`f.seek(o,ec)`]
+    []
+    [尝试将当前文件偏移量重定位至值 `o`（表示相对于文件起始的字节偏移量）。若 `f` 未引用打开文件，则将 `ec` 设为 `errc::invalid_argument` 并立即返回。若无错误则确保 `!ec` 为 `true`；若发生错误则设置为相应错误码。]
+]
+[
+    [`f.read(b,n,ec)`]
+    [`std::size_t`]
+    [尝试从 `f` 引用的打开文件中当前文件偏移量处读取 `n` 字节。读取的字节存储在地址 `b` 的内存缓冲区（大小至少为 `n` 字节）。函数将文件偏移量推进实际读取字节数，并返回实际读取字节数（可能小于 `n`）。若 `f` 未引用打开文件，则将 `ec` 设为 `errc::invalid_argument` 并立即返回。若无错误则确保 `!ec` 为 `true`；若发生错误则设置为相应错误码。若在读取前检测到文件结束，则确保 `!ec` 为 `true` 且返回值为 0。]
+]
+[
+    [`f.write(c,n,ec)`]
+    [`std::size_t`]
+    [尝试将 `c` 指向缓冲区中的 `n` 字节写入 `f` 引用的打开文件的当前文件偏移量处。`c` 处内存缓冲区必须指向至少 `n` 字节的存储空间（内容将被复制到文件）。函数将文件偏移量推进实际写入字节数，并返回实际写入字节数（可能小于 `n`）。若 `f` 未引用打开文件，则将 `ec` 设为 `errc::invalid_argument` 并立即返回。若无错误则确保 `!ec` 为 `true`；若发生错误则设置为相应错误码。]
+]
+]
+
+[heading 范例]
+
+[concept_File]
+
+[heading 模型]
+
+* [link beast.ref.boost__beast__file_posix `file_posix`]
+* [link beast.ref.boost__beast__file_stdio `file_stdio`]
+* [link beast.ref.boost__beast__file_win32 `file_win32`]
+
+[endsect]

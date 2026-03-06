@@ -1,0 +1,37 @@
+[/
+    Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+    Official repository: https://github.com/boostorg/beast
+]
+
+[section:streams 流]
+
+在Beast和网络编程的语境中，流表示两个程序或主机之间的全双工连接，其中以字节表示的数据能够按写入顺序可靠接收。流可以支持同步和/或异步读写的任意组合。
+
+流概念基于网络领域的命名要求：
+
+[heading:Stream 流]
+
+一个类型建模为[*流]需满足以下一个或两个要求：
+
+* [*异步流]
+* [*同步流]
+
+[heading:AsyncStream 异步流]
+
+一个类型建模为[*异步流]需满足以下要求：
+
+* __异步读流__
+* __异步写流__
+
+[heading:SyncStream 同步流]
+
+一个类型建模为[*同步流]需满足以下要求：
+
+* __同步读流__
+* __同步写流__
+
+[endsect]

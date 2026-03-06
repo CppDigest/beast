@@ -1,0 +1,19 @@
+ [/
+    Copyright (c) 2022 Klemens D. Morgenstern (klemens dot morgenstern at gmx dot net)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+    Official repository: https://github.com/boostorg/beast
+]
+
+[section 野兽API版本]
+
+野兽库维护其独立的API版本号，该版本号比Boost发行版本更精细。
+
+可通过`BOOST_BEAST_VERSION`宏获取其字符串形式，或通过`BOOST_BEAST_VERSION_STRING`直接获取版本字符串。
+
+[version]
+
+
+[endsect]

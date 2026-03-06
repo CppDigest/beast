@@ -1,0 +1,84 @@
+[/
+    Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+    Official repository: https://github.com/boostorg/beast
+]
+
+[section:BodyReader BodyReader]
+
+[*BodyReader] 提供了一种在线算法，用于将包含已解析主体八位字节的零个或多个缓冲区序列传输到消息容器中。解析器在需要时会创建此类型的实例，并调用其零次或多次以传输缓冲区。[*BodyReader] 的接口旨在支持将缓冲区转换为以下场景的表示形式：
+
+* 将主体存储于动态缓冲区中
+* 将主体存储于使用自定义分配器的用户定义容器中
+* 在存储前对传入的主体数据进行转换（例如）
+  to compress it first.
+* 将主体数据保存至文件
+
+[heading 关联类型]
+
+* [link beast.ref.boost__beast__http__is_body_reader `is_body_reader`]
+* __Body__
+
+[heading 要求]
+
+[warning
+    这些要求可能发生非向后兼容的变更
+    changes in subsequent versions.
+]
+
+本表中：
+
+* `R` 表示符合 [*BodyReader] 要求的类型。
+* `B` 表示 __Body__ 类型，其中
+      `std::is_same<R, B::reader>::value == true`.
+* `a` 表示类型为 `R` 的值。
+* `b` 是符合 __ConstBufferSequence__ 要求的对象
+* `h` 表示类型为 `header<isRequest, Fields>&` 的值。
+* `v` 表示类型为 `Body::value_type&` 的值。
+* `n` 是类型为 `boost::optional<std::uint64_t>` 的值。
+* `ec` 是类型为 [link beast.ref.boost__beast__error_code `error_code&`] 的值。
+
+[table 有效表达式
+[[表达式] [类型] [语义、前置/后置条件]]
+[
+    [`R{h,v};`]
+    []
+    [可从 `h` 和 `v` 构造。`h` 和 `v` 的生命周期保证不早于 `R` 销毁前结束。在首次调用 `init` 前，读取器不得访问 `h` 或 `v` 的内容，以允许消息的延迟构造。]
+][
+    [`a.init(n, ec)`]
+    []
+    [在调用 `put` 前调用一次以完全初始化对象。消息主体在进入此函数前有效，并保持有效直至读取器销毁。若内容长度已知，`n` 将被设置为消息主体的内容长度，否则 `n` 等于 `boost::none`。[*BodyReader] 的实现可利用此信息优化分配。
+
+该函数将确保：若无错误则 `!ec` 为 `true`，若存在错误则设置为相应错误码。]
+][
+    [`a.put(b,ec)`]
+    [`std::size_t`]
+    [此函数被调用以将 `b` 指定的部分或全部缓冲区追加到主体表示中。返回从 `b` 插入的字节数。若插入字节数小于输入总量，剩余输入将在下次调用 `put` 时呈现。该函数将确保：若无错误则 `!ec` 为 `true`，若存在错误则设置为相应错误码。]
+][
+    [`a.finish(ec)`]
+    []
+    [当无更多主体八位字节剩余时调用此函数。该函数将确保：若无错误则 `!ec` 为 `true`，若存在错误则设置为相应错误码。]
+][
+    [`is_body_reader<B>`]
+    [`std::true_type`]
+    [对于 `B` 是 `std::true_type` 的别名，否则为 `std::false_type` 的别名。]
+]]
+
+[heading 范例]
+
+[concept_BodyReader]
+
+[heading 模型]
+
+* [link beast.ref.boost__beast__http__basic_dynamic_body.reader `basic_dynamic_body::reader`]
+* [link beast.ref.boost__beast__http__basic_file_body__reader `basic_file_body::reader`]
+* [link beast.ref.boost__beast__http__basic_string_body.reader `basic_string_body::reader`]
+* [link beast.ref.boost__beast__http__buffer_body.reader `buffer_body::reader`]
+* [link beast.ref.boost__beast__http__empty_body.reader `empty_body::reader`]
+* [link beast.ref.boost__beast__http__span_body.reader `span_body::reader`]
+* [link beast.ref.boost__beast__http__vector_body.reader `vector_body::reader`]
+
+[endsect]

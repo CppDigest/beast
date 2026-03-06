@@ -1,0 +1,56 @@
+[/
+    Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+    Official repository: https://github.com/boostorg/beast
+]
+
+[section:Body 主体]
+
+一个 [*主体] 类型作为模板参数提供给 __message__ 类。它控制着最终消息对象的数据成员类型，以及解析和序列化过程中使用的算法。
+
+[heading 关联类型]
+
+* [link beast.ref.boost__beast__http__is_body `is_body`]\n* 主体读取器\n* 主体写入器
+
+[heading 要求]
+
+在此表中：
+
+* `B` 是满足 [*主体] 要求的类型。\n* `m` 是类型为 `message<b,B,F>` 的值，其中 `b` 为 `bool` 值
+  and `F` is a type meeting the requirements of __Fields__.
+
+[table 合法表达式
+[[表达式] [类型] [语义、前置/后置条件]]
+[
+    [`B::value_type`]
+    []
+    [`message::body` 成员函数的返回类型。如果该类型不可移动或不可复制，则包含的消息也将不可移动或不可复制。]
+][
+    [`B::reader`]
+    []
+    [如果存在，表示主体可被解析。该类型必须满足 主体读取器 的要求。实现会构造此类型的对象以获取用于放置解析后主体字节的缓冲区。]
+][
+    [`B::writer`]
+    []
+    [如果存在，表示主体可被序列化。该类型必须满足 主体写入器 的要求。实现会构造此类型的对象以获取表示消息主体的缓冲区用于序列化。]
+][
+    [
+    ```
+B::size(\nB::value_type body)    ```
+    ]
+    [`std::uint64_t`]
+    [此静态成员函数是可选的。它返回 `body` 的有效载荷大小（以字节计），不包括任何分块传输编码。返回值可能为零，表示已知消息没有有效载荷。该函数不得通过异常退出。\n\n当此函数存在时：\n\n* 该函数不得失败\n\n* 调用 [link beast.ref.boost__beast__http__message.payload_size `message::payload_size`] 将返回与 `size` 相同的值。\n\n* 调用 [link beast.ref.boost__beast__http__message.prepare_payload `message::prepare_payload`] 将从 Transfer-Encoding 字段中移除 \"chunked\"（如果它作为最后一个编码出现），并将 Content-Length 字段设置为返回的值。\n\n否则，当省略此函数时：\n\n* 调用 [link beast.ref.boost__beast__http__message.payload_size `message::payload_size`] 将返回 `boost::none`。\n\n* 调用 [link beast.ref.boost__beast__http__message.prepare_payload `message::prepare_payload`] 将擦除 Content-Length 字段，并在 Transfer-Encoding 字段中添加 \"chunked\" 作为最后一个编码（如果尚未存在）。]
+]]
+
+[heading 示例]
+
+[concept_Body]
+
+[heading 模型]
+
+* [link beast.ref.boost__beast__http__basic_dynamic_body `basic_dynamic_body`]\n* [link beast.ref.boost__beast__http__basic_file_body `basic_file_body`]\n* [link beast.ref.boost__beast__http__basic_string_body `basic_string_body`]\n* [link beast.ref.boost__beast__http__buffer_body `buffer_body`]\n* [link beast.ref.boost__beast__http__empty_body `empty_body`]\n* [link beast.ref.boost__beast__http__span_body `span_body`]\n* [link beast.ref.boost__beast__http__vector_body `vector_body`]
+
+[endsect]

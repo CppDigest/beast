@@ -1,0 +1,57 @@
+[/
+    Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+    Official repository: https://github.com/boostorg/beast
+]
+
+[section:echo Echo __示例__]
+
+本示例开发了一个名为[*echo]的启动函数。该操作将从流中读取数据直到第一个换行符，然后将同一行数据（包括换行符）写回流中。首先我们定义输入参数和结果，然后声明启动函数。对于echo操作，唯一的输入是流和完成令牌。输出是错误码，通常包含在所有完成处理器的签名中。
+
+[example_core_echo_op_2]
+
+完成声明后，我们将定义函数体。需要实现以下目标：对输入参数执行静态类型检查，按照__N3747__设置返回值，并通过构造一个中间有状态完成处理器并调用它来启动组合操作。
+
+启动函数包含几个相对简单的部分：定制返回值类型、静态类型检查、使用辅助工具构建返回值类型，以及创建并启动`echo_op`组合操作对象。
+
+实现策略是使组合对象满足可移动的要求，并通过使其可调用来作为其启动的异步操作的延续。我们不使用会破坏类型信息并因此破坏关联器的`std::bind`或`boost::bind`，而是简单地将`std::move(*this)`作为完成处理器参数传递给启动的任何操作。为确保移动后正确工作，必须注意在移动发生后不再访问数据成员。以下是组合操作的完整实现：
+
+[example_core_echo_op_3]
+
+编写组合操作时应避免以下常见错误：
+
+* 对最终处理器进行类型擦除。这将导致未定义行为。
+
+* 调用后忘记包含返回语句
+  initiating function.
+
+* 意外调用同步函数。通常组合操作
+  operations should not block for long periods of time, since this
+  ties up a thread running on the __io_context__.
+
+* 忘记为组合操作提供`executor_type`和`get_executor`
+  composed operation. This will cause undefined behavior. For example,
+  if someone  calls the initiating function with a strand-wrapped
+  function object, and there is more than thread running on the
+  __io_context__, the underlying stream may be accessed in a fashion
+  that violates safety guarantees. Beast provides class templates
+  to take care of this boilerplate for you.
+
+* 忘记使用执行器创建__executor_work_guard__对象
+  type of executor returned by the stream's `get_executor` member function.
+
+* 对于立即完成的操作（即未调用异步操作的情况）
+  intermediate initiating function), forgetting to use __post__ to
+  invoke the final handler. This breaks the following initiating
+  function guarantee: ['Regardless of whether the asynchronous operation
+  completes immediately or not, the handler will not be invoked from
+  within this function. Invocation of the handler will be performed
+  in a manner equivalent to using __post__]. The function
+  __bind_handler__ is provided for this purpose.
+
+本示例完整可运行版本的代码位于[path_link example/echo-op/echo_op.cpp echo_op.cpp]。
+
+[endsect]

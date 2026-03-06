@@ -1,0 +1,171 @@
+[/
+    Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+    Official repository: https://github.com/boostorg/beast
+]
+
+[section:asio_refresher 复习]
+
+要有效使用Beast，需要具备网络基础知识。本节将回顾这些概念，作为提醒和进一步学习的指南。
+
+[@https://en.wikipedia.org/wiki/Computer_network ['网络]]允许位于任何位置的程序在通过建立[@https://en.wikipedia.org/wiki/Data_link ['连接]]选择加入通信后交换信息。数据可通过连接可靠地双向传输（[@https://en.wikipedia.org/wiki/Duplex_(telecommunications) ['全双工]]），字节按发送顺序到达。这些连接及其用于表示的对象和类型统称为[link beast.concepts.streams ['流]]。连接到网络的计算机或设备称为[@https://en.wikipedia.org/wiki/Host_(network) ['主机]]，已建立连接另一端的程序称为[@https://en.wikipedia.org/wiki/Peer-to-peer ['对等端]]。
+
+[@https://en.wikipedia.org/wiki/Internet ['互联网]]是一个使用多种标准化通信协议交换信息的全球互联计算机网络。最流行的协议是[@https://en.wikipedia.org/wiki/Transmission_Control_Protocol ['TCP/IP]]，本库完全依赖此协议。该协议处理底层细节，使应用程序看到的是['流]——即上述承载有序字节集的可靠全双工连接。[@https://en.wikipedia.org/wiki/Server_(computing) ['服务器]]是位于知名网络名称或网络地址的强大、持续在线主机，提供数据服务。[@https://en.wikipedia.org/wiki/Client_(computing) ['客户端]]是连接到服务器交换数据的临时对等端，完成后即离线。
+
+供应商提供名为[@https://en.wikipedia.org/wiki/Device_driver ['设备驱动程序]]的程序，使[@https://en.wikipedia.org/wiki/Network_interface_controller ['以太网适配器]]等网络硬件能够与操作系统通信。这进而允许运行中的程序使用各种接口（如[@https://en.wikipedia.org/wiki/Berkeley_sockets ['Berkeley套接字]]或[@https://en.wikipedia.org/wiki/Winsock ['Windows套接字2]]（"Winsock"））与网络交互。
+
+C++中的网络功能由__Asio__、[@https://think-async.com/Asio/ Asio]和__NetTS__表示，提供抽象层以可移植方式与操作系统的网络及通用[@https://en.wikipedia.org/wiki/Input/output ['输入/输出]]（"I/O"）设施交互。
+
+[/-----------------------------------------------------------------------------]
+
+[heading 缓冲区]
+
+[@https://en.wikipedia.org/wiki/Data_buffer ['缓冲区]]在执行I/O时保存连续字节序列。类型[@boost:/doc/html/boost_asio/reference/const_buffer.html `net::const_buffer`]和[@boost:/doc/html/boost_asio/reference/mutable_buffer.html `net::mutable_buffer`]将这些内存区域表示为类型安全的指针/大小对：
+
+[code_core_1_refresher_1s]
+
+[tip
+    `const_buffer`和`mutable_buffer`优于`std::span<byte>`
+    and `span<byte const>` because
+    [@https://en.cppreference.com/w/cpp/container/span `std::span`]
+    does too much. It not only
+    type-erases the original pointer but also recasts it to a pointer-to-byte.
+    The operating system doesn't care about this, but if a user wants to send
+    and receive an array of some other type, presenting it as an array of bytes
+    which supports bitwise operations is unnecessary. Custom buffer types also
+    enable implementations to provide targeted features such as
+    [@boost:/doc/html/boost_asio/overview/core/buffers.html#boost_asio.overview.core.buffers.buffer_debugging ['buffer debugging]]
+    without changing the more general vocabulary types.
+]
+
+概念__ConstBufferSequence__和__MutableBufferSequence__描述双向范围，其值类型可分别转换为`const_buffer`和`mutable_buffer`。这些序列允许在单次函数调用中处理多个缓冲区，该技术称为[@https://en.wikipedia.org/wiki/Vectored_I/O ['分散/聚集I/O]]。缓冲区及缓冲区序列不拥有所有权；复制操作产生浅引用而非底层内存的副本。以下每条语句均声明一个缓冲区序列：
+
+[code_core_1_refresher_2s]
+
+函数[@boost:/doc/html/boost_asio/reference/buffer_size.html `net::buffer_size`]和[@boost:/doc/html/boost_asio/reference/buffer_copy.html `net::buffer_copy`]分别确定缓冲区序列的总字节数，以及将部分或全部字节从一个缓冲区序列传输到另一个。`buffer_size`是定制点：允许在外部命名空间定义用户重载，调用者应不带命名空间限定地调用`buffer_size`。函数[@boost:/doc/html/boost_asio/reference/buffer_sequence_begin.html `net::buffer_sequence_begin`]和[@boost:/doc/html/boost_asio/reference/buffer_sequence_end.html `net::buffer_sequence_end`]用于获取遍历序列的迭代器对。Beast提供一组缓冲区序列类型和算法，如[link beast.ref.boost__beast__buffers_cat `buffers_cat`]、[link beast.ref.boost__beast__buffers_front `buffers_front`]、[link beast.ref.boost__beast__buffers_prefix `buffers_prefix`]、[link beast.ref.boost__beast__buffers_range `buffers_range`]和[link beast.ref.boost__beast__buffers_suffix `buffers_suffix`]。此示例将缓冲区序列中的字节作为字符串返回：
+
+[code_core_1_refresher_1]
+
+__DynamicBuffer__概念定义可调整大小的缓冲区序列接口。当内存需求提前未知时（例如从流中读取HTTP消息），算法可用动态缓冲区表示。Beast提供全面的动态缓冲区类型集合，如[link beast.ref.boost__beast__buffers_adaptor `buffers_adaptor`]、[link beast.ref.boost__beast__flat_buffer `flat_buffer`]、[link beast.ref.boost__beast__multi_buffer `multi_buffer`]和[link beast.ref.boost__beast__static_buffer `static_buffer`]。以下函数从[link beast.ref.boost__beast__tcp_stream `tcp_stream`]读取数据到动态缓冲区，直到遇到换行符，使用[@boost:/doc/html/boost_asio/reference/buffers_iterator.html `net::buffers_iterator`]将缓冲区内容视为字符范围：
+
+[code_core_1_refresher_2]
+
+
+
+[/-----------------------------------------------------------------------------]
+
+[heading 同步I/O]
+
+同步输入/输出通过阻塞函数调用完成，调用返回操作结果。此类操作通常不可取消且无超时设置方法。__SyncReadStream__和__SyncWriteStream__概念定义['同步流]要求：一种可移植I/O抽象，使用缓冲区序列传输数据表示字节，并通过`error_code`或异常报告故障。[@boost:/doc/html/boost_asio/reference/basic_stream_socket.html ['net::basic_stream_socket]]是常用于建立TCP/IP连接的同步流。满足要求的用户定义类型可行：
+
+[code_core_1_refresher_3]
+
+['同步流算法]写作函数模板，接受满足同步读、写或两者命名要求的流对象。此示例展示使用异常指示错误的文本写入算法：
+
+[code_core_1_refresher_4]
+
+同一算法可使用错误码替代异常表示：
+
+[code_core_1_refresher_5]
+
+[/-----------------------------------------------------------------------------]
+
+[heading 异步I/O]
+
+异步操作始于调用[@boost:/doc/html/boost_asio/reference/asynchronous_operations.html ['启动函数]]，该函数启动操作并立即返回调用者。此['未完成]异步操作并发进行而不阻塞调用者。当外部可观察副作用完全建立后，启动函数调用中提供的可移动函数对象（称为[@boost:/doc/html/boost_asio/reference/CompletionHandler.html ['完成处理程序]]）将随结果（可能包含错误码及其他特定信息）排队等待执行。完成处理程序排队后，异步操作即视为['完成]。以下代码展示如何异步将文本写入套接字，操作完成时调用lambda表达式：
+
+[code_core_1_refresher_3s]
+
+每个完成处理程序（亦称[@https://en.wikipedia.org/wiki/Continuation ['延续]]）均有[@boost:/doc/html/boost_asio/overview/core/allocation.html ['关联分配器]]（由[@boost:/doc/html/boost_asio/reference/get_associated_allocator.html `net::get_associated_allocator`]返回）、[@boost:/doc/html/boost_asio/reference/associated_cancellation_slot.html ['关联取消槽]]（由[@boost:/doc/html/boost_asio/reference/associated_cancellation_slot.html `net::get_associated_cancellation_slot`]返回）及[@boost:/doc/html/boost_asio/reference/associated_executor.html ['关联执行器]]（由[@boost:/doc/html/boost_asio/reference/get_associated_executor.html `net::get_associated_executor`]返回）。这些关联可通过侵入式指定：
+
+[code_core_1_refresher_6]
+
+或通过特化类模板[@boost:/doc/html/boost_asio/reference/associated_allocator.html `net::associated_allocator`]、[@boost:/doc/html/boost_asio/reference/associated_cancellation_slot.html `net::associated_cancellation_slot`]和[@boost:/doc/html/boost_asio/reference/associated_executor.html `net::associated_executor`]非侵入式指定：
+
+[code_core_1_refresher_7]
+
+当调用者需更改完成处理程序的执行器时，可使用函数[@boost:/doc/html/boost_asio/reference/bind_executor.html `net::bind_executor`]。
+
+分配器由实现用于获取执行操作所需的临时存储。临时分配始终在调用完成处理程序前释放。执行器是廉价可复制对象，提供调用完成处理程序的算法。除非调用者定制，完成处理程序默认使用`std::allocator<void>`和相应I/O对象的执行器。
+
+当调用者需为操作分配自定义分配器时，可使用函数[@boost:/doc/html/boost_asio/reference/bind_allocator.html `net::bind_allocator`]。
+
+
+完成令牌的关联取消槽可用于取消单个操作。这通常通过完成令牌（如[@boost:/doc/html/boost_asio/reference/use_awaitable.html `net::use_awaitable`]或[@boost:/doc/html/boost_asio/reference/yield_context.html `net::yield_context`]）传递。 
+
+可用[@boost:/doc/html/boost_asio/reference/cancellation_type.html 取消类型]如下：
+
+# `terminal`
+    Requests cancellation where, following a successful cancellation, 
+    the only safe operations on the I/O object are closure or destruction.
+
+# `partial`
+    Requests cancellation where a successful cancellation may result in partial 
+    side effects or no side effects. Following cancellation, 
+    the I/O object is in a well-known state, and may be used for further operations.
+
+# `total`
+    Requests cancellation where a successful cancellation results in no apparent side effects.
+     Following cancellation, the I/O object is in the same observable state as it was prior to the operation.
+
+
+
+
+网络层规定确定处理程序运行上下文的设施。每个I/O对象引用__ExecutionContext__以获取用于调用完成处理程序的__Executor__实例。执行器决定完成处理程序的调用位置及方式。从__io_context__实例获取的执行器提供基本保证：处理程序仅由当前正在调用[@boost:/doc/html/boost_asio/reference/io_context/run/overload1.html `net::io_context::run`]的线程调用。
+
+__AsyncReadStream__和__AsyncWriteStream__概念定义['异步流]要求：一种可移植I/O抽象，使用缓冲区序列异步交换数据表示字节，并通过`error_code`报告故障。['异步流算法]写作模板化启动函数模板，接受满足异步读、写或两者命名要求的流对象。此示例展示向异步流写入文本的算法：
+
+[code_core_1_refresher_8]
+
+[/-----------------------------------------------------------------------------]
+
+[heading 并发]
+
+套接字和流等I/O对象[*非线程安全]。尽管可能有多个未完成操作（如同步异步读和异步写），但流对象本身一次仅可由一个线程访问。这意味着成员函数（如移动构造函数、析构函数或启动函数）不得并发调用。通常通过同步原语（如[@https://en.cppreference.com/w/cpp/thread/mutex `互斥锁`]）实现，但并发网络程序需要更好的共享资源访问方式，因为获取互斥锁所有权可能阻塞线程执行无竞争工作。为提高效率，网络层采用无显式锁的线程模型，要求所有I/O对象访问均在[@boost:/doc/html/boost_asio/overview/core/strands.html ['链]]内执行。
+
+[/-----------------------------------------------------------------------------]
+
+[heading 通用模型]
+
+因完成处理程序导致控制流反转，有时需要其他附加延续的方法。网络层提供[@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3747.pdf ['异步操作通用模型]]，提供可定制方法将启动函数签名转换为使用其他类型对象和方法替代完成处理程序回调。例如，异步向套接字写入字符串时，使用`std::future`接收传输字节数如下：
+
+[code_core_1_refresher_4s]
+
+此功能通过传递变量[@boost:/doc/html/boost_asio/reference/use_future.html `net::use_future`]（类型为[@boost:/doc/html/boost_asio/reference/use_future_t.html `net::use_future_t<>`]）替代完成处理程序启用。同一`async_write`函数重载可与使用[@boost:/doc/html/boost_asio/reference/spawn/overload1.html `asio::spawn`]启动的[@https://en.wikipedia.org/wiki/Fiber_(computer_science) ['纤程]]协同工作：
+
+[code_core_1_refresher_5s]
+
+这两种情况下，均使用特定类型对象替代完成处理程序，且启动函数返回值从`void`转换为`std::future<std::size_t>`或`std::size_t`。此上下文中的处理程序有时称为__CompletionToken__。返回类型转换由启动函数签名中的定制点支持。以下是[@boost:/doc/html/boost_asio/reference/async_write/overload1.html `net::async_write`]的签名：
+
+注意`spawn`函数本身有完成签名，但示例中通过`asio::detached`忽略其结果。
+
+[code_core_1_refresher_9]
+
+函数返回值的类型由[@boost:/doc/html/boost_asio/reference/async_result.html `net::async_result`]定制点决定，该点附带对常见库类型（如`std::future`）的特化，也可为用户定义类型特化。启动函数主体调用[@boost:/doc/html/boost_asio/reference/async_initiate.html `net::async_initiate`]辅助函数捕获参数并转发至`async_result`的特化。额外提供"启动函数"对象，`async_result`可立即启动操作或延迟启动（称为"惰性执行"）。启动函数对象接收与启动函数预期签名匹配的内部完成处理程序：
+
+[code_core_1_refresher_10]
+
+此转换后的内部处理程序负责将操作结果传递给调用者的最终步骤。例如，使用`net::use_future`时，内部处理程序将通过调用启动函数返回的promise对象的[@https://en.cppreference.com/w/cpp/thread/promise/set_value `std::promise::set_value`]传递结果。
+
+[/-----------------------------------------------------------------------------]
+
+[heading 使用网络层]
+
+大多数库流算法要求__套接字__、__ssl_stream__或其他已与远程对等端建立通信的__流__对象。此示例作为操作套接字的提醒提供：
+
+[snippet_core_2]
+
+本文档中以下名称的标识符具有特殊含义：
+
+[table 全局变量
+[[名称][描述]]
+[[[@boost:/doc/html/boost_asio/reference/io_context.html [*`ioc`]]][类型为__io_context__的变量，运行于一个独立线程上，且已在其上构造__executor_work_guard__对象。]]
+[[[@boost:/doc/html/boost_asio/reference/ip__tcp/socket.html [*`sock`]]][类型为[@boost:/doc/html/boost_asio/reference/ip__tcp/socket.html `tcp::socket`]的变量，已连接至远程主机。]]
+[[[@boost:/doc/html/boost_asio/reference/ssl__stream.html [*`ssl_sock`]]][类型为[@boost:/doc/html/boost_asio/reference/ssl__stream.html `net::ssl::stream<tcp::socket>`]的变量，已连接至远程主机并已完成握手。]]
+[[[link beast.ref.boost__beast__websocket__stream [*`ws`]]][类型为[link beast.ref.boost__beast__websocket__stream `websocket::stream<tcp::socket>`]的变量，已连接至远程主机。]]
+]
+
+[endsect]

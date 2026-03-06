@@ -1,0 +1,63 @@
+[/
+    Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+    Official repository: https://github.com/boostorg/beast
+]
+
+[section:detect_ssl 检测SSL __example__]
+
+在本示例中，我们将构建一个简单的函数来检测输入缓冲区序列中是否存在[@https://tools.ietf.org/html/rfc2246#section-7.4 TLS客户端握手]。然后我们在该示例基础上添加一个同步流算法。最后，我们使用组合操作实现一个异步检测函数。此SSL检测器可用于允许服务器在同一端口同时接受TLS和纯文本（未加密）连接。
+
+以下是用于检测SSL客户端握手的函数模板声明。该函数接受任何类型满足__ConstBufferSequence__要求的对象。这为调用者提供了灵活性，可使用行为适合任务的缓冲区对象。
+
+[example_core_detect_ssl_1]
+
+该算法从起始处检查缓冲区，并针对TLS规范执行一系列条件检查。当数据不足无法确定时，返回的`boost::indeterminate`值会通知调用者向缓冲区读取更多数据。上述声明的函数定义如下：
+
+[example_core_detect_ssl_2]
+
+上述检测函数具有足够的通用性和针对性，可作为构建块来创建更高级别的抽象。我们的目标是创建一个['流算法]：一种通过流调用的函数，通过读取或写入（或两者）来实现目的。在本例中，即检测TLS客户端握手。流算法可以是同步或异步的。由于同步算法更易于编写，我们从此入手。然后我们构建异步版本，尝试采用类似建模以简化推理过程。
+
+同步版本的实现如下：
+
+[example_core_detect_ssl_3]
+
+现在我们有了同步版本，可以尝试类似地建模异步版本。启动异步操作的函数称为['启动函数]。虽然上述同步版本通过输出参数产生错误码，但异步版本将错误码传递给由完成令牌定义的完成处理程序或其他自定义机制。启动函数的签名反映了这些差异。
+
+首先我们声明启动函数并记录其要求、参数、前提条件和效果：
+
+[example_core_detect_ssl_4]
+
+实现启动函数还需要两个额外组件：
+
+* 一个称为"组合操作"的中间完成处理程序
+  object, which holds the state of the operation while it is in progress,
+  and also holds the user's completion handler to be invoked when the
+  opeartion completes, and
+
+* 一个"启动"函数对象，在调用时需传入参数
+  captured at the call site of the initiating function, constructs the 
+  composed operation with the captured arguments and launches it.
+
+这里我们前向声明组合操作类型，并提供启动函数对象的定义。它们被置于`detail`命名空间中，因为不应公开：
+
+[example_core_detect_ssl_5]
+
+启动函数本身的定义很直接。我们对参数执行类型检查，然后让`net::async_initiate`捕获参数列表及启动函数对象的副本。根据针对`CompletionToken`类型的`async_result`特化，启动函数可能立即被调用。或者，它可能在启动函数返回后被调用。这称为"惰性执行"，允许编写高效且富有表现力的抽象。
+
+[example_core_detect_ssl_6]
+
+现在我们将声明组合操作。需要大量必要的样板代码才能正确实现，但结果值得付出努力。
+
+[example_core_detect_ssl_7]
+
+样板代码全部完成后，现在我们需要实现函数调用运算符，将组合操作转换为具有`void(error_code, std::size_t)`签名的完成处理程序——这正是执行异步读取时所需的签名。此函数是上述`detect_ssl`同步版本的转换，但采用了回调风格代码特有的流程反转：
+
+[example_core_detect_ssl_8]
+
+[path_link example/advanced/server/advanced_server.cpp 高级服务器]和[path_link example/advanced/server-flex/advanced_server_flex.cpp 高级服务器灵活版]示例使用了此SSL检测函数。
+
+[endsect]

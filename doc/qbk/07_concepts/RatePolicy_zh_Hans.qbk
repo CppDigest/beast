@@ -1,0 +1,77 @@
+[/
+    Copyright (c) 2019 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+    Official repository: https://github.com/boostorg/beast
+]
+
+[section:RatePolicy 速率策略]
+
+一个 [*RatePolicy] 实例与一个 [link beast.ref.boost__beast__basic_stream `basic_stream`] 相关联，并控制字节独立发送和接收的速率。这可用于实现细粒度的带宽管理和流量控制。
+
+[heading 关联类型]
+
+* [link beast.ref.boost__beast__rate_policy_access `rate_policy_access`]
+
+[warning
+    这些要求可能会发生非向后兼容的变更
+    changes in subsequent versions.
+]
+
+[heading 要求]
+
+在此表中：
+
+* `P` 表示满足 [*RatePolicy] 要求的类型。
+* `x` 表示类型为 `P` 的 x值。
+* `a` 表示类型为 `P` 的值。
+* `n` 表示类型为 `std::size_t` 的值。
+
+[table 有效表达式
+[[表达式] [类型] [语义、前置/后置条件]]
+[
+    [`P a(x)`]
+    []
+    [要求 ['可移动构造]。]
+][
+    [`friend rate_policy_access`]
+    []
+    [`P` 中所需的成员函数应为私有。为使实现能够访问所需的成员函数，[link beast.ref.boost__beast__rate_policy_access `rate_policy_access`] 必须是 `P` 的友元。]
+][
+    [`a.available_read_bytes()`]
+    [`std::size_t`]
+    [此函数由实现调用，以确定下一次读取操作中允许传输的最大字节数。随后实际传输的字节数可能小于此值。
+
+如果策略返回零，读取操作将异步等待直到下一个计时器间隔后重试。重试发生时，将再次调用此函数。]
+][
+    [`a.available_write_bytes()`]
+    [`std::size_t`]
+    [此函数由实现调用，以确定下一次写入操作中允许传输的最大字节数。随后实际传输的字节数可能小于此值。
+
+如果策略返回零，读取操作将异步等待直到下一个计时器间隔后重试。重试发生时，将再次调用此函数。]
+][
+    [`a.transfer_read_bytes(n)`]
+    []
+    [实现调用此函数以通知策略：在最近的读取操作中成功传输了 `n` 个字节。策略对象可选择使用此信息计算吞吐量和/或更新用于确定后续查询传输最大值的算法。]
+][
+    [`a.transfer_write_bytes(n)`]
+    []
+    [实现调用此函数以通知策略：在最近的写入操作中成功传输了 `n` 个字节。策略对象可选择使用此信息计算吞吐量和/或更新用于确定后续查询传输限制的算法。]
+][
+    [`a.on_timer()`]
+    []
+    [每次内部计时器到期时，实现都会调用此函数。策略对象可选择利用此机会计算经过时间和吞吐量，并/或更新用于确定后续查询传输限制的算法。]
+]]
+
+[heading 示例]
+
+[concept_RatePolicy]
+
+[heading 模型]
+
+* [link beast.ref.boost__beast__simple_rate_policy `simple_rate_policy`]
+* [link beast.ref.boost__beast__unlimited_rate_policy `unlimited_rate_policy`]
+
+[endsect]

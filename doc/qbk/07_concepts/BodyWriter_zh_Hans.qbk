@@ -1,0 +1,84 @@
+[/
+    Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+
+    Official repository: https://github.com/boostorg/beast
+]
+
+[section:BodyWriter 主体写入器]
+
+一个 [*主体写入器] 提供了一种 [@https://en.wikipedia.org/wiki/Online_algorithm 在线算法] 来在序列化过程中从主体获取零个或多个缓冲区的序列。该实现在需要时创建此类型的实例，并调用它一次或多次以获取包含主体字节的缓冲区。[*主体写入器] 的接口旨在为以下场景获取缓冲区：
+
+* 无法完全放入内存的主体。
+* 由协程输出增量式生成的主体。
+* 由内存中已有的零个或多个缓冲区表示的主体。
+* 大小事先未知的主体。
+* 由其他线程动态生成的主体数据。
+* 通过算法计算得出的主体数据。
+
+[heading 关联类型]
+
+* [link beast.ref.boost__beast__http__is_body_writer `is_body_writer`]
+* **主体**
+
+[heading 要求]
+
+[warning
+    这些要求可能会经历非向后兼容的变更
+    changes in subsequent versions.
+]
+
+在此表中：
+
+* `W` 表示满足 [*主体写入器] 要求的类型。
+* `B` 表示一个**主体**，其中
+      `std::is_same<W, B::writer>::value == true`.
+* `a` 表示类型为 `W` 的值。
+* `h` 表示类型为 `header<isRequest, Fields> const&` 的常量值。
+* `v` 表示类型为 `Body::value_type&` 的可能为常量的值。
+* `ec` 表示类型为 [link beast.ref.boost__beast__error_code `error_code&`] 的值。
+* `W<T>` 是类型 `boost::optional<std::pair<T, bool>>`。
+
+[table 有效表达式
+[[表达式] [类型] [语义，前置/后置条件]]
+[
+    [`W::const_buffers_type`]
+    []
+    [一种满足 **常量缓冲区序列** 要求的类型。这是由 `W::get` 返回的缓冲区类型。]
+][
+    [`W{h,v};`]
+    []
+    [可从 `h` 和 `v` 构造。`h` 和 `v` 的生命周期保证不早于 `W` 销毁前结束。在首次调用 `init` 前，写入器不得访问 `h` 或 `v` 的内容，以允许消息的延迟构造。
+
+构造函数可选择要求 `h` 和 `v` 为常量引用，这将导致以下后果：
+
+* 若 `W` 要求 `h` 和 `v` 为常量引用，则此主体类型对应的序列化器构造函数将接受消息的常量引用；否则：
+
+* 若 `W` 要求 `h` 和 `v` 为非常量引用，则此主体类型对应的序列化器构造函数将要求消息的非常量引用。]
+][
+    [`a.init(ec)`]
+    []
+    [在调用 `get` 前调用一次以完全初始化对象。消息主体在进入此函数前变为有效，并保持有效直至写入器销毁。该函数将确保：若无错误则 `!ec` 为 `true`，若有错误则设置为相应的错误代码。]
+][
+    [`a.get(ec)`]
+    [`W<W::const_buffers_type>`]
+    [在 `init` 成功后调用一次或多次。若所有表示主体的缓冲区已在先前调用中返回，或若设置 `ec` 表示错误，则此函数返回 `boost::none`。否则，若仍有剩余缓冲区，函数应返回一个对（pair）：首元素包含表示主体下一组字节的非零长度缓冲区序列，次元素为布尔值——若后续调用可能返回额外缓冲区则为 `true`，若此调用返回的缓冲区是主体的最后一个缓冲区则为 `false`。该函数将确保：若无错误则 `!ec` 为 `true`，若有错误则设置为相应的错误代码。]
+]]
+
+[heading 范例]
+
+[concept_BodyWriter]
+
+[heading 模型]
+
+* [link beast.ref.boost__beast__http__basic_dynamic_body.writer `basic_dynamic_body::writer`]
+* [link beast.ref.boost__beast__http__basic_file_body__writer `basic_file_body::writer`]
+* [link beast.ref.boost__beast__http__basic_string_body.writer `basic_string_body::writer`]
+* [link beast.ref.boost__beast__http__buffer_body.writer `buffer_body::writer`]
+* [link beast.ref.boost__beast__http__empty_body.writer `empty_body::writer`]
+* [link beast.ref.boost__beast__http__span_body.writer `span_body::writer`]
+* [link beast.ref.boost__beast__http__vector_body.writer `vector_body::writer`]
+
+[endsect]
