@@ -9,120 +9,81 @@
 
 [section:DynamicBuffer DynamicBuffer]
 
-A dynamic buffer encapsulates memory storage that may be automatically resized
-as required, where the memory is divided into an input sequence followed by an
-output sequence. These memory regions are internal to the dynamic buffer, but
-direct access to the elements is provided to permit them to be efficiently used
-with I/O operations, such as the send or receive operations of a socket. Data
-written to the output sequence of a dynamic buffer object is appended to the
-input sequence of the same object.
+动态缓冲区封装了可自动调整大小的内存存储，其中内存被划分为输入序列后接输出序列。这些内存区域位于动态缓冲区内部，但提供了对元素的直接访问权限，以便高效地用于I/O操作（如套接字的发送或接收操作）。写入动态缓冲区对象输出序列的数据将追加到同一对象的输入序列中。
 
-The interface to this concept is intended to permit the following
-implementation strategies:
+此概念的接口设计旨在支持以下实现策略：
 
-* A single contiguous octet array, which is reallocated as necessary to
+* 单个连续八位字节数组，必要时可重新分配以
   accommodate changes in the size of the octet sequence. This is the
   implementation approach currently offered by __flat_buffer__.
 
-* A sequence of one or more octet arrays, where each array is of the same
+* 一个或多个八位字节数组组成的序列，其中每个数组具有相同
   size. Additional octet array objects are appended to the sequence to
   accommodate changes in the size of the octet sequence.
 
-* A sequence of one or more octet arrays of varying sizes. Additional octet
+* 由大小各异的一个或多个八位字节数组组成的序列。额外的八位字节
   array objects are appended to the sequence to accommodate changes in the
   size of the character sequence. This is the implementation approach
   currently offered by __multi_buffer__.
 
-[heading Associated With]
+[heading 关联类型]
 
 * `boost::asio::is_dynamic_buffer`
 * __ConstBufferSequence__
 * __MutableBufferSequence__
 
-[heading Requirements]
+[heading 要求]
 
-* `D` denotes a dynamic buffer class.
-* `a` denotes a value of type `D`.
-* `c` denotes a (possibly const) value of type `D`.
-* `n` denotes a value of type `std::size_t`.
-* `T` denotes a type meeting the requirements for __ConstBufferSequence__.
-* `U` denotes a type meeting the requirements for __MutableBufferSequence__.
+* `D` 表示动态缓冲区类。
+* `a` 表示类型为 `D` 的值。
+* `c` 表示类型为 `D` 的（可能为常量）值。
+* `n` 表示类型为 `std::size_t` 的值。
+* `T` 表示满足 __ConstBufferSequence__ 要求的类型。
+* `U` 表示满足 __MutableBufferSequence__ 要求的类型。
 
-[table Valid expressions
-[[Expression] [Type] [Semantics, Pre/Post-conditions]]
+[table 合法表达式
+[[表达式] [类型] [语义、前置/后置条件]]
 [
     [`D::const_buffers_type`]
     [`T`]
-    [
-        This type represents the memory associated with the input sequence.
-    ]
+    [此类型表示与输入序列关联的内存。]
 ][
     [`D::mutable_buffers_type`]
     [`U`]
-    [
-        This type represents the memory associated with the output sequence.
-    ]
+    [此类型表示与输出序列关联的内存。]
 ][
     [`c.size()`]
     [`std::size_t`]
-    [
-        Returns the size, in bytes, of the input sequence.
-    ]
+    [返回输入序列的字节大小。]
 ][
     [`c.max_size()`]
     [`std::size_t`]
-    [
-        Returns the permitted maximum of the sum of the sizes of the input
-        sequence and output sequence.
-    ]
+    [返回输入序列和输出序列大小之和的允许最大值。]
 ][
     [`c.capacity()`]
     [`std::size_t`]
-    [
-        Returns the maximum sum of the sizes of the input sequence and output
-        sequence that the dynamic buffer can hold without requiring reallocation.
-    ]
+    [返回动态缓冲区无需重新分配即可容纳的输入序列和输出序列大小之和的最大值。]
 ][
     [`c.data()`]
     [`D::const_buffers_type`]
-    [
-        Returns a constant buffer sequence u that represents the memory
-        associated with the input sequence, and where `buffer_size(u) == size()`.
-    ]
+    [返回表示与输入序列关联内存的常量缓冲区序列u，其中 `buffer_size(u) == size()`。]
 ][
     [`a.prepare(n)`]
     [`D::mutable_buffers_type`]
-    [
-        Returns a mutable buffer sequence u representing the output sequence,
-        and where `buffer_size(u) == n`. The dynamic buffer reallocates memory
-        as required. All constant or mutable buffer sequences previously
-        obtained using `data()` or `prepare()` are invalidated.
+    [返回表示输出序列的可变缓冲区序列u，其中 `buffer_size(u) == n`。动态缓冲区会根据需要重新分配内存。先前通过 `data()` 或 `prepare()` 获取的所有常量或可变缓冲区序列均失效。
 
-        Throws: `length_error` if `size() + n` exceeds `max_size()`.
-    ]
+抛出：若 `size() + n` 超过 `max_size()` 则抛出 `length_error`。]
 ][
     [`a.commit(n)`]
     [ ]
-    [
-        Appends `n` bytes from the start of the output sequence to the end of
-        the input sequence. The remainder of the output sequence is discarded.
-        If `n` is greater than the size of the output sequence, the entire
-        output sequence is appended to the input sequence. All constant or
-        mutable buffer sequences previously obtained using `data()` or
-        `prepare()` are invalidated.
-    ]
+    [将输出序列起始的 `n` 个字节追加到输入序列末尾。输出序列的剩余部分将被丢弃。若 `n` 大于输出序列大小，则整个输出序列将被追加到输入序列。先前通过 `data()` 或 `prepare()` 获取的所有常量或可变缓冲区序列均失效。]
 ][
     [`a.consume(n)`]
     [ ]
-    [
-        Removes `n` bytes from beginning of the input sequence. If `n` is
-        greater than the size of the input sequence, the entire input sequence
-        is removed. All constant or mutable buffer sequences previously
-        obtained using `data()` or `prepare()` are invalidated.
-    ]
+    [从输入序列起始处移除 `n` 个字节。若 `n` 大于输入序列大小，则整个输入序列将被移除。先前通过 `data()` 或 `prepare()` 获取的所有常量或可变缓冲区序列均失效。]
 ]]
 
-[heading Models]
+[heading 模型]
 
 * [link beast.ref.boost__beast__basic_flat_buffer `basic_flat_buffer`]
 * [link beast.ref.boost__beast__basic_multi_buffer `basic_multi_buffer`]
