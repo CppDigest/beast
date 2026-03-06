@@ -7,40 +7,20 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Configuration Preprocessor Definitions]
+[section 配置预处理器定义]
 
-A number of configuration preprocessor definitions can be used to change
-the behavior of Beast.
-The user should assume that they introduce significant changes to the public part
-of this library's API and make sure that all translation units (usually files)
-compiled and linked into a program use the same combination of configuration macros,
-failure to do so may result in violations of ODR (One Definition Rule).
+用户可通过若干配置预处理器定义来更改Beast的行为。用户应意识到这些定义会显著改变该库公共API部分，并确保所有编译链接到程序中的翻译单元（通常是文件）使用相同的配置宏组合。若未能满足此要求，可能导致违反单一定义规则（ODR）。
 
-[table Special Fields
-[[Definition][Description]]
+[table 特殊字段
+[[定义][描述]]
 [
-    [
-        BOOST_BEAST_SEPARATE_COMPILATION
-    ][
-        Enables the split compilation mode, which allows the user to compile
-        definitions of non-template entities in a single translation unit, thus
-        improving compilation speed. That translation unit has to include
-        boost/beast/src.hpp in order to compile the definitions.
-    ]
+    [BOOST_BEAST_SEPARATE_COMPILATION][启用分离编译模式，允许用户在单个翻译单元中编译非模板实体的定义，从而提升编译速度。该翻译单元需包含boost/beast/src.hpp头文件以编译相关定义。]
 ]
 [
-    [
-        BOOST_BEAST_ALLOW_DEPRECATED
-    ][
-        Enables the use of deprecated APIs within Beast.
-    ]
+    [BOOST_BEAST_ALLOW_DEPRECATED][启用Beast内部已弃用API的使用权限。]
 ]
 [
-    [
-        BOOST_BEAST_FILE_BUFFER_SIZE
-    ][
-        Sets the small buffer size for the file_body. Defaults to 4096.
-    ]
+    [BOOST_BEAST_FILE_BUFFER_SIZE][设置file_body的小型缓冲区大小，默认值为4096。]
 ]
 ]
 
