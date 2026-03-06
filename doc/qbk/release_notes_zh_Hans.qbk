@@ -7,7 +7,7 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Release Notes]
+[section 发布说明]
 
 [/-----------------------------------------------------------------------------]
 
@@ -15,250 +15,250 @@
 
 [*API Changes]
 
-* [issue 3042] `http::parser` rejects non-standard trailer fields by default.
+* [问题 3042] `http::parser` 默认拒绝非标准尾部字段。
   ['Actions Required]:
   * If your code relies on a non-standard trailer field, consider setting
     [link beast.ref.boost__beast__http__parser.merge_all_trailers.overload2 `http::parser::merge_all_trailers`]
     after you have validated the `Trailer` header field in the header section of the message.
-* [issue 3042] `http::basic_parser` uses a dedicated callback for trailer fields.
+* [问题 3042] `http::basic_parser` 使用专用回调处理尾部字段。
   ['Actions Required]:
   * Custom parsers derived from `http::basic_parser` must override the new virtual function  
     [link beast.ref.boost__beast__http__basic_parser.on_trailer_field_impl `http::basic_parser::on_trailer_field_impl`]
     which is invoked for each field received while parsing the trailer section
     of a chunked HTTP message.
-* [issue 3042] `http::field` constants are updated.
+* [问题 3042] `http::field` 常量已更新。
   ['Actions Required]:
   * Most removed constants were unrelated to the HTTP protocol. If your code
     used one of them, please use the corresponding string literal value.
 
 [*Fixes]
 
-* [issue 3034] Fixed allocator move/copy assignment in `flat_buffer` and `multi_buffer`
-* [issue 3028] Fixed websocket permessage-deflate error on partial message consumption
-* [issue 3032] `http::buffer_body` ignores empty chunks
+* [问题 3034] 修复了 `flat_buffer` 和 `multi_buffer` 中分配器的移动/复制赋值问题
+* [问题 3028] 修复了在部分消息消费时 WebSocket 的 per-message-deflate 错误
+* [问题 3032] `http::buffer_body` 忽略空数据块
 
 [*Improvements]
 
-* [issue 3039] Added `http::basic_fields::contains` member function
-* [issue 3050] Removed dependency on Boost.Preprocessor
-* [issue 3048] Removed dependency on Boost.StaticAssert
+* [问题 3039] 添加了 `http::basic_fields::contains` 成员函数
+* [问题 3050] 移除了对 Boost.Preprocessor 的依赖
+* [问题 3048] 移除了对 Boost.StaticAssert 的依赖
 
 [heading Boost 1.89]
 
 [*Fixes]
 
-* [issue 3002] Conditionally defined `immediate_executor_type` in `async_base`
-* [issue 2999] Used `handshake_timeout` for closing handshake during read operations
-* [issue 3003] Added missing `cstdint` header to `detail/cpu_info.hpp`
-* [issue 3016] Fixed `std::is_trivial` deprecation warnings
-* [issue 3019] Fixed `-Wmaybe-uninitialized` warnings
+* [问题 3002] 在 `async_base` 中有条件地定义了 `immediate_executor_type`
+* [问题 2999] 在读取操作期间使用 `handshake_timeout` 进行关闭握手
+* [问题 3003] 在 `detail/cpu_info.hpp` 中添加了缺失的 `cstdint` 头文件
+* [问题 3016] 修复了 `std::is_trivial` 弃用警告
+* [问题 3019] 修复了 `-Wmaybe-uninitialized` 警告
 
 [*Improvements]
 
-* [issue 3005] Replaced `detail/work_guard.hpp` with `net::executor_work_guard`
-* [issue 3016] Fixed portability issues for building tests in MinGW
+* [问题 3005] 将 `detail/work_guard.hpp` 替换为 `net::executor_work_guard`
+* [问题 3016] 修复了在 MinGW 中构建测试的可移植性问题
 
 [*Documentation]
 
-* [issue 3009] Removed moved sections from documentation
-* [issue 3009] Removed superfluous log messages from tests
+* [问题 3009] 从文档中移除了已迁移的章节
+* [问题 3009] 从测试中移除了多余的日志消息
 
 [heading Boost 1.88]
 
 [*Fixes]
 
-* [issue 2962] Fixed out-of-bounds access in `iequals` function
+* [问题 2962] 修复了 `iequals` 函数中的越界访问问题
 
 [*Improvements]
 
-* [issue 2974] Updated SSL examples to verify peer certificate hostname
-* [issue 2954] Refactored CMakeLists
-* [issue 2955] Removed Boost.Scope dependency from examples
-* [issue 2716] WebSockets: Peer pings are counted as activity for `idle_timeout`
+* [问题 2974] 更新了 SSL 示例以验证对等证书的主机名
+* [问题 2954] 重构了 CMakeLists
+* [问题 2955] 从示例中移除了对 Boost.Scope 的依赖
+* [问题 2716] WebSockets：对等方的 ping 会计入 `idle_timeout` 的活动
 
 [*Documentation]
 
-* [issue 2918] Added new examples for Unix domain sockets
-* [issue 2910] Added SSL/TLS Certificate section to documentation
-* [issue 2730] Improved documentation of `websocket::stream::async_close`
+* [问题 2918] 添加了新的 Unix 域套接字示例
+* [问题 2910] 在文档中添加了 SSL/TLS 证书章节
+* [问题 2730] 改进了 `websocket::stream::async_close` 的文档
 
 [heading Boost 1.87]
 
 [*API Changes]
 
-* [issue 2920] Added `error_code` overload for `basic_fields::insert()`
-* [issue 2911] Added overload for `websocket::stream::get_status` to query permessage-deflate status
+* [问题 2920] 为 `basic_fields::insert()` 添加了 `error_code` 重载
+* [问题 2911] 为 `websocket::stream::get_status` 添加了重载以查询 per-message-deflate 状态
 
 [*Fixes]
 
-* [issue 2926] Fixed use-after-move in calls to `net::dispatch` within `http::basic_stream`, which caused `bad_executor` exceptions on timeouts
-* [issue 2915] Removed mutating operations in initiating functions
-* [issue 2915] Fixed cancellation handling in `teardown_tcp_op`
-* [issue 2920] Set `state_` in `basic_parser` before calling `on_finish_impl`
-* [issue 2939] Removed static specifier from `clamp` functions
-* [issue 2903] Addressed `-Wattributes` warnings in tests
-* [issue 2944] Addressed unreachable code warning in tests
+* [问题 2926] 修复了在 `http::basic_stream` 内调用 `net::dispatch` 时发生的移动后使用问题，该问题在超时时导致 `bad_executor` 异常
+* [问题 2915] 移除了初始化函数中的可变操作
+* [问题 2915] 修复了 `teardown_tcp_op` 中的取消处理
+* [问题 2920] 在调用 `on_finish_impl` 前设置 `basic_parser` 中的 `state_`
+* [问题 2939] 移除了 `clamp` 函数中的 static 限定符
+* [问题 2903] 处理了测试中的 `-Wattributes` 警告
+* [问题 2944] 处理了测试中的不可达代码警告
 
 [*Improvements]
 
-* [issue 2940] Added forward declaration headers for types in `beast::http` namespace
-* [issue 2920] Enabled `http::parser` to use `basic_fields::insert()` with `error_code` overload
-* [issue 2920] Applied `header_limit_` in `http::basic_parser` to trailer headers
-* [issue 2920] Improved `http::basic_parser` to return `http::error::header_limit` earlier
-* [issue 2905] Added support for modular boost build structure
+* [问题 2940] 为 `beast::http` 命名空间中的类型添加了前向声明头文件
+* [问题 2920] 使 `http::parser` 能够使用带 `error_code` 重载的 `basic_fields::insert()`
+* [问题 2920] 在 `http::basic_parser` 中对尾部头部应用 `header_limit_`
+* [问题 2920] 改进了 `http::basic_parser` 以更早返回 `http::error::header_limit`
+* [问题 2905] 添加了对模块化 Boost 构建结构的支持
 
 [heading Boost 1.86]
 
 [*API Changes]
 
-* [issue 2878] Added HTTP status code *418 I'm a teapot*
+* [问题 2878] 添加了 HTTP 状态码 *418 I'm a teapot*
 
 [*Fixes]
 
-* [issue 2879] Narrowing conversion in `read_size_hint_db()`
-* [issue 2893] Overloads that are ambiguous when using default completion tokens
-* [issue 2517] Misplaced static_assert in `http::basic_fields` move-assignment operator
-* [issue 2880] Underflow of `bytes_transferred` in WebSocket partial write operations
-* [issue 2879] `websocket::stream::read_size_hint()` does not exceed `read_message_max`
-* [issue 2877] Various warnings in tests
-* [issue 2872] Error handling in SSL shutdown operations in examples
-* [issue 2869] Annotate fallthrough case in zlib
-* [issue 2866] Handling of expired timers in `basic_stream::ops::transfer_op`
-* [issue 2864] Ambiguity in `test::basic_stream` constructor overloads
-* [issue 2861] Partial parsing of the final chunk in `http::parser`
+* [问题 2879] `read_size_hint_db()` 中的窄化转换
+* [问题 2893] 使用默认完成令牌时存在歧义的重载
+* [问题 2517] `http::basic_fields` 移动赋值运算符中位置错误的 static_assert
+* [问题 2880] WebSocket 部分写入操作中 `bytes_transferred` 的下溢
+* [问题 2879] `websocket::stream::read_size_hint()` 不会超过 `read_message_max`
+* [问题 2877] 测试中的各种警告
+* [问题 2872] 示例中 SSL 关闭操作中的错误处理
+* [问题 2869] 在 zlib 中标注了 fallthrough 情况
+* [问题 2866] `basic_stream::ops::transfer_op` 中过期计时器的处理
+* [问题 2864] `test::basic_stream` 构造函数重载的歧义
+* [问题 2861] `http::parser` 中最终数据块的部分解析
 
 [*Improvements]
 
-* [issue 2897] Graceful shutdown in `server_flex_awaitable` example
-* [issue 2897] Simplified awaitable examples
-* [issue 2888] Added fuzzing targets
-* [issue 2875] Removed superfluous uses of `std::bind` in some examples
-* [issue 2875] `ssl_stream` does not use `flat_stream`
+* [问题 2897] `server_flex_awaitable` 示例中的优雅关闭
+* [问题 2897] 简化了 awaitable 示例
+* [问题 2888] 添加了模糊测试目标
+* [问题 2875] 移除了部分示例中多余的 `std::bind` 使用
+* [问题 2875] `ssl_stream` 不使用 `flat_stream`
 
 [*Documentation]
 
-* [issue 2875] `ssl_stream` and `flat_stream` marked as deprecated
-* [issue 2875] `net::ssl::stream` is canonical in snippets and examples
-* [issue 2872] Added `SSL/TLS Shutdown Procedure` section
+* [问题 2875] `ssl_stream` 和 `flat_stream` 标记为已弃用
+* [问题 2875] 在代码片段和示例中，`net::ssl::stream` 是规范形式
+* [问题 2872] 添加了 `SSL/TLS 关闭过程` 章节
 
 [heading Boost 1.85]
 
 [*API Changes]
 
-* [issue 2811] The status code list has been updated to conform with the IANA registry
+* [问题 2811] 状态码列表已更新以符合 IANA 注册表
 
 [*Fixes]
 
-* [issue 2803] Unreachable code warning in `buffers_cat.hpp`
-* [issue 2778] Connection error handling in `websocker_server_awaitable` example
-* [issue 2739] Concurrent calls to `async_write` in advanced server examples
-* [issue 2810] zlib name conflicts with minizip
-* [issue 2818] host string should be updated after `SSL_set_tlsext_host_name()`
+* [问题 2803] `buffers_cat.hpp` 中的不可达代码警告
+* [问题 2778] `websocket_server_awaitable` 示例中的连接错误处理
+* [问题 2739] 高级服务器示例中 `async_write` 的并发调用
+* [问题 2810] zlib 名称与 minizip 冲突
+* [问题 2818] 在 `SSL_set_tlsext_host_name()` 后应更新主机字符串
 
 [*Improvements]
 
-* [issue 2782] `asio::associator` is specialized for `bind_wrapper` and `bind_front_wrapper`
-* [issue 2646] Add non-allocating overload for error category message function
+* [问题 2782] 为 `bind_wrapper` 和 `bind_front_wrapper` 特化了 `asio::associator`
+* [问题 2646] 为错误类别消息函数添加了非分配重载
 
 [*Documentation]
 
-* [issue 2789] Specifies when calling `http::message::prepare_payload()` is optional
-* [issue 2799] Operations affected by `basic_stream::expires_after()`
-* [issue 2808] `teardown()` and `async_teardown()` are customization points
-* [issue 2814] Moving or copying `http::serializer` after first usage is undefined behaviour
-* [issue 2817] `websocket::permessage_deflate` should be configured before performing the WebSocket handshake
-* [issue 2816] `bytes_transferred` in http reads operations reports the number of bytes consumed by the HTTP parser
+* [问题 2789] 指定了何时调用 `http::message::prepare_payload()` 是可选的
+* [问题 2799] 受 `basic_stream::expires_after()` 影响的操作
+* [问题 2808] `teardown()` 和 `async_teardown()` 是定制点
+* [问题 2814] 首次使用后移动或复制 `http::serializer` 是未定义行为
+* [问题 2817] `websocket::permessage_deflate` 应在执行 WebSocket 握手前配置
+* [问题 2816] HTTP 读取操作中的 `bytes_transferred` 报告 HTTP 解析器消耗的字节数
 
 [heading Boost 1.84]
 
 [*API Changes]
 
-* Remove deprecated allocation and invocation hooks
+* 移除了已弃用的分配和调用钩子
 
 [*Features]
 
-* Support for `immediate_executor`
+* 支持 `immediate_executor`
 
 [*Fixes]
 
-* [issue 2766] Use the explicit type std::size_t when completing transfer_op
-* [issue 2727] Replaced `BOOST_ASIO_INITFN_RESULT_TYPE` with `BOOST_ASIO_INITFN_AUTO_RES`
-* [issue 2715] `server-flex-awaitable` example resets parser
+* [问题 2766] 在完成 transfer_op 时使用显式类型 std::size_t
+* [问题 2727] 将 `BOOST_ASIO_INITFN_RESULT_TYPE` 替换为 `BOOST_ASIO_INITFN_AUTO_RES`
+* [问题 2715] `server-flex-awaitable` 示例重置了解析器
 
 [*Documentation]
 
-* [issue 2713] Corrected the `websocket::stream::async_ping/pong` handler requirement
-* [issue 2755] Update documentation for `websocket::stream::async_write_some`
+* [问题 2713] 更正了 `websocket::stream::async_ping/pong` 处理程序的要求
+* [问题 2755] 更新了 `websocket::stream::async_write_some` 的文档
 
 [heading Boost 1.83]
 
 [*Fixes]
 
-* [issue 2680] aligned_storage unused for C+23
-* [issue 2653] MSVC literal `not` error
-* [issue 2661] ssl_stream ambiguity error on clang
-* [issue 2649] Jamefile uses openssl.jam
+* [问题 2680] 对于 C+23，aligned_storage 未使用
+* [问题 2653] MSVC 字面量 `not` 错误
+* [问题 2661] clang 上的 ssl_stream 歧义错误
+* [问题 2649] Jamfile 使用 openssl.jam
 
 [heading Boost 1.82]
 
 [*Features]
 
-* [issue 2475] Add `error_code`s use source_location
+* [问题 2475] 添加使用 source_location 的 `error_code`
 
 [*Fixes]
 
-* [issue 2602] tcp_stream uses the correct executor of the timer.
-* [issue 2638] `std::placeholders` ambiguity fix.
+* [问题 2602] tcp_stream 使用计时器的正确执行器。
+* [问题 2638] 修复了 `std::placeholders` 歧义。
 
 [*Improvements]
 
-* error_categories use numeric ids
-* `file_body` support seek
+* 错误类别使用数字 ID
+* `file_body` 支持 seek
 
 
 [heading Boost 1.81]
 
 [*Features]
 
-* Add `buffers_generator`
-* Add [link beast.ref.boost__beast__http__message_generator `http::message_generator`]
-* Add [link beast.ref.boost__beast__buffer_ref `buffer_ref`]
-* Support for per-operation cancellation
+* 添加 `buffers_generator`
+* 添加 [link beast.ref.boost__beast__http__message_generator `http::message_generator`]
+* 添加 [link beast.ref.boost__beast__buffer_ref `buffer_ref`]
+* 支持按操作取消
 
 [*Fixes]
 
-* [issue 2439] Fix CVE-2018-25032 in zlib streams
-* [issue 264] Websocket support continue in upgrade
-* [issue 471] Unquote takes s by reference
+* [问题 2439] 修复了 zlib 流中的 CVE-2018-25032
+* [问题 264] WebSocket 在升级中支持 continue
+* [问题 471] Unquote 通过引用获取 s
 
 [*Improvements]
 
-* [issue 2104] C++20 awaitable examples.
-* [issue 226], [issue 227] per-message compression options
-* [issue 2449] websocket timeout option api
-* [issue 2468] multiple content length error
+* [问题 2104] C++20 awaitable 示例。
+* [问题 226]、[问题 227] 每条消息的压缩选项
+* [问题 2449] WebSocket 超时选项 API
+* [问题 2468] 多个 content length 错误
 
 [*Miscellaneous]
 
-* Use `span` from Boost.Core
-* Use `static_string` from Boost.StaticString
-* `serializer::is_done` is `const`
-* Support for default-completion and rebind
-* [issue 2469] s390x architecture support
+* 使用 Boost.Core 中的 `span`
+* 使用 Boost.StaticString 中的 `static_string`
+* `serializer::is_done` 为 `const`
+* 支持默认完成和重新绑定
+* [问题 2469] s390x 架构支持
 
 [*Documentation]
 
-* [issue 891] Feature table for buffers
-* [issue 516] Case-insensitivity for fields is stated
-* [issue 298] api version is documented
+* [问题 891] 缓冲区的特性表
+* [问题 516] 说明了字段的区分大小写
+* [问题 298] 记录了 API 版本
 
 
 [heading Boost 1.80]
 
 [*Miscellaneous]
 
-* [issue 2363] Remove `BOOST_BEAST_USE_STD_STRING_VIEW`
-* [issue 2417] use boost::core::string_view. This improves inter-conversion between string_view implementations. Some observable differences for users:
+* [问题 2363] 移除了 `BOOST_BEAST_USE_STD_STRING_VIEW`
+* [问题 2417] 使用 boost::core::string_view。这改进了不同 string_view 实现之间的相互转换。用户可观察到的一些差异：
  * `core::string_view` no longer supports the `.to_string()` or `.clear()` extensions from Utility
  * code that relied on `.max_size()` returning `.size(),` needs to be fixed to use `.size()` instead
  * `remove_suffix()` and `remove_prefix()` were more lenient than the standard specs; be sure you don't rely on it clamping the argument to valid range
@@ -269,37 +269,37 @@
 
 [*Fixes]
 
-* [issue 2391] Add missing include for file_body test.
-* [issue 2364] Fix WebSocket handshake response on failure.
-* [issue 2280] (related) Fix open append mode for file_posix.
-* [issue 2280] Fix open append mode for file_win32.
-* [issue 2280] Fix file open with append/append_existing flag on Windows
-* [issue 2354] Fix clang-cl UTF8 path handling for `file_win32`.
-* [issue 2354] Fix clang-cl UTF8 path handling for `file_stdio`.
+* [问题 2391] 为 file_body 测试添加了缺失的包含。
+* [问题 2364] 修复了失败时的 WebSocket 握手响应。
+* [问题 2280]（相关）修复了 file_posix 的追加打开模式。
+* [问题 2280] 修复了 file_win32 的追加打开模式。
+* [问题 2280] 修复了在 Windows 上使用 append/append_existing 标志打开文件的问题
+* [问题 2354] 修复了 clang-cl 在 `file_win32` 中的 UTF8 路径处理。
+* [问题 2354] 修复了 clang-cl 在 `file_stdio` 中的 UTF8 路径处理。
 
 [*Miscellaneous]
 
-* [issue 2375] Add ARM64 builds to drone CI
-* [issue 2217] Fix async_base documentation link
-* [issue 2280] Add tests for file open in append/append_existing mode
-* [issue 2351] Update CI to include gcc 11, clang 12, msvc 14.3
-* [issue 2350] Add individual tests to CMake workflow
+* [问题 2375] 将 ARM64 构建添加到 drone CI
+* [问题 2217] 修复 async_base 文档链接
+* [问题 2280] 添加文件以追加/append_existing 模式打开的测试
+* [问题 2351] 更新 CI 以包含 gcc 11、clang 12、msvc 14.3
+* [问题 2350] 将单独测试添加到 CMake 工作流
 
 [heading Boost 1.78]
 
 [*Fixes]
 
-* Fix CVE-2016-9840 in zlib implementation.
-* Fix TLS SNI handling in websocket_client_async_ssl example.
-* [issue 2313] Fix reuse of sliding window in WebSocket permessage_deflate.
-* Fix accept error handling in http_server_async example.
+* 修复 zlib 实现中的 CVE-2016-9840。
+* 修复 websocket_client_async_ssl 示例中的 TLS SNI 处理。
+* [问题 2313] 修复 WebSocket per-message-deflate 中滑动窗口的重用问题。
+* 修复 http_server_async 示例中的接受错误处理。
 
 [*Miscellaneous]
 
-* Remove test framework's dependency on RTTI.
-* Move library-specific docca configuration to Beast.
-* Remove dependency on RTTI in `test::stream`.
-* Fix missing includes in test headers.
+* 移除测试框架对 RTTI 的依赖。
+* 将库特定的 docca 配置移至 Beast。
+* 在 `test::stream` 中移除对 RTTI 的依赖。
+* 修复测试头文件中缺失的包含。
 
 
 
@@ -307,74 +307,74 @@
 
 [*Fixes]
 
-* [issue 2233] Remove use of POSIX-only constant.
+* [问题 2233] 移除了仅限 POSIX 的常量使用。
 
 [*Miscellaneous]
 
-* Fixes to tests.
-* Improvements and fixes in Github and Drone CI.
-* Accommodate Docca updates.
-* Update example root certificates.
-* Add example of reading large response body.
-* Remove Travis CI.
-* Update CMakeLists.txt
+* 测试修复。
+* Github 和 Drone CI 的改进与修复。
+* 适应 Docca 更新。
+* 更新示例根证书。
+* 添加读取大型响应体的示例。
+* 移除 Travis CI。
+* 更新 CMakeLists.txt
 
 
 [heading Boost 1.76]
 
 [*Fixes]
 
-* [issue 2139] Add executor rebind to test::stream.
-* Fix unused variable compiler warning in WebSocket async shutdown.
+* [问题 2139] 向 test::stream 添加执行器重新绑定。
+* 修复 WebSocket 异步关闭中未使用变量的编译器警告。
 
 [*Improvements]
 
-* [issue 2124] Floating point support no longer required to use Beast.
-* Reduce size of websockety compiled code by using a common buffers type for all operations.
-* HTTP Parser has improved detection of incorrect use.
+* [问题 2124] 不再要求使用浮点支持来使用 Beast。
+* 通过为所有操作使用通用缓冲区类型来减小 WebSocket 编译代码的大小。
+* HTTP 解析器改进了对错误使用的检测。
 
 
 [*Miscellaneous]
 
-* [issue 2140] Add cxxstd tag to library metadata.
-* Move to Drone CI.
-* Minor documentation formatting improvements.
-* CML now finds required Boost::thread library during in-tree build.
+* [问题 2140] 向库元数据添加 cxxstd 标签。
+* 迁移至 Drone CI。
+* 小幅改进文档格式。
+* CML 现在在树内构建期间能找到所需的 Boost::thread 库。
 
 
 [heading Boost 1.75]
 
 [*Fixes]
 
-* Eliminate spurious unused parameter warning in `detect_ssl`.
-* Update Websocket examples to set the SNI for TLS connections.
-* [issue 2023] websocket async_shutdown will now shutdown the underlying TLS transport.
-* [issue 2011] File open with append_existing flag now works correctly in posix environments.
-* [issue 2039] Windows builds now link to bcrypt as required by the filesystem library.
-* [issue 2063] Logic error fixed in `advanced_server_flex` example.
-* [issue 1582] Fix unreachable code error on MSVC.
-* [issue 2070] Fix http body behaviour when body_limit it none.
-* [issue 2065] Fix behaviour of `basic_stream` when a zero-length write is requested.
-* [issue 2080] Add enums representing Sec-* HTTP headers.
-* [issue 2085] Fix `nullptr` implicit cast on `fields::set()`.
-* [issue 2029] Fix C++20 tests for `basic_stream`.
+* 消除 `detect_ssl` 中虚假的未使用参数警告。
+* 更新 WebSocket 示例以设置 TLS 连接的 SNI。
+* [问题 2023] websocket async_shutdown 现在将关闭底层 TLS 传输。
+* [问题 2011] 在 POSIX 环境中，使用 append_existing 标志打开文件现在能正确工作。
+* [问题 2039] Windows 构建现在按要求链接到 bcrypt（文件系统库所需）。
+* [问题 2063] 修复了 `advanced_server_flex` 示例中的逻辑错误。
+* [问题 1582] 修复 MSVC 上的不可达代码错误。
+* [问题 2070] 修复当 body_limit 为 none 时的 http body 行为。
+* [问题 2065] 修复请求零长度写入时 `basic_stream` 的行为。
+* [问题 2080] 添加表示 Sec-* HTTP 头的枚举。
+* [问题 2085] 修复 `fields::set()` 中的 `nullptr` 隐式转换。
+* [问题 2029] 修复 `basic_stream` 的 C++20 测试。
 
 [*Miscellaneous]
 
-* Add handler tracking to asynchronous operations:
+* 向异步操作添加处理程序跟踪：
   * Define the preprocessor macro `BOOST_ASIO_ENABLE_HANDLER_TRACKING` to enable Asio handler
     tracking in Boost.Beast asynchronous operations. Please see
     [@boost:/doc/html/boost_asio/overview/core/handler_tracking.html asio handler tracking]
     for details.
-* Add Bishop-Fox 2020 Security Assessment.
+* 添加 Bishop-Fox 2020 安全评估。
 
 [heading Boost 1.74]
 
 [*API Changes]
 
-* The API to Asio has undergone changes. Please refer to the Asio release notes for details.
+* Asio 的 API 已发生变更。详情请参阅 Asio 发布说明。
 
-* Beast has been updated to track and respect developer choices in the use of Asio. In particular:
+* Beast 已更新以跟踪并尊重开发者在 Asio 使用上的选择。特别是：
  * Define `BOOST_ASIO_NO_DEPRECATED` to disallow deprecated invocation hooks.
  * Define `BOOST_ASIO_NO_TS_EXECUTORS` to ensure that executors conform to the
    [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0443r11.html Standard Executors] proposal.
@@ -383,14 +383,14 @@
    If this macro is not defined, Asio default executors will be the
    [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0443r11.html Standard Executors] implementation.
 
-* [issue 1897] Parser `body_limit` is optional (API Change)
+* [问题 1897] 解析器 `body_limit` 变为可选（API 变更）
   ['Actions Required]
   * The signature of `basic_parser<>::body_limit(n)` has changed. It now accepts an
     optional `std::uint64_t`. The caller may indicate that no body limit is required
     by calling `body_limit(boost::none)`. The default limits remain in place in order
     to maintain 'safe by default' behaviour.
 
-* [issue 1934] Remove deprecated interfaces (API Change)
+* [问题 1934] 移除已弃用的接口（API 变更）
   ['Actions Required]
   * The macro `BOOST_BEAST_NO_DEPRECATED` will no longer be noticed by Beast. The only way to
     enable deprecated functionality is now the macro `BOOST_BEAST_ALLOW_DEPRECATED` which is
@@ -423,7 +423,7 @@
     alias typename `buffers_adapter`. Affected programs should use
   `  core/buffers_adapator.hpp` and the type `buffers_adaptor`.
 
-* [issue 1956] Deprecate `string_param` (API Change)
+* [问题 1956] 弃用 `string_param`（API 变更）
   ['Actions Required]
   `string_param`, which was previously the argument type when setting field values
   has been replaced by `string_view`. Because of this, it is no longer possible to
@@ -435,30 +435,30 @@
 
 [*Fixes]
 
-* [issue 1913] Fix standalone compilation error with `std::string_view`
-* [issue 1925] [issue 1916] Fix compile errors on Visual Studio with /std:c++latest
-* [issue 1924] Fix c++20 deprecation warning in `span_body`
-* [issue 1920] Fix use `buffered_read_stream` with `use_awaitable`
-* [issue 1918] Fix `async_detect_ssl` with `use_awaitable`
-* [issue 1944] Fix `FILE` namespace qualification
-* [issue 1942] Fix http read `bytes_transferred`
-* [issue 1943] Fix `basic_stream` `expires_after`
-* [issue 1980] Fix `max` compile error
-* [issue 1949] `iless` and `iequal` take part in Heterogeneous Lookup
+* [问题 1913] 修复使用 `std::string_view` 时的独立编译错误
+* [问题 1925] [问题 1916] 修复使用 /std:c++latest 时 Visual Studio 的编译错误
+* [问题 1924] 修复 `span_body` 中的 C++20 弃用警告
+* [问题 1920] 修复将 `buffered_read_stream` 与 `use_awaitable` 一起使用
+* [问题 1918] 修复将 `async_detect_ssl` 与 `use_awaitable` 一起使用
+* [问题 1944] 修复 `FILE` 命名空间限定
+* [问题 1942] 修复 http 读取 `bytes_transferred`
+* [问题 1943] 修复 `basic_stream` 的 `expires_after`
+* [问题 1980] 修复 `max` 编译错误
+* [问题 1949] `iless` 和 `iequal` 参与异构查找
 
 [*Miscellaneous]
 
-* [issue 1907]  OpenSSL 1.0.2 or later is required when using SSL/TLS streams.
+* [问题 1907] 使用 SSL/TLS 流时需要 OpenSSL 1.0.2 或更高版本。
   This is a requirement inherited from Boost.Asio.
 
-* Additional tests have been added to ensure correct integration with C++20
+* 已添加额外测试以确保与 C++20 的正确集成
   coroutines when avaialable.
 
 [heading Boost 1.73]
 
 [*API Changes]
 
-* Nested `mutable_data_type` in Beast dynamic buffers is deprecated. Affected types:
+* Beast 动态缓冲区中的嵌套 `mutable_data_type` 已弃用。受影响类型：
   * `buffers_adaptor`
   * `flat_buffer`
   * `flat_static_buffer`
@@ -468,83 +468,83 @@
 
 [*Changes Required]
 
-* Use nested `mutable_buffers_type` instead of `mutable_data_type`,
+* 使用嵌套 `mutable_buffers_type` 替代 `mutable_data_type`，
   or define `BOOST_BEAST_ALLOW_DEPRECATED`
 
 [*Miscellaneous]
 
-* Update root certificates in examples
+* 更新示例中的根证书
 
 [*Fixes]
 
-* [issue 1880] Fix Content-Length parsing
-* [issue 1852] Fix examples to dispatch to strand
-* [issue 1875] Ensure `basic_stream::close` will not throw
-* [issue 1863] Field digest is endian-independent
-* [issue 1853] Fix ostream flush
-* [issue 1831] `flat_buffer::shrink_to_fit` is `noexcept`
-* [issue 1828] Fix erase field
-* [issue 1822] Examples use strands correctly
-* [issue 1818] `file_body` returns `short_read` on eof during read
-* [issue 1786] Fix bug in win32 `file_body`
-* [issue 1260] Add accessor function to File member of `basic_file_body`
-* [issue 793] `file_win32` supports UTF-8 paths
-* [issue 793] `file_stdio` supports unicode paths
-* [issue 1786] `file_win32` bodies respect `http::serializer::split`
-* Correct `buffer_bytes` documentation
-* Fix missing include in sha1.hpp
-* Fix ostream warning
-* Update broken links in README
-* Translate some win32 errors to net error codes
-* Moved-from dynamic buffers do not clear if different allocator
-* Fix compilation macro documentation
-* Clarify end-of-file behaviour in `File::read` docs
-* ostream_buffer satisfies preconditions of DynamicBuffer_v1::commit
-* Fix release build of docs
-* Fix `echo-op` test
-* Fix non-msvc cmake
+* [问题 1880] 修复 Content-Length 解析
+* [问题 1852] 修复示例以分派到 strand
+* [问题 1875] 确保 `basic_stream::close` 不会抛出异常
+* [问题 1863] 字段摘要与字节序无关
+* [问题 1853] 修复 ostream 刷新
+* [问题 1831] `flat_buffer::shrink_to_fit` 为 `noexcept`
+* [问题 1828] 修复擦除字段
+* [问题 1822] 示例正确使用 strands
+* [问题 1818] `file_body` 在读取期间遇到 eof 时返回 `short_read`
+* [问题 1786] 修复 win32 `file_body` 中的错误
+* [问题 1260] 添加访问 `basic_file_body` 文件成员的函数
+* [问题 793] `file_win32` 支持 UTF-8 路径
+* [问题 793] `file_stdio` 支持 Unicode 路径
+* [问题 1786] `file_win32` body 尊重 `http::serializer::split`
+* 更正 `buffer_bytes` 文档
+* 修复 sha1.hpp 中缺失的包含
+* 修复 ostream 警告
+* 更新 README 中的失效链接
+* 将部分 win32 错误转换为网络错误码
+* 移动后的动态缓冲区在分配器不同时不会清除
+* 修复编译宏文档
+* 澄清 `File::read` 文档中的文件结束行为
+* ostream_buffer 满足 DynamicBuffer_v1::commit 的前提条件
+* 修复文档的发布构建
+* 修复 `echo-op` 测试
+* 修复非 MSVC 的 cmake
 
 [heading Boost 1.72]
 
 [*Examples]
 
-* Add async-ssl-system-executor http client example
+* 添加 async-ssl-system-executor HTTP 客户端示例
 
-* Add async-ssl-system-executor websocket client example
+* 添加 async-ssl-system-executor WebSocket 客户端示例
 
 [*Features]
 
-* Async init-fns use the executor's default token
+* 异步初始化函数使用执行器的默认令牌
 
-* Use automatically deduced return types for all async operations (since C++14)
+* 所有异步操作使用自动推导的返回类型（自 C++14 起）
 
-* Support Concepts for completion token params
+* 支持完成令牌参数的概念（Concepts）
 
 [*Fixes]
 
-* [issue 1664] Add default dtors to satisfy -Wnon-virtual-dtor
+* [问题 1664] 添加默认析构函数以满足 -Wnon-virtual-dtor
 
-* [issue 1682] Multiple I/O of the same type is not supported 
+* [问题 1682] 不支持同一类型的多个 I/O 
 
-* [issue 1687] Fix signed/unsigned mismatch in file_stdio::seek
+* [问题 1687] 修复 file_stdio::seek 中的有符号/无符号不匹配
 
-* [issue 1688] basic_stream dtor cannot throw
+* [问题 1688] basic_stream 析构函数不能抛出异常
 
-* [issue 1734] Fix leftovers in basic_parser corner case: 
+* [问题 1734] 修复 basic_parser 边界情况中的残留问题： 
 
-* [issue 1751] https_get example sends the Host header
+* [问题 1751] https_get 示例发送 Host 头
 
-* [issue 1754] Fix async_close error code when async_read times out 
+* [问题 1754] 修复当 async_read 超时时 async_close 的错误码 
 
-* [issue 1782] root_certificates.hpp is not for production
+* [问题 1782] root_certificates.hpp 不适用于生产环境
 
-* Fix data race in websocket examples
+* 修复 WebSocket 示例中的数据竞争
  
-* Fix data race in http server examples
+* 修复 HTTP 服务器示例中的数据竞争
 
-* Squelch spurious websocket timer assert
+* 抑制虚假的 WebSocket 计时器断言
 
-* Use the executor type in basic_stream timer 
+* 在 basic_stream 计时器中使用执行器类型 
 
 [/-----------------------------------------------------------------------------]
 
@@ -554,100 +554,100 @@
 
 [*Improvements]
 
-* [issue 1280] Add 1-element specialization for `buffers_cat`
+* [问题 1280] 为 `buffers_cat` 添加单元素特化
 
-* [issue 1556] Set parser status and flags even if body limit has been reached
+* [问题 1556] 即使达到 body 限制也设置解析器状态和标志
 
-* [issue 1567] Relax requirements for vector_body
+* [问题 1567] 放宽对 vector_body 的要求
 
-* [issue 1568] `detect_ssl` uses `bool` instead of `tribool`
+* [问题 1568] `detect_ssl` 使用 `bool` 而非 `tribool`
 
-* [issue 1574] Replace `static_string` in HTTP parser
+* [问题 1574] 在 HTTP 解析器中替换 `static_string`
 
-* [issue 1606] Use `steady_timer` type
+* [问题 1606] 使用 `steady_timer` 类型
 
-* [issue 1611] Make chat websocket javascript client more user friendly
+* [问题 1611] 使聊天 WebSocket JavaScript 客户端更用户友好
 
-* [issue 1613] Remove redundant use of `static_string`
+* [问题 1613] 移除多余的 `static_string` 使用
 
-* [issue 1636] Improve performance of `http::string_to_verb`
+* [问题 1636] 提升 `http::string_to_verb` 的性能
 
-* Preserve `operation_aborted` on partial message
+* 在部分消息上保留 `operation_aborted`
 
-* Remove unused `<experimental/unit_test/thread.hpp>`
+* 移除未使用的 `<experimental/unit_test/thread.hpp>`
 
-* Reduce the number of instantiations of `filter_token_list`
+* 减少 `filter_token_list` 的实例化数量
 
-* Add idle ping suspend test
+* 添加空闲 ping 挂起测试
 
-* Remove the use of `bind_executor` in `basic_stream`
+* 在 `basic_stream` 中移除 `bind_executor` 的使用
 
-* Remove redundant template in service_base
+* 移除 service_base 中多余的模板
 
-* Remove the use of `static_string` from `http::fields` 
+* 在 `http::fields` 中移除 `static_string` 的使用 
 
-* Enable split compilation in http::basic_fields
+* 在 http::basic_fields 中启用分割编译
 
-* Remove redundant instation of `static_string` in websocket
+* 移除 WebSocket 中多余的 `static_string` 实例化
 
-* Remove redundant use of `asio::coroutine` in `flat_stream` 
+* 在 `flat_stream` 中移除多余的 `asio::coroutine` 使用 
 
-* More split compilation in rfc7230.hpp
+* 在 rfc7230.hpp 中进一步分割编译
 
-* More split compilation in websocket/detail/mask.hpp 
+* 在 websocket/detail/mask.hpp 中进一步分割编译 
 
-* Simplify generation of sec-websocket-key
+* 简化 sec-websocket-key 的生成
 
 
 
 
 [*Fixes]
 
-* [issue 1332] `allocator_traits::construct` is used for user-defined types
+* [问题 1332] 对用户定义类型使用 `allocator_traits::construct`
 
-* [issue 1559] Member `get_executor` const-correctness
+* [问题 1559] 成员函数 `get_executor` 的常量正确性
 
-* [issue 1569] Fix `async_detect_ssl` handler type
+* [问题 1569] 修复 `async_detect_ssl` 的处理程序类型
 
-* [issue 1570] Launder pointers
+* [问题 1570] 清洗指针
 
-* [issue 1578] Fix min/max on MSVC
+* [问题 1578] 修复 MSVC 上的 min/max 问题
 
-* [issue 1586] Fix uninitalized memory use in deflate_stream
+* [问题 1586] 修复 deflate_stream 中未初始化内存的使用
 
-* [issue 1593] Fix UB in websocket close tests 
+* [问题 1593] 修复 WebSocket 关闭测试中的未定义行为 
 
-* [issue 1594] Fix data race in test stream
+* [问题 1594] 修复测试流中的数据竞争
 
-* [issue 1599] Fix moved-from executor in idle ping timeout
+* [问题 1599] 修复空闲 ping 超时中移动后执行器的问题
 
-* [issue 1607] Remove uses of the deprecated `buffers` function
+* [问题 1607] 移除已弃用的 `buffers` 函数的使用
 
-* [issue 1612] Remove uses of deprecated methods in websocket tests
+* [问题 1612] 移除 WebSocket 测试中已弃用方法的使用
 
-* [issue 1620] Clean up typo in chat websocket javascript client
+* [问题 1620] 清理聊天 WebSocket JavaScript 客户端中的拼写错误
 
-* [issue 1621] Fix `flat_buffer` copy members
+* [问题 1621] 修复 `flat_buffer` 的复制成员
 
-* Silence gcc-8 warning
+* 消除 gcc-8 警告
 
-* Fix `buffers_cat` iterator tests
+* 修复 `buffers_cat` 迭代器测试
 
-* Don't pessimize-move
+* 避免悲观移动
 
-* Qualify calls to `beast::iequals` in basic_parser.ipp
+* 在 basic_parser.ipp 中对 `beast::iequals` 的调用进行限定
 
-* Fix UB in websocket read tests
+* 修复 WebSocket 读取测试中的未定义行为
 
-* Simplify websocket::detail::prng
+* 简化 websocket::detail::prng
 
-* Don't over-allocate in http::basic_fields
+* 在 http::basic_fields 中避免过度分配
 
 
 
 [*Documentation]
 
-* Documentation is built with SaxonHE instead of xsltproc
+* 文档使用 SaxonHE 而非 xsltproc 构建
 
 
 
@@ -656,16 +656,16 @@
 [heading Boost 1.70]
 
 [tip
-  The namespace alias `net` is used throughout for `boost::asio`.
+  整个文档中使用命名空间别名 `net` 代表 `boost::asio`。
 ]
 
 [*New Features]
 
-* All composed operations use the new
+* 所有组合操作使用新的
   [@boost:/doc/html/boost_asio/reference/async_initiate.html `net::async_initiate`]
   internally.
 
-* New `tcp_stream` and
+* 新的 `tcp_stream` 和
   `basic_stream`
   support:
   * Timeouts,
@@ -691,7 +691,7 @@
 * [link beast.ref.boost__beast__ssl_stream `ssl_stream`]
   is a public interface
 
-* ([issue 1305]) Better
+* （问题 1305）更好的
   `flat_buffer`,
   `flat_static_buffer`,
   `multi_buffer`, and
@@ -702,35 +702,35 @@
   * Add `cdata()` to also return constant readable bytes
   * Eligible member functions are declared `noexcept`
 
-* ([issue 1345]) Better
+* （问题 1345）更好的
   `flat_buffer`,
   `multi_buffer`
   * Add `clear`, `reserve()`, `max_size()`, `shrink_to_fit()`
   * Respect Allocator `max_size()`
   * Specify exception safety
 
-* ([issue 1384]) New functions
+* （问题 1384）新函数
   `bind_front_handler`
 
-* Better
+* 更好的
   `static_buffer`,
   `flat_static_buffer`
   * Add `clear()`
   * More members are `noexcept`
   * Specify exception safety
 
-* Faster
+* 更快的
   `http::string_to_field`
 
-* Dynamic buffer `clear` operations perserve capacity.
+* 动态缓冲区 `clear` 操作保留容量。
 
-* New file <boost/beast/core/buffer_traits.hpp>
+* 新文件 <boost/beast/core/buffer_traits.hpp>
   * New variadic `is_const_buffer_sequence`
   * New variadic `is_mutable_buffer_sequence`
   * New trait `buffers_iterator_type`
   * New trait `buffers_type`
 
-* New classes
+* 新类
   `async_base`,
   `stable_async_base`
   * Handle boilerplate for writing composed operations
@@ -738,11 +738,11 @@
     `allocate_stable`
     is preferred over `handler_ptr`
 
-* New
+* 新的
   `buffer_bytes`
   replacement for `net::buffer_size`
 
-* New:
+* 新功能：
   * `saved_handler`
   * `buffers_range_ref` 
   * `executor_type`
@@ -753,44 +753,44 @@
   * `error`,
     `condition`
 
-* These interfaces are now public (were experimental):
+* 这些接口现已公开（之前是实验性的）：
   [link beast.ref.boost__beast__flat_stream `flat_stream`],
   [link beast.ref.boost__beast__detect_ssl `detect_ssl`],
   [link beast.ref.boost__beast__async_detect_ssl `async_detect_ssl`].
 
-* Websocket streams use PCG as the fast random number generator,
+* WebSocket 流使用 PCG 作为快速随机数生成器，
   for increased security.
 
 
 
 [*Documentation]
 
-* WebSocket reference documentation is revised
+* WebSocket 参考文档已修订
 
-* Updated [link beast.using_io.asio_refresher Networking Refresher]
+* 更新了 [link beast.using_io.asio_refresher 网络复习]
 
-* Revised [link beast.using_io.writing_composed_operations.echo Asynchronous Echo]
+* 修订了 [link beast.using_io.writing_composed_operations.echo 异步回显]
 
-* Rewritten [link beast.using_io.writing_composed_operations.detect_ssl [*Detect SSL Handshake]]
+* 重写了 [link beast.using_io.writing_composed_operations.detect_ssl [*检测 SSL 握手]]
 
 
 
 [*API Changes]
 
-* The __Fields__ concept is deprecated and will be removed
+* __Fields__ 概念已弃用并将被移除
   in a future version. ['Actions Required]: Do not rely on
   the ['Fields] concept.
 
-* `handler_ptr` is deprecated. ['Actions Required]: Use
+* `handler_ptr` 已弃用。['需要采取的行动]：使用
   `stable_async_base` and
   `allocate_stable`
   instead.
 
-* On Windows, Visual Studio 2017 or later is required
+* 在 Windows 上，需要 Visual Studio 2017 或更高版本
 
-* OpenSSL is required to build the examples and tests
+* 构建示例和测试需要 OpenSSL
 
-* HTTP stream algorithms return the number of bytes transferred
+* HTTP 流算法返回传输的字节数
   from the stream. Previously, they returned the number of bytes
   consumed by the parser.
   ['Actions Required]:
@@ -800,7 +800,7 @@
     overloads should adjust the usage of
     the returned value as needed.
 
-* Metafunctions
+* 元函数
   `has_get_executor`,
   `is_sync_stream`,
   `is_sync_read_stream`,
@@ -820,7 +820,7 @@
     the base.
   * Virtual functions in the derived class may be marked `override`.
 
-* Metafunction
+* 元函数
   `is_file`
   is in file_base.hpp.
   ['Actions Required]: Include file_base.hpp as needed.
@@ -831,28 +831,28 @@
   * call
     `clear()` instead.
 
-* `buffers_adapter` is spelled
+* `buffers_adapter` 的拼写为
   `buffers_adaptor`.
   ['Actions Required]:
   * Replace `buffers_adapter` with
     `buffers_adaptor`,
     or define `BOOST_BEAST_ALLOW_DEPRECATED`.
 
-* `buffers` is spelled
+* `buffers` 的拼写为
   `make_printable`.
   ['Actions Required]:
   * Replace `buffers` with
     `make_printable`,
     and include "make_printable.hpp" instead of "ostream.hpp".
 
-* `file_mode::append_new` is removed, as it makes no sense.
+* `file_mode::append_new` 已被移除，因为它没有意义。
   ['Actions Required]:
   * Replace `file_mode::append_new` with either
     `file_mode::append` or
     `file_mode::append_existing`
     as needed.
 
-* `role_type` is moved from `websocket` to `beast`
+* `role_type` 已从 `websocket` 移至 `beast`
 
 * `buffers_range_ref`
   is preferred to `std::reference_wrapper`.
@@ -863,13 +863,13 @@
     `buffers_range`
     with a reference wrapper constructed from the buffer.
 
-* Nested `lowest_layer` and `lowest_layer_type` are removed.
+* 移除了嵌套的 `lowest_layer` 和 `lowest_layer_type`。
   ['Actions Required]: Use the free function
   `get_lowest_layer` and the
   type trait
   `lowest_layer_type` instead.
 
-* WebSocket decorator is a socket option:
+* WebSocket 装饰器是一个套接字选项：
   * Overloads of the following functions which accept a Decorator
     are deprecated:
     * `accept`, `accept_ex`
@@ -877,7 +877,7 @@
     * `async_accept`, `async_accept_ex`
     * `async_handshake`, `async_handshake_ex`
 
-* ([issue 1375]) The value returned from `basic_parser::content_length`
+* （问题 1375）从 `basic_parser::content_length` 返回的值
   no longer changes as the body of the message is received.
   ['Actions Required]: Call `basic_parser::content_length_remaining` instead
   of `basic_parser::content_length` in order to determine the remaining
@@ -886,7 +886,7 @@
 
 [*Examples]
 
-* All example programs are updated:
+* 所有示例程序已更新：
   * Use
     `tcp_stream`
     with timeouts (HTTP)
@@ -896,64 +896,64 @@
   * Use
     `bind_front_handler`
 
-* ([issue 1100]) http-crawl clears the response before each read
+* （问题 1100）http-crawl 在每次读取前清除响应
 
-* ([issue 1347]) echo-op is rewritten
+* （问题 1347）echo-op 已重写
 
-* ([issue 1401]) Examples use
+* （问题 1401）示例使用
   `flat_buffer`
 
-* Advanced servers use HTTP parser interfaces for reading
+* 高级服务器使用 HTTP 解析器接口进行读取
 
-* detect-ssl is rewritten
+* detect-ssl 已重写
 
-* New example [path_link example/websocket/server/chat-multi example/websocket/server/chat-multi]
+* 新示例 [path_link example/websocket/server/chat-multi example/websocket/server/chat-multi]
 
-* `async_echo` works with move-only handlers
+* `async_echo` 支持仅移动（move-only）的处理程序
 
-* cppcon2018 example is removed
+* 移除了 cppcon2018 示例
 
 
 
 [*Fixes]
 
-* ([issue 38]) Better treatment of SSL short reads
+* （问题 38）更好地处理 SSL 短读
 
-* ([issue 1223]) HTTP read counts bytes correctly when an error occurs
+* （问题 1223）HTTP 读取在发生错误时正确计数字节
 
-* ([issue 1247]) Update `ssl_stream`
+* （问题 1247）更新了 `ssl_stream`
   for Asio changes
 
-* ([issue 1279]) Enable explicit instantiations of
+* （问题 1279）启用了 ... 的显式实例化
   `websocket::stream`
 
-* ([issue 1290]) Don't use deprecated Asio interfaces
+* （问题 1290）不使用已弃用的 Asio 接口
 
-* ([issue 1306]) `http::message`
+* （问题 1306）`http::message`
   is not-a `boost::empty_value`
 
-* ([issue 1306]) `test::stream`
+* （问题 1306）`test::stream`
   has fewer dependencies
 
-* ([issue 1358]) Destroy abandoned websocket ops on shutdown
+* （问题 1358）在关闭时销毁被遗弃的 WebSocket 操作
 
-* ([issue 1365]) Handler wrappers decay parameters sooner
+* （问题 1365）处理程序包装器更早地衰变参数
 
-* ([issue 1408]) `session_alloc`
+* （问题 1408）`session_alloc`
   is thread-safe
 
-* ([issue 1414]) Boost.System is header-only
+* （问题 1414）Boost.System 是仅头文件的
 
-* ([issue 1418]) `test::stream`
+*（问题 1418）`test::stream`
   maintains a handler work guard
 
-* ([issue 1445]) Fix posix_file::close handling of EINTR
+*（问题 1445）修复了 posix_file::close 对 EINTR 的处理
 
-* ([issue 1460]) Large WebSocket Upgrade response no longer overflows
+*（问题 1460）大型 WebSocket 升级响应不再溢出
 
-* Reusing an HTTP parser returns an error
+* 重用 HTTP 解析器将返回错误
 
-* Handler bind wrappers use the associated allocator
+* 处理程序绑定包装器使用关联的分配器
 
 * `buffers_cat`
   correctly skips empty buffers when iterated
@@ -961,15 +961,15 @@
 * `ostream`
   does not overflow or exceed the dynamic buffer's maximum size
 
-* Fixes to
+* 修复了
   `test::stream::async_read`
 
 * `file_mode::append_existing`
   works correctly
 
-* A handler work guard is maintained on paused websocket operations
+* 在暂停的 WebSocket 操作上维护处理程序工作守卫
 
-* All behavior of default-constructed iterators is conforming
+* 默认构造迭代器的所有行为均符合规范
 
 [/-----------------------------------------------------------------------------]
 
@@ -988,131 +988,124 @@
 
 [*New Features]
 
-* ([issue 1133]) Add `BOOST_BEAST_USE_STD_STRING_VIEW`
+*（问题 1133）添加 `BOOST_BEAST_USE_STD_STRING_VIEW`
 
 [*Examples]
 
-* New WebSocket server and browser-based client: example/cppcon2018
+* 新的 WebSocket 服务器和基于浏览器的客户端：example/cppcon2018
 
 [*Fixes]
 
-* ([issue 1245]) Fix a rare case of incorrect UTF8 validation
+*（问题 1245）修复了罕见的 UTF8 验证错误
 
-* ([issue 1237]) Verify certificates in client examples
+*（问题 1237）在客户端示例中验证证书
 
-* ([issue 1233]) Use [@boost:/doc/html/core/empty_value.html `boost::empty_value`]
+*（问题 1233）使用 [@boost:/doc/html/core/empty_value.html `boost::empty_value`]
 
-* ([issue 1091]) Fix timer on websocket upgrade in examples
+*（问题 1091）修复了示例中 WebSocket 升级的计时器
 
-* ([issue 1270]) [link beast.ref.boost__beast__http__basic_fields `basic_fields`] uses intrusive base hooks
+*（问题 1270）[link beast.ref.boost__beast__http__basic_fields `basic_fields`] 使用侵入式基类钩子
 
-* ([issue 1267]) Fix parsing of out-of-bounds hex values
+*（问题 1267）修复了越界十六进制值的解析
 
-* ([issue 1263]) Fix uninitialized comparison in buffers iterator
+*（问题 1263）修复了缓冲区迭代器中未初始化的比较
 
-* ([issue 1288]) Remove extraneous strand from example
+*（问题 1288）移除了示例中多余的 strand
 
-* Workaround for http-server-fast and libstdc++
+* 针对 http-server-fast 和 libstdc++ 的变通方案
 
-* Partial support for `BOOST_NO_EXCEPTIONS`
+* 部分支持 `BOOST_NO_EXCEPTIONS`
 
 [*Experimental]
 
-* Add `timeout_socket`
+* 添加 `timeout_socket`
 
 
 
 
 [heading Boost 1.68]
 
-This version fixes a missing executor work guard in all composed operations
-used in the implementation. Users who are experiencing crashes related to
-asynchronous completion handlers are encouraged to upgrade. Also included
-is an improved mechanism for generating random numbers used to mask outgoing
-websocket frames when operating in the client mode. This resolves a
-vulnerability described in the Beast Hybrid Assessment Report from Bishop Fox.
+此版本修复了实现中所有组合操作缺失的执行器工作守卫。遇到与异步完成处理程序相关崩溃的用户建议升级。同时改进了在客户端模式下用于屏蔽传出 WebSocket 帧的随机数生成机制，解决了 Bishop Fox 的 Beast 混合评估报告中描述的漏洞。
 
 [*New Features]
 
-The include directory `<beast/experimental>` contains features which are not
-part of the stable public interface but are available anyway. They may change
-in future versions.
+包含目录 `<beast/experimental>` 中的特性不属于稳定的公共接口，但仍可用。它们可能在未来的版本中变更。
 
-* ([issue 1108]) New [link beast.ref.boost__beast__flat_stream `flat_stream`] for working around an SSL stream performance limitation
+*（问题 1108）新增 [link beast.ref.boost__beast__flat_stream `flat_stream`] 以解决 SSL 流性能限制
 
-* ([issue 1151], [issue 595]) New [link beast.ref.boost__beast__http__icy_stream `http::icy_stream`] stream filter allows parsing ICY HTTP response handshakes
+*（问题 1151]、[问题 595）新增 [link beast.ref.boost__beast__http__icy_stream `http::icy_stream`] 流过滤器，用于解析 ICY HTTP 响应握手
 
-* New [link beast.ref.boost__beast__ssl_stream `ssl_stream`] for better SSL performance and move constructability
+* 新增 [link beast.ref.boost__beast__ssl_stream `ssl_stream`] 以提升 SSL 性能并支持移动构造
 
-* New
+* 新的
   [link beast.ref.boost__beast__test__error `test::connect`],
   [link beast.ref.boost__beast__test__error `test::error`],
   [link beast.ref.boost__beast__test__error `test::fail_count`], and
   [link beast.ref.boost__beast__test__error `test::stream`] utilities for writing unit tests.
 
-* New [link beast.ref.boost__beast__http__is_mutable_body_writer `http::is_mutable_body_writer`] metafunction
+* 新增 [link beast.ref.boost__beast__http__is_mutable_body_writer `http::is_mutable_body_writer`] 元函数
 
-* New [link beast.ref.boost__beast__websocket__seed_prng `websocket::seed_prng`] for manually providing entropy to the PRNG
+* 新增 [link beast.ref.boost__beast__websocket__seed_prng `websocket::seed_prng`] 用于手动向 PRNG 提供熵
 
-* New [link beast.ref.boost__beast__websocket__stream.secure_prng `websocket::stream::secure_prng`] to control whether the connection uses a secure PRNG
+* 新增 [link beast.ref.boost__beast__websocket__stream.secure_prng `websocket::stream::secure_prng`] 以控制连接是否使用安全 PRNG
 
 [*Improvements]
 
-* Generated WebSocket masks use a secure PRNG by default
+* 默认使用安全 PRNG 生成 WebSocket 掩码
 
-* Improvements to [link beast.ref.boost__beast__buffers_adaptor `buffers_adaptor`]
+* 改进了 [link beast.ref.boost__beast__buffers_adaptor `buffers_adaptor`]
 
-* ([issue 1188]) Set "/permissive-" for MSVC builds
+*（问题 1188）为 MSVC 构建设置 "/permissive-"
 
-* ([issue 1109]) Use a shared string for example HTTP server doc roots 
+*（问题 1109）在示例 HTTP 服务器文档根目录中使用共享字符串 
 
-* ([issue 1079]) Add `handler_ptr::has_value`
+*（问题 1079）添加 `handler_ptr::has_value`
 
 [*Fixes]
 
-* ([issue 1073]) Fix race in advanced server examples
+*（问题 1073）修复了高级服务器示例中的竞争条件
 
-* ([issue 1076]) Use executor_work_guard in composed operations
+*（问题 1076）在组合操作中使用 executor_work_guard
 
-* ([issue 1079]) Remove spurious assert
+*（问题 1079）移除了虚假断言
 
-* ([issue 1113]) Add `const` and non-`const` overloads for message based HTTP writes
+*（问题 1113）为基于消息的 HTTP 写入添加 `const` 和非 `const` 重载
 
-* ([issue 1119]) Fix unused variable warning
+*（问题 1119）修复了未使用变量的警告
 
-* ([issue 1121]) Examples use the root certificate which matches the fingerprint
+*（问题 1121）示例使用与指纹匹配的根证书
 
-* ([issue 1141]) Tidy up composed operation doc
+*（问题 1141）整理了组合操作文档
 
-* ([issue 1186]) Check error in example set_option
+*（问题 1186）检查示例 set_option 中的错误
 
-* ([issue 1210]) Fix http_server_stackless_ssl.cpp example
+*（问题 1210）修复了 http_server_stackless_ssl.cpp 示例
 
-* ([issue 1211]) Fix parse_dec algorithm
+*（问题 1211）修复了 parse_dec 算法
 
-* ([issue 1214]) Silence ubsan false positive
+*（问题 1214）消除了 ubsan 误报
 
-* Tidy up websocket stream javadocs
+* 整理 WebSocket 流 Javadoc
 
-* Fix move-only arguments in [link beast.ref.boost__beast__bind_handler `bind_handler`]
+* 修复 [link beast.ref.boost__beast__bind_handler `bind_handler`] 中仅移动（move-only）参数的问题
 
-* Fix [link beast.ref.boost__beast__http__parser `http::parser`] constructor javadoc
+* 修复 [link beast.ref.boost__beast__http__parser `http::parser`] 构造函数的 Javadoc
 
-* Fix [link beast.ref.boost__beast__buffers_adaptor `buffers_adaptor`] iterator value type
+* 修复 [link beast.ref.boost__beast__buffers_adaptor `buffers_adaptor`] 迭代器的值类型
 
-* Fix [link beast.ref.boost__beast__buffers_adaptor.max_size `buffers_adaptor::max_size`]
+* 修复 [link beast.ref.boost__beast__buffers_adaptor.max_size `buffers_adaptor::max_size`]
 
-* Fix [link beast.ref.boost__beast__buffers_prefix `buffers_prefix`] iterator decrement
+* 修复 [link beast.ref.boost__beast__buffers_prefix `buffers_prefix`] 迭代器的递减操作
 
-* Fix __Fields__, __FieldsWriter__ concept docs
+* 修复 __Fields__、__FieldsWriter__ 概念文档
 
-* Fix __BodyReader__ constructor requirements doc
+* 修复 __BodyReader__ 构造函数要求文档
 
 [*Breaking Changes]
 
-* Remove deprecated `serializer::reader_impl`
+* 移除已弃用的 `serializer::reader_impl`
 
-* Remove deprecated __Body__ `reader` and `writer` ctor signatures
+* 移除已弃用的 __Body__ `reader` 和 `writer` 构造函数签名
 
 
 
@@ -1120,18 +1113,15 @@ in future versions.
 
 [heading Boost 1.67]
 
-This version fixes significant defects in
-[link beast.ref.boost__beast__websocket__stream `websocket::stream`]
-which can lead to asserts or undefined behavior. Users are encouraged
-to update to the latest Boost release.
+此版本修复了 [link beast.ref.boost__beast__websocket__stream `websocket::stream`] 中的重大缺陷，这些缺陷可能导致断言失败或未定义行为。建议用户更新至最新的 Boost 版本。
 
 [*New Features]
 
-* Move-only completion handlers are supported throughout the library
+* 整个库支持仅移动（move-only）的完成处理程序
 
-* ([issue 899]) Advanced server examples support idle websocket pings and timeouts
+*（问题 899）高级服务器示例支持空闲 WebSocket ping 和超时
 
-* ([issue 849]) WebSocket permessage-deflate support is now a compile-time
+*（问题 849）WebSocket per-message-deflate 支持现在变为编译时
   feature.  This adds an additional `bool` template parameter to
   [link beast.ref.boost__beast__websocket__stream `websocket::stream`]
   When `deflateSupported` is `true`, the stream will be capable of
@@ -1143,7 +1133,7 @@ to update to the latest Boost release.
   will be excluded from function instantiations. Programs which set
   `deflateSupported` to `false` when instantiating streams will be smaller.
 
-* ([issue 949]) WebSocket error codes are revised. New
+*（问题 949）WebSocket 错误码已修订。新增
   [link beast.ref.boost__beast__websocket__error error codes]
   are added for more fine-grained failure outcomes. Messages for error
   codes are more verbose to help pinpoint the problem. Error codes are
@@ -1165,72 +1155,72 @@ to update to the latest Boost release.
 
 [*Improvements]
 
-* ([issue 857])
+*（问题 857）
   [link beast.ref.boost__beast__http__basic_fields `http::basic_fields`]
   uses less storage
 
-* ([issue 894])
+*（问题 894）
   [link beast.ref.boost__beast__http__basic_fields `http::basic_fields`]
   exception specifiers are provided
 
-* Implementation no longer uses deprecated `asio::null_buffers`
+* 实现不再使用已弃用的 `asio::null_buffers`
 
-* Add [include_file boost/beast/websocket/stream_fwd.hpp]
+* 添加 [include_file boost/beast/websocket/stream_fwd.hpp]
 
-* ([issue 955]) The asynchronous SSL detector example uses a stackless coroutine
+*（问题 955）异步 SSL 检测器示例使用无栈协程
 
 * [link beast.ref.boost__beast__bind_handler `bind_handler`]
   works with boost placeholders
 
-* Examples set `reuse_address(true)`
+* 示例设置 `reuse_address(true)`
 
-* ([issue 1026]) Advanced servers support clean shutdown via SIGINT or SIGTERM
+*（问题 1026）高级服务器支持通过 SIGINT 或 SIGTERM 实现优雅关闭
 
-* Some basic_fields operations now give the strong exception guarantee
+* 部分 basic_fields 操作现在提供强异常保证
 
 [*Fixes]
 
-* Fix "warning: ‘const’ type qualifier on return type has no effect"
+* 修复“警告：‘const’ 类型限定符对返回类型无效”
 
-* ([issue 916]) Tidy up `ssl_stream` special members
+*（问题 916）整理 `ssl_stream` 的特殊成员
 
-* ([issue 918]) Calls to `<algorithm>` are protected from macros
+*（问题 918）对 `<algorithm>` 的调用受到宏保护
 
-* ([issue 954]) The control callback is invoked on the proper executor
+*（问题 954）控制回调在正确的执行器上调用
 
-* ([issue 994]) Fix iterator version of
+*（问题 994）修复 ... 的迭代器版本
   [link beast.ref.boost__beast__http__basic_fields.erase.overload1 `http::basic_fields::erase`]
 
-* ([issue 992]) Fix use-after-move in example request handlers
+*（问题 992）修复示例请求处理程序中的移动后使用（use-after-move）问题
 
-* ([issue 988]) Type check completion handlers
+*（问题 988）类型检查完成处理程序
 
-* ([issue 985]) Tidy up
+*（问题 985）整理
   [link beast.ref.boost__beast__bind_handler `bind_handler`]
   doc
 
-* Fix memory leak in advanced server examples
+* 修复高级服务器示例中的内存泄漏
 
-* ([issue 1000]) Fix soft-mutex assert in websocket stream.
+*（问题 1000）修复 WebSocket 流中的软互斥锁（soft-mutex）断言
   This resolves the assert `"ws_.wr_block_ == tok_"`.
 
-* ([issue 1019]) Fix fallthrough warnings
+*（问题 1019）修复 fallthrough 警告
 
-* ([issue 1024]) Fix teardown for TIME_WAIT
+*（问题 1024）修复 TIME_WAIT 状态下的拆卸（teardown）
 
-* ([issue 1030]) Fix big-endian websocket masking
+*（问题 1030）修复大端序的 WebSocket 掩码
 
-* Safe treatment of zero-length string arguments in basic_fields
+* 在 basic_fields 中安全处理零长度字符串参数
 
-* ([issue 1043]) Examples clear the HTTP message before reading
+*（问题 1043）示例在读取前清除 HTTP 消息
 
-* ([issue 1012]) Add asio_handler_invoke overloads for stream algorithms
+*（问题 1012）为流算法添加 asio_handler_invoke 重载
 
-* Add Access-Control-Expose-Headers field constant
+* 添加 Access-Control-Expose-Headers 字段常量
 
 [*API Changes]
 
-* Remove unintended public members of
+* 移除 ... 中意外的公共成员
   `handler_ptr`.
   Actions required: don't call non-public members.
 
@@ -1246,19 +1236,19 @@ to update to the latest Boost release.
   constructor signature for state objects used with `handler_ptr`
   to receive a `const` reference to the handler.
 
-* ([issue 896])
+*（问题 896）
   [link beast.ref.boost__beast__http__basic_fields `http::basic_fields`]
   does not support fancy pointers
 
 * [link beast.ref.boost__beast__http__parser `http::parser`]
   is no longer [*MoveConstructible]
 
-* ([issue 930]) `http::serializer::reader_impl` is deprecated and will
+*（问题 930）`http::serializer::reader_impl` 已弃用并将
   be removed in the next release. Actions required: Call
   [link beast.ref.boost__beast__http__serializer.writer_impl `http::serializer::writer_impl`]
   instead of `serializer::reader_impl`.
 
-* ([issue 884]) The __BodyReader__ and __BodyWriter__ concept constructor
+*（问题 884）__BodyReader__ 和 __BodyWriter__ 概念的构造函数
   requirements have changed. They now require the header and body
   elements to be passed as distinct
   [link beast.ref.boost__beast__http__header `http::header`]
@@ -1274,16 +1264,16 @@ to update to the latest Boost release.
 * [link beast.ref.boost__beast__websocket__stream.control_callback `websocket::stream::control_callback`]
   now copies or moves the function object.
 
-* ([issue 1014]) DynamicBuffer input areas are not mutable.
+*（问题 1014）动态缓冲区输入区域不可变
   Actions required: do not attempt to write to input areas of dynamic
   buffers.
 
-* ([issue 941]) `get_lowest_layer` is now a type alias.
+*（问题 941）`get_lowest_layer` 现在是一个类型别名。
   Actions required: Replace instances of `typename get_lowest_layer<T>::type`
   with `get_lowest_layer<T>`.
 
 [heading Boost 1.66]
 
-* Initial release
+* 初始版本
 
 [endsect]
