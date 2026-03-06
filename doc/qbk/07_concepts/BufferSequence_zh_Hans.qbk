@@ -7,11 +7,11 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:BufferSequence BufferSequence]
+[section:BufferSequence 缓冲区序列]
 
-A [*BufferSequence] is a type meeting either of the following requirements:
+[*缓冲区序列]是满足以下任一要求的类型：
 
-* __ConstBufferSequence__
-* __MutableBufferSequence__
+* __常量缓冲区序列__
+* __可变缓冲区序列__
 
 [endsect]
