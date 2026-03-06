@@ -7,35 +7,31 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:streams Streams]
+[section:streams 流]
 
-A stream in the context of Beast and networking, represents a full-duplex
-connection between two programs or hosts, where data represented as
-bytes may be received reliably in the same order they were written.
-Streams may support any combination of synchronous and/or asynchronous
-reading and writing.
+在Beast和网络编程的语境中，流表示两个程序或主机之间的全双工连接，其中以字节表示的数据能够按写入顺序可靠接收。流可以支持同步和/或异步读写的任意组合。
 
-Stream concepts are based on named requirements in networking:
+流概念基于网络领域的命名要求：
 
-[heading:Stream Stream]
+[heading:Stream 流]
 
-A type modeling [*Stream] meets either or both of the following requirements:
+一个类型建模为[*流]需满足以下一个或两个要求：
 
-* [*AsyncStream]
-* [*SyncStream]
+* [*异步流]
+* [*同步流]
 
-[heading:AsyncStream AsyncStream]
+[heading:AsyncStream 异步流]
 
-A type modeling [*AsyncStream] meets the following requirements:
+一个类型建模为[*异步流]需满足以下要求：
 
-* __AsyncReadStream__
-* __AsyncWriteStream__
+* __异步读流__
+* __异步写流__
 
-[heading:SyncStream SyncStream]
+[heading:SyncStream 同步流]
 
-A type modeling [*SyncStream] meets the following requirements:
+一个类型建模为[*同步流]需满足以下要求：
 
-* __SyncReadStream__
-* __SyncWriteStream__
+* __同步读流__
+* __同步写流__
 
 [endsect]
