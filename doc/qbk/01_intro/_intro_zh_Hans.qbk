@@ -10,16 +10,13 @@
 [section Introduction]
 [block'''<?dbhtml stop-chunking?>''']
 
-Beast is a C++ header-only library serving as a foundation for writing
-interoperable networking libraries by providing [*low-level HTTP/1,
-WebSocket, and networking protocol] vocabulary types and algorithms
-using the consistent asynchronous model of __Asio__.
+Beast 是一个 C++ 仅头文件库，通过使用 __Asio__ 的统一异步模型提供 [*低级 HTTP/1、WebSocket 和网络协议*] 的词汇类型与算法，为编写可互操作的网络库奠定基础。
 
-This library is designed for:
+该库专为以下场景设计：
 
-* [*Symmetry:] Algorithms are role-agnostic; build clients, servers, or both.
+* **【对称性：】** 算法不区分角色；既可用来构建客户端，也可用来构建服务器，或者两者兼备。
 
-* [*Ease of Use:] __Asio__ users will immediately understand Beast.
+* **【易用性：】** __Asio__ 用户能够立即理解 Beast。
 
 * [*Flexibility:] Users make the important decisions such as buffer or
   thread management.
