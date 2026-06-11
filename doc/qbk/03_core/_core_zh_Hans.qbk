@@ -7,19 +7,12 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:using_io Networking]
+[section:using_io 网络通信]
 
-This library uses the
-[@http://cplusplus.github.io/networking-ts/draft.pdf Networking Technical Specification],
-scheduled to become an official part of C++ no sooner than the year
-2023. Three implementations exist, with cosmetic differences but
-otherwise using the same function signatures and type declarations:
-Boost.Asio, stand-alone Asio, and networking-ts-impl. This table shows
-how a variable of type `io_context` is declared in each implementation
-by including the appropriate header and using a suitable namespace alias:
+该库使用的是 [@http://cplusplus.github.io/networking-ts/draft.pdf 网络技术规范]，当时预计最早要到 2023 年才有可能成为 C++ 官方标准的一部分。目前已有三个实现版本，它们在接口上有细微差异，但函数签名和类型声明基本相同：分别是 Boost.Asio、独立版 Asio 以及 networking-ts-impl。下表展示了在各个实现中，如何通过引入对应的头文件并使用合适的命名空间别名来声明 `io_context` 类型的变量：
 
-[table Networking Implementations
-[[Name][Namespace and Header Example ]]
+[table 网络库的实现版本
+[[Name][命名空间与头文件示例]]
 [
     [__Asio__]
     [
@@ -50,41 +43,22 @@ by including the appropriate header and using a suitable namespace alias:
 ]
 ]
 
-This document refers to the three implementations above interchangeably and
-collectively as [*Networking] (or just ['networking]). The Boost.Asio and
-Asio flavors of Networking provide additional features not currently proposed
-for C++, but likely to appear in a future specification, such as:
+本文档将上述三种实现统称为 [*网络库]（或简称为 ['networking]）。Boost.Asio 和 Asio 这两种网络库实现方式还提供了一些当前未纳入 C++ 标准提案但未来可能被加入的功能特性，例如：
 
 * [@boost:/doc/html/boost_asio/reference/serial_port.html Serial ports]
 * [@boost:/doc/html/boost_asio/reference/local__stream_protocol.html UNIX domain sockets]
 * [@boost:/doc/html/boost_asio/reference/signal_set.html POSIX signals] (e.g. SIGINT, SIGABORT)
 * [@boost:/doc/html/boost_asio/reference/ssl__stream.html TLS streams] (such as OpenSSL)
 
-Boost.Beast depends specifically on the Boost.Asio flavor of Networking,
-although this may change in the future.
-While this library offers performant implementations of the HTTP and
-WebSocket network protocols, it depends on the networking interfaces
-to perform general tasks such as performing domain name resolution
-(DNS lookup), establishing outgoing connections, and accepting incoming
-connections. Callers are responsible for interacting with networking
-to initialize objects to the correct state where they are usable by
-this library.
+Boost.Beast 目前专门依赖于网络库的 Boost.Asio 实现（尽管未来可能会有所变化）。该库虽然提供了高性能的 HTTP 与 WebSocket 网络协议实现，但涉及域名解析（DNS 查询）、建立对外连接以及接受入站连接等通用任务时，仍需依赖网络库接口来完成。调用方需负责与网络库进行交互，将相关对象初始化至可供本库使用的正确状态。
 
-In this documentation, the example code, and the implementation, the `net`
-namespace is used to qualify Networking identifiers. For Boost.Beast,
-`net` will be an alias for the `boost::asio` namespace.
+在本文档、示例代码及具体实现中，使用 `net` 命名空间来限定网络库中的各类标识符。对于 Boost.Beast 而言，`net` 是 `boost::asio` 命名空间的别名。
 
-To further ease of use, this library provides an extensive collection
-of types and algorithms. This section of the documentation explains these
-types and algorithms, provides examples of usage, and also provides
-refreshers and tutorials for working with networking.
+为便于使用，本库提供了丰富的类型与算法集合。文档的此部分将对相关类型和算法进行说明，提供使用示例，同时包含网络库使用的复习与教程。
 
-[heading Abbreviations]
+[heading 缩略语]
 
-This documentation assumes familiarity with __Asio__, which is
-required to work with Beast. Sample code and identifiers used
-throughout are written as if the following declarations are in
-effect:
+本文档假定读者已熟悉 __Asio__（使用 Beast 的必要前提）。全文中的示例代码与标识符均按以下声明处于有效状态为前提编写：
 
 [snippet_core_1a]
 [snippet_core_1b]
@@ -100,6 +74,6 @@ effect:
 [include 10_ssl_tls_shutdown.qbk]
 [endsect]
 
-[section:config Configuration]
+[section:config 配置]
 [include 8_conf_macros.qbk]
 [endsect]
