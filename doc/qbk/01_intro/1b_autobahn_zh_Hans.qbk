@@ -7,18 +7,9 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:websocket_autobahn_testsuite WebSocket (Autobahn|Testsuite)]
+[section:websocket_autobahn_testsuite WebSocket（Autobahn| 测试套件）]
 
-The
-[@https://github.com/crossbario/autobahn-testsuite Autobahn WebSockets Testsuite]
-provides a fully automated test suite to
-verify client and server implementations of The WebSocket Protocol
-for specification conformance and implementation robustness.
-The test suite will check an implementation by doing basic
-WebSocket conversations, extensive protocol compliance
-verification and performance and limits testing.
-Autobahn|Testsuite is used across the industry and
-contains over 500 test cases.
+[@https://github.com/crossbario/autobahn-testsuite Autobahn WebSockets 测试套件] 提供了一套全自动化的测试方案，用于验证 WebSocket 协议的客户端和服务端实现是否符合规范、是否健壮。该测试套件通过基本的 WebSocket 通信、全面的协议合规性验证以及性能和极限测试来检查具体实现。Autobahn 测试套件在行业中得到广泛应用，包含 500 多个测试用例。
 
 [@https://vinniefalco.github.io/BeastAssets/reports/autobahn/index.html [*Autobahn|Testsuite WebSocket Results]]
 
