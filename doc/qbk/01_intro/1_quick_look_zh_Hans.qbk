@@ -7,20 +7,18 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:quick_start Quick Look]
+[section:quick_start 快速查看]
 [/block'''<?dbhtml stop-chunking?>''']
 
-These complete programs are intended to quickly impress upon readers
-the flavor of the library. Source code and build scripts for them are
-located in the [path_link example example] directory.
+这些完整示例程序旨在让读者快速了解该库的特点。它们的源码和编译脚本位于 [path_link example example] 目录中。
 
 
 
-[section:http_client Simple HTTP Client __example__]
+[section:http_client 简单HTTP客户端 __示例__]
 
-Use HTTP to make a GET request to a website and print the response:
+使用 HTTP 向网站发送 GET 请求，然后打印返回结果：
 
-File: [path_link example/http/client/sync/http_client_sync.cpp http_sync_client.cpp]
+文件：[path_link example/http/client/sync/http_client_sync.cpp http_sync_client.cpp]
 
 [example_http_client]
 
@@ -28,11 +26,11 @@ File: [path_link example/http/client/sync/http_client_sync.cpp http_sync_client.
 
 
 
-[section:websocket_client Simple WebSocket Client __example__]
+[section:websocket_client 简单 WebSocket 客户端 __示例__]
 
-Establish a WebSocket connection, send a message and receive the reply:
+建立 WebSocket 连接，发送消息并接收回复：
 
-File: [path_link example/websocket/client/sync/websocket_client_sync.cpp websocket_sync_client.cpp]
+文件：[path_link example/websocket/client/sync/websocket_client_sync.cpp websocket_sync_client.cpp]
 
 [example_websocket_client]
 
