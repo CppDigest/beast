@@ -7,35 +7,18 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:security_review_bishop_fox Security Review (Bishop Fox) __video__]
+[section:security_review_bishop_fox 安全审查（Bishop Fox）__视频__]
 
-In 2020, as part of its commitment to producing the very finest C++ libraries
-that application developers can trust, the C++ Alliance one again commissioned
-Bishop Fox to retest the Beast library.
+2020年，为了兑现打造应用开发者可以信赖的顶级 C++ 库这一承诺，C++ 联盟再次委托 Bishop Fox 对 Beast 库进行复测。
 
-The report is linked here:
+报告链接如下：
 
 [@https://github.com/CPPAlliance/beast-assets/raw/master/bishop-fox/C%20Plus%20Plus%20Alliance%20-%20Hybrid%20Application%20Assessment%202020%20-%20Assessment%20Report%20-%2020200924.pdf
     [*Beast - Hybrid Application Assessment 2020]]
 
-Since 2005, [@https://www.bishopfox.com/ Bishop Fox] has provided
-security consulting services to the Fortune 1000, high-tech startups,
-and financial institutions worldwide.
-Beast engaged Bishop Fox to assess the security of the Boost C++ Beast HTTP/S
-networking library. The following report details the findings identified during
-the course of the engagement, which started on September 11, 2017.
+自 2005 年起，[@https://www.bishopfox.com/ Bishop Fox] 一直为全球财富 1000 强、高科技初创公司及金融机构提供安全咨询服务。Beast 委托 Bishop Fox 对 Boost C++ Beast HTTP/S 网络库进行安全评估。本次评估自 2017 年 9 月 11 日开始，以下报告详细说明了评估过程中的各项发现。
 
-The assessment team conducted a hybrid application assessment of the Beast
-library. Bishop Fox’s hybrid application assessment methodology leverages
-the real-world attack techniques of application penetration testing in
-combination with targeted source code review to thoroughly identify
-application security vulnerabilities. These fullknowledge assessments
-begin with automated scans of the deployed application and source code.
-Next, analyses of the scan results are combined with manual review to
-thoroughly identify potential application security vulnerabilities. In
-addition, the team performs a review of the application architecture and
-business logic to locate any design-level issues. Finally, the team performs
-manual exploitation and review of these issues to validate the findings.
+评估团队对 Beast 库进行了混合式应用安全评估。Bishop Fox 的这套评估方法结合了渗透测试中的实际攻击手段和针对性的源码审查，可以全面发现应用安全漏洞。这类在充分了解系统内部情况的前提下进行的评估，先从已部署的应用和源码入手，做自动化扫描。接着，把扫描结果和人工审查结合起来，深入排查潜在的安全漏洞。另外，团队还对应用架构和业务逻辑进行审查，找出设计层面的问题。最后，团队对这些问题进行人工利用和验证，确认发现结果是否准确。
 
 [@https://github.com/CPPAlliance/beast-assets/raw/master/bishop-fox/Beast%20-%20Hybrid%20Application%20Assessment%202017%20-%20Assessment%20Report%20-%2020171114.pdf
     [*Beast - Hybrid Application Assessment 2017]]
