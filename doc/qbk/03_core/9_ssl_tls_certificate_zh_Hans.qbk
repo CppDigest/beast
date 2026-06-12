@@ -8,59 +8,42 @@
 ]
 
 
-[section SSL/TLS Certificate]
+[section SSL/TLS 证书]
 
 [/-----------------------------------------------------------------------------]
 
-[heading Certificate Authority]
+[heading 证书授权机构]
 
-A Certificate Authority (CA) is a trusted entity that signs digital
-certificates, enabling users to verify their authenticity. Rather than storing
-every individual certificate for each server (which would be impractical due to
-the sheer volume and frequent renewals), users can store a limited set of root
-certificates to authenticate server certificates as needed.
+证书授权机构（CA）是一种可信实体，负责对数字证书进行签名，以便用户验证其真实性。由于服务器证书数量庞大且更新频繁，为每台服务器单独存储所有证书并不现实。因此，用户只需存储有限数量的根证书，即可在需要时验证服务器证书。
 
-Boost.Asio provides various methods for loading certificate authority
-certificates:
+Boost.Asio 提供多种加载证书授权机构证书的方法：
 
 * [@boost:/doc/html/boost_asio/reference/ssl__context/add_certificate_authority.html `net::ssl::context::add_certificate_authority`]
 * [@boost:/doc/html/boost_asio/reference/ssl__context/add_verify_path.html `net::ssl::context::add_verify_path`]
 * [@boost:/doc/html/boost_asio/reference/ssl__context/load_verify_file.html `net::ssl::context::load_verify_file`]
 * [@boost:/doc/html/boost_asio/reference/ssl__context/set_default_verify_paths.html `net::ssl::context::set_default_verify_paths`]
 
-It is important to set up peer verification so that the TLS/SSL handshake fails
-if certificate verification is unsuccessful:
+设置对端验证非常重要，这样当证书验证失败时，TLS/SSL 握手也会随之失败：
 
 [snippet_core_6]
 
-A client must also verify that the hostname or IP address in the certificate
-matches the expected one. The
-[@boost:/doc/html/boost_asio/reference/ssl__host_name_verification.html
-`net::ssl::host_name_verification`] helper function object can perform this
-verification according to the rules described in RFC 6125:
+客户端还需验证证书中的主机名或 IP 地址是否与预期一致。[@boost:/doc/html/boost_asio/reference/ssl__host_name_verification.html `net::ssl::host_name_verification`] 这个辅助函数对象，可以按照 RFC 6125 描述的规则来完成验证：
 
 [snippet_core_7]
 
-A server can also request and verify a client certificate to authenticate the
-client:
+服务器也可以请求并验证客户端证书，以对客户端进行身份认证：
 
 [snippet_core_8]
 
 [/-----------------------------------------------------------------------------]
 
-[heading Server Certificate]
+[heading 服务器证书]
 
-A Server Certificate is a digital certificate that confirms a server's identity
-as the legitimate destination for a client. It contains a verifiable signature
-that ensures it was issued by a trusted certificate authority (CA).
+服务器证书是一种数字证书，用于确认服务器身份是客户端的合法目的地。它包含可验证的签名，用于确保证书由受信任的证书授权机构（CA）签发。
 
-When a server certificate is issued by an intermediate certificate authority,
-and the client lacks those intermediate certificates, the server should provide
-all the relevant certificates to the client. This allows the client to verify
-the final certificate in the chain against the root certificate.
+当服务器证书由中间证书授权机构签发，且客户端缺少这些中间证书时，服务器应向客户端提供所有相关证书。这使得客户端能够根据根证书验证证书链中的最终证书。
 
-The following Boost.Asio methods can be used for loading a certificate or a
-certificate chain:
+以下 Boost.Asio 方法可用于加载单个证书或证书链：
 
 * [@boost:/doc/html/boost_asio/reference/ssl__context/use_certificate.html `net::ssl::context::use_certificate`]
 * [@boost:/doc/html/boost_asio/reference/ssl__context/use_certificate_file.html `net::ssl::context::use_certificate_file`]
@@ -69,20 +52,17 @@ certificate chain:
 
 [/-----------------------------------------------------------------------------]
 
-[heading Client Certificate]
+[heading 客户端证书]
 
-A server can authenticate clients by requiring and verifying their certificates,
-preventing access for those without a valid certificate and private key. The
-server enforces this by modifying peer verification settings:
+服务器可以通过要求并验证客户端证书来对客户端进行身份认证，从而阻止没有有效证书和私钥的客户端访问。服务器通过修改对端验证设置来实施这一机制：
 
 [snippet_core_8]
 
-If used, the necessary CA certificates must be loaded into the server's SSL
-context to enable verification of the client's certificate.
+若使用该机制，则需将必要的 CA 证书加载到服务器的 SSL 上下文中，以便能够验证客户端的证书。
 
 [/-----------------------------------------------------------------------------]
 
-[heading Common Name and Subject Alternative Name]
+[heading 通用名称与主题备用名称]
 
 The Subject Alternative Name (SAN) is an extension in X.509 certificates that
 allows multiple domain names, subdomains, or IP addresses to be associated with
