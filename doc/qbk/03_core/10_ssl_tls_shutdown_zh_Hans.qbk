@@ -7,60 +7,39 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section SSL/TLS Shutdown]
+[section SSL/TLS 关闭流程]
 [block'''<?dbhtml stop-chunking?>''']
 
-A secure SSL/TLS connection requires a proper shutdown process to securely
-indicate the [@https://en.wikipedia.org/wiki/End-of-file ['EOF]] condition.
-This process prevents a type of attack known as a
-[@https://en.wikipedia.org/wiki/Transport_Layer_Security#Truncation_attack ['truncation attack]]
-in which an attacker can close the underlying transport layer and control
-the length of the last message in the SSL/TLS connection. A shutdown process
-consists of exchanging `close_notify` message between two parties. In __Asio__
-these steps happen by calling `shutdown()` or `async_shutdown()` on
-`ssl::stream` object.
+安全的 SSL/TLS 连接需要通过正确的关闭流程来安全地指示 [文件结束] 条件。该流程用于防止被称为 [截断攻击] 的安全威胁，攻击者可以通过关闭底层传输层来控制 SSL/TLS 连接中最后一条消息的长度。关闭流程包含双方交换 `close_notify` 消息。在 __Asio__ 中，这些步骤通过调用 `ssl::stream` 对象的 `shutdown()` 或 `async_shutdown()` 函数完成。
 
 [/-----------------------------------------------------------------------------]
 
 [section error::stream_truncated]
 
-There are SSL/TLS implementations that don't perform a proper shutdown process
-and simply close the underlying transport layer instead. As a result, the EOF
-condition in these applications is not cryptographically secure and should not
-be relied upon. However, there are scenarios where an HTTPS client or server
-doesn't need EOF for determining the end of the last message:
+某些 SSL/TLS 实现不执行正确的关闭流程，而是直接关闭底层传输层。因此，这些应用程序中的 EOF 条件不具备密码学安全性，不应依赖于此。然而，在某些场景下，HTTPS 客户端或服务器并不需要依赖 EOF 来确定最后一条消息的结束位置：
 
-* The HTTP message has a `Content-Length` header, and the body is fully
+* HTTP 消息带有 `Content-Length` 头部，且消息体已完整
   received (a known body length).
 
-* The HTTP message uses chunked transfer encoding, and the final chunk is
+* HTTP 消息使用分块传输编码，且已接收到最后一个数据块。
   received.
 
-* The HTTP message doesn't contain a body, such as any response with a 1xx
+* HTTP 消息不包含消息体，例如所有 1xx 状态的响应
   (Informational), 204 (No Content), or 304 (Not Modified) status code.
 
-In such scenarios, `http::read` or `http::async_read` operations succeed as
-they don't need EOF to complete. However, the next operation on the stream
-would fail with an
-[@boost:/doc/html/boost_asio/reference/ssl__error__stream_errors.html `net::ssl::error::stream_truncated`]
-error.
+在此类场景中，`http::read` 或 `http::async_read` 操作能够成功完成，因为这些操作无需等待 EOF。然而，如果继续对该流执行下一个操作，则会失败并抛出 [@boost:/doc/html/boost_asio/reference/ssl__error__stream_errors.html `net::ssl::error::stream_truncated`] 错误。
 
-For example, let's assume we are using Beast for communicating with an HTTPS
-server that doesn't perform a proper SSL/TLS shutdown:
+例如，假设我们使用 Beast 与一台 HTTPS 服务器通信，而该服务器未执行正确的 SSL/TLS 关闭流程：
 
 [snippet_core_4]
 
 [/-----------------------------------------------------------------------------]
 
-[heading Non-Compliant Peers and Unknown Body Length]
+[heading 不合规的对等端与未知的消息体长度]
 
-This is a rare case and indeed a security issue when HTTPS servers don't
-perform a proper SSL/TLS shutdown procedure and send an HTTP response message
-that relies on EOF to determine the end of the body. This is a security concern
-because without an SSL/TLS shutdown procedure, the EOF is not cryptographically
-secure, leaving the message body vulnerable to truncation attacks.
+这种情况比较罕见，但确实存在安全隐患：当 HTTPS 服务器没有执行正确的 SSL/TLS 关闭流程，并且它发送的 HTTP 响应消息需要依靠 EOF 来判断消息体何时结束时，就会产生安全问题。问题的根源在于，缺少 SSL/TLS 关闭流程时，EOF 就不再具有密码学上的安全性，消息体因此容易遭受截断攻击。
 
-The following is an example that can read an HTTP response from such a server:
+以下示例用于从这类服务器读取 HTTP 响应：
 
 [snippet_core_5]
 
