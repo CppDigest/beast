@@ -7,107 +7,60 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:layered_streams Layered Streams]
+[section:layered_streams 分层流类型]
 
-Networking's __ssl_stream__ is a class template meeting the requirements
-of both synchronous and asynchronous read and write streams, implemented
-in terms of a "next layer" object whose type is determined by a class
-template parameter. The SSL stream constructs an instance of the next
-layer object internally, while allowing external access through the
-observer `net::ssl::stream::next_layer()`. This declares an SSL stream
-which uses a regular TCP/IP socket as the next layer:
+网络库中的 __ssl_stream__ 是一个类模板，它同时满足同步流与异步流的读写要求，其实现基于一个“下一层”对象，该对象的类型由类模板参数决定。SSL 流在内部构造下一层对象的实例，同时通过观察器 `net::ssl::stream::next_layer()` 提供外部访问。以下声明一个 SSL 流，该流使用普通的 TCP/IP 套接字作为其下一层：
 
 [code_core_4_layers_1]
 
-Objects using this design pattern are referred to in networking as "a
-stack of stream layers". In Beast we use the term ['layered stream],
-although the property of having a next layer is not exclusive to streams.
-As with the SSL stream, __websocket_stream__ is a class template
-parameterized on a next layer object. This declares a websocket
-stream which uses a regular TCP/IP socket as the next layer:
+采用这种设计模式的对象在网络库中被称为“流层堆栈”。在 Beast 中，我们使用术语 [分层流]，但拥有下一层这一特性并非流所独有。与 SSL 流类似，__websocket_stream__ 也是一个以下一层对象为模板参数的类模板。以下声明一个 WebSocket 流，该流使用普通的 TCP/IP 套接字作为其下一层：
 
 [code_core_4_layers_2]
 
-If a Secure WebSockets stream is desired, this is accomplished simply
-by changing the type of the next layer and adjusting the constructor
-arguments to match:
+如果需要安全 WebSocket 流，只需改变下一层的类型并调整构造参数即可实现：
 
 [code_core_4_layers_3]
 
-Higher level abstractions can be developed in this fashion by nesting
-stream layers to arbitrary degree. The stack of stream layers effectively
-forms a compile-time singly linked list. The object at the end of
-this list is called the ['lowest layer], and is special from the
-others because it typically represents the underlying socket.
+通过任意层级的嵌套，可以按这种方式构建更高层次的抽象。这些嵌套的流层在编译期形成一个单链表。链表末尾的对象称为 [最底层]，它与其他层有所不同，因为最底层通常代表底层的套接字。
 
-Beast comes with several layered stream wrappers, as well as
-facilities for authoring and working with layered streams:
+Beast 提供多个分层流包装器，以及用于编写和操作分层流的工具：
 
-[table Layered Stream Algorithms and Types
-[[Name][Description]]
+[table 分层流算法与类型
+[[名称][描述]]
 [[
     [link beast.ref.boost__beast__basic_stream `basic_stream`]
     [link beast.ref.boost__beast__tcp_stream `tcp_stream`]
-][
-    This stream can be used for synchronous and asynchronous reading
-    and writing. It allows timeouts to be set on logical operations,
-    and can have an executor associated with the stream which is
-    used to invoke completion handlers. This lets you set a strand
-    on the stream once, which is then used for all asynchronous
-    operations automatically.
+][该流支持同步和异步读写操作。它允许为逻辑操作设置超时，也可以为流关联一个执行器，用来调用完成处理器。这样就可以对流只设置一次串行器，之后所有异步操作都会自动使用该串行器。
 ]]
 [[
     [link beast.ref.boost__beast__buffered_read_stream `buffered_read_stream`]
-][
-    A buffered read stream meets the requirements for synchronous and
-    asynchronous read and write streams, and additionally implements
-    configurable buffering for reads.
+][带缓冲的读流用于满足同步和异步读写流的要求，并额外实现可配置的读缓冲功能。
 ]]
 [[
     [link beast.ref.boost__beast__close_socket `close_socket`]
-][
-    This function closes a socket by performing an unqualified call
-    to the
-    [link beast.ref.boost__beast__beast_close_socket `beast_close_socket`]
-    customization point, allowing sockets to be closed in generic
-    contexts in an extensible fashion.
+][该函数通过无限定调用 [link beast.ref.boost__beast__beast_close_socket `beast_close_socket`] 这个定制点来关闭套接字，从而在泛型上下文中以一种可扩展的方式完成套接字关闭。
 ]]
 [[
     [link beast.ref.boost__beast__get_lowest_layer `get_lowest_layer`]
-][
-    Returns the lowest layer in a stack of stream layers by recursively
-    calling the `next_layer` member function on each object until reaching
-    an object which lacks the member. This example
-    puts a layered stream into non-blocking mode by retrieving the
-    TCP/IP socket in the lowest layer and changing the socket option:
+][通过递归调用每个对象的 `next_layer` 成员函数，直到遇到没有该成员的对象，从而返回流层堆栈中的最底层。以下示例通过获取最底层的 TCP/IP 套接字并修改其套接字选项，将分层流设置为非阻塞模式：
 
-    [code_core_4_layers_4]
+[code_core_4_layers_4]
 ]]
 [[
     [link beast.ref.boost__beast__http__icy_stream `http::icy_stream`]
-][
-    An ICY stream transparently converts the non-standard "ICY 200 OK"
-    HTTP response from Shoutcast servers into a conforming 200 level
-    HTTP response.
+][ICY 流用于将 Shoutcast 服务器返回的非标准 “ICY 200 OK” HTTP 响应透明转换为符合规范的 200 级别 HTTP 响应。
 ]]
 [[
     [link beast.ref.boost__beast__lowest_layer_type `lowest_layer_type`]
-][
-    A metafunction to return the type of the lowest layer used in
-    a type representing a stack of stream layers. This is the type
-    of reference returned by
-    [link beast.ref.boost__beast__get_lowest_layer `get_lowest_layer`]
+][一个元函数，用于返回表示流层堆栈的类型中所使用的最底层的类型。该类型与 [link beast.ref.boost__beast__get_lowest_layer `get_lowest_layer`] 返回的引用类型一致。
 ]]
 ]
 
 [/-----------------------------------------------------------------------------]
 
-[section Counted Stream __example__]
+[section 计数流 __示例__]
 
-This example shows the definition of a layered stream which keeps individual
-counts of the total number of bytes read from and written to the next layer.
-It meets the requirements for synchronous and asynchronous read and write
-streams:
+以下示例定义一个分层流，该流分别统计从下一层读取和写入的总字节数。该分层流满足同步与异步读写流的要求：
 
 [code_core_4_layers_5]
 
