@@ -7,54 +7,32 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:echo Echo __example__]
+[section:echo 回显 __示例__]
 
-This example develops an initiating function called [*echo].
-The operation will read up to the first newline on a stream, and
-then write the same line including the newline back on the stream.
-First we define the input parameters and results, then declare our
-initiation function. For our echo operation the only inputs are the
-stream and the completion token. The output is the error code which
-is usually included in all completion handler signatures.
+该示例用于开发名为 [*echo] 的启动函数。该操作从流中读取数据，直到遇到第一个换行符为止，然后将读取的内容（包含该换行符）写回流中。实现步骤如下：首先定义输入参数与返回结果，然后声明启动函数。该回显操作的输入参数仅为流对象与完成令牌，返回结果为错误码。该错误码通常包含在所有完成处理器的签名中。
 
 [example_core_echo_op_2]
 
-Now that we have a declaration, we will define the body of the function.
-We want to achieve the following goals: perform static type checking on
-the input parameters, set up the return value as per __N3747__, and launch
-the composed operation by constructing an intermediate, stateful completion
-handler and invoking it.
+完成函数声明后，我们再对该函数的实现部分进行定义。实现过程中需要满足以下几个目标：对输入参数执行静态类型检查，按照 __N3747__ 规范设定返回值类型，同时构造一个带有状态的中间完成处理器并调用该处理器，以此启动组合操作。
 
-The initiating function contains a few relatively simple parts. There is
-the customization of the return value type, static type checking, building
-the return value type using the helper, and creating and launching the
-`echo_op` composed operation object.
+发起函数包含几个相对简单的部分：定制返回值类型、静态类型检查、使用辅助工具构建返回值类型，以及创建并启动 `echo_op` 组合操作对象。
 
-The implementation strategy is to make the composed object meet the
-requirements of a completion handler by being movable, and by making it
-invocable so it can be used as a continuation for the asynchronous operations
-it launches. Rather than using `std::bind` or `boost::bind`, which destroys
-the type information and therefore breaks the associators,
-we will simply pass `std::move(*this)` as the completion handler parameter for
-any operations that we initiate. For the move to work correctly, care must be
-taken to ensure that no access to data members are made after the move takes
-place. Here is the complete implementation of our composed operation:
+实现策略是让组合对象满足完成处理器的要求：一方面要支持移动语义，另一方面要使其可调用，这样它就能作为其发起的异步操作的后续回调来使用。我们不使用 `std::bind` 或 `boost::bind`，因为它们会丢失类型信息，从而破坏关联器。相反，我们会直接把 `std::move(*this)` 作为完成处理器参数，传递给所发起的每个异步操作。为确保移动操作能正确工作，需要注意在移动发生之后，不能再访问任何数据成员。以下是该组合操作的完整实现：
 
 [example_core_echo_op_3]
 
-There are some common mistakes that should be avoided when writing
-composed operations:
+当编写组合操作时，需要避免以下几种常见错误：
 
-* Type erasing the final handler. This will cause undefined behavior.
+* 对最终处理器进行类型擦除，该操作会导致未定义行为。
 
-* Forgetting to include a return statement after calling an
+* 调用异步发起函数后忘记包含 return 语句
   initiating function.
 
-* Calling a synchronous function by accident. In general composed
+* 意外调用同步函数。通常情况下，
   operations should not block for long periods of time, since this
   ties up a thread running on the __io_context__.
 
-* Forgetting to provide `executor_type` and `get_executor` for the
+* 忘记提供 `executor_type` 和 `get_executor` 成员（为组合操作提供）。
   composed operation. This will cause undefined behavior. For example,
   if someone  calls the initiating function with a strand-wrapped
   function object, and there is more than thread running on the
@@ -62,10 +40,10 @@ composed operations:
   that violates safety guarantees. Beast provides class templates
   to take care of this boilerplate for you.
 
-* Forgetting to create an object of type __executor_work_guard__ with the
+* 忘记创建 __executor_work_guard__ 对象（使用执行器来创建）。
   type of executor returned by the stream's `get_executor` member function.
 
-* For operations which complete immediately (i.e. without calling an
+对于立即完成的操作（即无需调用异步发起函数即可完成的操作），
   intermediate initiating function), forgetting to use __post__ to
   invoke the final handler. This breaks the following initiating
   function guarantee: ['Regardless of whether the asynchronous operation
@@ -74,7 +52,6 @@ composed operations:
   in a manner equivalent to using __post__]. The function
   __bind_handler__ is provided for this purpose.
 
-The listing for a complete, runnable version of this example is in
-[path_link example/echo-op/echo_op.cpp echo_op.cpp].
+该示例的完整可运行代码参见 [path_link example/echo-op/echo_op.cpp echo_op.cpp]。
 
 [endsect]
