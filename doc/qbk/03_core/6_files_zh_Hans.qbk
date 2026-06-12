@@ -7,39 +7,27 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Files]
+[section 文件]
 
-Often when implementing network algorithms such as servers, it is necessary
-to interact with files on the system. Beast defines the __File__ concept
-and several models to facilitate cross-platform interaction with the
-underlying filesystem:
+在实现服务器等网络算法时，经常需要与系统中的文件进行交互。Beast 定义了 __File__ 概念以及多种模型，用于实现与底层文件系统的跨平台交互：
 
-[table File Types
-[[Name][Description]]
+[table 文件类型
+[[名称][描述]]
 [[
     [link beast.ref.boost__beast__file `file`]
-][
-    `file` is a type alias to one of the following implementations,
-    depending on what is available on the target platform.
+][`file` 是一个类型别名，其具体类型取决于目标平台所支持的实现，可能为以下某种实现之一：
 ]]
 [[
     [link beast.ref.boost__beast__file_stdio `file_stdio`]
-][
-    This implementation of __File__ uses the C++ standard library
-    facilities obtained by including `<cstdio>`.
+][该 __File__ 实现使用 C++ 标准库的功能，这些功能通过包含 `<cstdio>` 头文件获得。
 ]]
 [[
     [link beast.ref.boost__beast__file_win32 `file_win32`]
-][
-    This implements a __File__ for the Win32 API. It provides low level
-    access to the native file handle when necessary.
+][该实现为 Win32 API 提供 __File__ 接口。必要时，它可以提供对原生文件句柄的低级别访问。
 ]]
 [[
     [link beast.ref.boost__beast__file_posix `file_posix`]
-][
-    For POSIX systems, this class provides a suitable implementation
-    of __File__ which wraps the native file descriptor and provides
-    it if necessary.
+][对于 POSIX 系统，该类提供合适的 __File__ 实现，它封装原生文件描述符，并在必要时提供该描述符。
 ]]
 ]
 
