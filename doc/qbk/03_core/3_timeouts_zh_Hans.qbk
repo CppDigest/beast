@@ -7,12 +7,9 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:timeouts Timeouts __example__]
+[section:timeouts 超时处理 __示例__]
 
-Network programs must handle adverse connection conditions; the most common
-is that a connected peer goes offline unexpectedly. Protocols have no way of
-identifying this reliably: the peer is offline after all, and unable to send
-a message announcing the absence. A peer can go offline for various reasons:
+网络程序必须处理各种不利的连接状况，最常见的情况就是对端意外离线。由于对端已经不在线，自然无法发送消息来告知自身已离线，因此协议本身无法可靠识别这种状态。对端离线的原因有多种可能：
 
 [itemized_list
   [The peer experiences a power loss]
@@ -21,11 +18,7 @@ a message announcing the absence. A peer can go offline for various reasons:
   [The network itself becomes unavailable]
 ]
 
-To determine when a peer is offline or idle, a program will implement a
-[@https://en.wikipedia.org/wiki/Timeout_(computing) timeout]
-algorithm, which closes the connection after a specified amount of time if
-some condition is met. For example, if no data is received for the duration.
-A timeout may be used to:
+为了判断对端是否已离线或处于空闲状态，程序需要实现超时算法。该算法会在满足特定条件（例如，在一段时间内未收到任何数据）时关闭连接。超时机制可用于以下场景：
 
 [itemized_list
   [Drop malicious or poorly performing hosts]
@@ -33,23 +26,14 @@ A timeout may be used to:
   [Determine if a peer is offline or no longer available]
 ]
 
-Traditionally, programs use a
-[@boost:/doc/html/boost_asio/reference/steady_timer.html `net::steady_timer`]
-to determine when a timeout occurs, and then call
-[@boost:/doc/html/boost_asio/reference/basic_socket/close/overload2.html `close`]
-on the socket to release the resources. The complexity of managing a separate
-timer is often a source of
-[@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1269r0.html#timers frustration]
-for non-experts.
+传统做法是，程序使用 [@boost:/doc/html/boost_asio/reference/steady_timer.html `net::steady_timer`] 来检测超时，然后调用套接字的 [@boost:/doc/html/boost_asio/reference/basic_socket/close/overload2.html `close`] 方法释放资源。对于非专业人士，单独管理一个计时器所带来的复杂性，常常让人感到 [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1269r0.html#timers 困扰]。
 
 [note
-  For portability reasons, networking does not provide timeouts
+  出于可移植性考虑，网络库本身不提供超时机制。
   or cancellation features for synchronous stream operations.
 ]
 
-To simplify the handling of timeouts, these provided types wrap a
-[@boost:/doc/html/boost_asio/reference/basic_stream_socket.html `net::basic_stream_socket`]
-to provide additional features:
+为简化超时处理流程，以下类型对 [@boost:/doc/html/boost_asio/reference/basic_stream_socket.html `net::basic_stream_socket`] 进行封装，并提供额外功能：
 
 [table 
 [[Name][Features]]
@@ -73,80 +57,45 @@ to provide additional features:
 
 [/-----------------------------------------------------------------------------]
 
-[heading Construction]
+[heading 构造函数]
 
-The `tcp_stream` is designed as a replacement for
-[@boost:/doc/html/boost_asio/reference/ip__tcp/socket.html `net::ip::tcp::socket`].
-Any program which currently uses a socket, can switch to a `tcp_stream` and achieve
-the features above (although some interfaces are different, see below).
-Networking now allows I/O objects to construct with any instance of
-__ExecutionContext__ or __Executor__ objects. Here we construct a stream which
-uses a particular I/O context to dispatch completion handlers:
+`tcp_stream` 用于替代 [@boost:/doc/html/boost_asio/reference/ip__tcp/socket.html `net::ip::tcp::socket`]。任何当前使用套接字的程序都可以改用 `tcp_stream` 并获得上述功能（但部分接口存在差异，详见下文）。网络库现在允许 I/O 对象使用任意 __ExecutionContext__ 或 __Executor__ 实例进行构造。以下示例构造一个流，该流使用特定的 I/O 上下文来调度完成处理器：
 
 [code_core_3_timeouts_1]
 
-Alternatively, we can construct the stream from an executor:
+或者，也可以使用执行器来构造流：
 
 [code_core_3_timeouts_2]
 
-The function
-[@boost:/doc/html/boost_asio/reference/make_strand.html `make_strand`]
-returns a strand constructed from an execution context or executor. When a
-[@boost:/doc/html/boost_asio/reference/strand.html `net::strand`]
-is chosen for the stream's executor, all completion handlers which do not
-already have an associated executor will use the strand. This is both a
-notational convenience (no need for `strand::wrap` or `bind_executor` at
-call sites) and a measure of safety, as it is no longer possible to forget
-to use the strand.
+[@boost:/doc/html/boost_asio/reference/make_strand.html `make_strand`] 函数用于从执行上下文或执行器构造一个串行器。当为流的执行器选择 [@boost:/doc/html/boost_asio/reference/strand.html `net::strand`] 时，所有尚未关联执行器的完成处理器都会使用该串行器。这种方式既简化代码写法（调用点无需使用 `strand::wrap` 或 `bind_executor`），也提高安全性，因为不会再出现忘记使用串行器的情况。
 
 [code_core_3_timeouts_3]
 
 [/-----------------------------------------------------------------------------]
 
-[heading Connecting]
+[heading 连接]
 
-Before data can be exchanged, the stream needs to be connected to a peer.
-The following code sets a timeout for an asynchronous connect operation.
-In Beast, functions to connect to a range of endpoints (such as the range
-returned by
-[@boost:/doc/html/boost_asio/reference/ip__basic_resolver/resolve/overload3.html `net::ip::tcp::resolver::resolve`])
-are members of the class rather than free functions such as
-[@boost:/doc/html/boost_asio/reference/async_connect.html `net::async_connect`].
+在交换数据之前，该流需要先连接到对等端。以下代码用于为异步连接操作设置超时时间。在 Beast 中，用于连接端点范围（例如由 net::ip::tcp::resolver::resolve 返回的范围）的函数属于该类的成员函数，而不是像 net::async_connect 那样的自由函数。
 
 [code_core_3_timeouts_4]
 
-A server will use an acceptor bound to a particular IP address and port to
-listen to and receive incoming connection requests. The acceptor returns
-an ordinary socket. A `tcp_stream` can be move-constructed from the
-underlying `basic_stream_socket` thusly:
+服务器使用绑定至特定 IP 地址和端口的接收器，用于监听并接收传入的连接请求。该接收器用于返回一个普通套接字。以下代码用于展示如何基于该底层 basic_stream_socket 通过移动构造来创建 tcp_stream：
 
 [code_core_3_timeouts_5]
 
 [/-----------------------------------------------------------------------------]
 
-[heading Reading and Writing]
+[heading 读取与写入]
 
-Timeouts apply to the logical operation, expressed as a series of asynchronous
-calls, rather than just the next call. This code reads a line from the stream
-and writes it back. Both the read and the write must complete within 30 seconds
-from when the timeout was set; the timer is not reset between operations.
+超时时间适用于整个逻辑操作（即由一系列异步调用组成的操作），而不仅仅是下一次调用。以下代码用于从流中读取一行数据并将其写回。读取和写入操作均必须在设置超时时间后的 30 秒内完成；在这两次操作之间，定时器不会被重置。
 
 [code_core_3_timeouts_6]
 
-Since reads and writes can take place concurrently, it is possible to have
-two simultaneous logical operations where each operation either only reads,
-or only writes. The beginning of a new read or write operation will use
-the most recently set timeout. This will not affect operations that are
-already outstanding.
+由于读取和写入可以并发进行，因此可能会同时存在两个逻辑操作，且每个操作仅用于读取或仅用于写入。新读取或写入操作的开始将使用最近设置的超时时间。这不会影响已经处于未决状态的操作。
 
 [code_core_3_timeouts_7]
 
-When a timeout is set, it cancels any previous read or write timeout for which
-no outstanding operation is in progress. Algorithms which loop over logical
-operations simply need to set the timeout once before the logical operation,
-it is not necessary to call `expires_never` in this case. Here we implement
-an algorithm which continuously echoes lines back, with a timeout. This example
-is implemented as a complete function.
+当设置超时时，会取消之前尚未有未完成操作正在进行的读写超时。对于循环执行逻辑操作的算法，只需在执行逻辑操作之前设置一次超时，这种情况下无需调用 `expires_never`。以下示例实现一个持续回显行数据并带有超时机制的算法，该示例作为一个完整函数提供。
 
 [code_core_3_timeouts_1f]
 
@@ -154,20 +103,9 @@ is implemented as a complete function.
 
 [heading https_get]
 
-It is important to note that all of the examples thus far which perform
-reads and writes with a timeout, make use of the existing networking stream
-algorithms. As these algorithms are written generically to work with any
-object meeting the stream requirements, they transparently support timeouts
-when used with `tcp_stream`. This can be used to enable timeouts for stream
-wrappers that do not currently support timeouts.
+值得注意的是，目前所有涉及超时读写的示例，均使用了现有的网络流算法。由于这些算法采用泛型编写，适用于任何满足流（Stream）要求的对象，因此在与‘tcp_stream’配合使用时，能够透明地支持超时机制。借助这一特性，还可以为当前尚不支持超时的流包装器（Stream Wrappers）启用超时功能。
 
-The following code establishes an encrypted connection, writes an HTTP
-request, reads the HTTP response, and closes the connection gracefully.
-If these operations take longer than 30 seconds total, a timeout occurs.
-This code is intended to show how `tcp_stream` can be used to enable
-timeouts across unmodified stream algorithms which were not originally
-written to support timing out, and how a blocking algorithm may be written
-from asynchronous intermediate operations.
+以下代码用于建立加密连接、发送 HTTP 请求、接收 HTTP 响应，并正常关闭连接。如果这些操作的总耗时超过 30 秒，就会触发超时。这段代码主要展示两件事：一是如何用 `tcp_stream` 为原本不支持超时的流算法添加上超时功能，二是如何通过异步中间操作来构建一个阻塞算法。
 
 [code_core_3_timeouts_2f]
 
@@ -175,44 +113,21 @@ from asynchronous intermediate operations.
 
 [/-----------------------------------------------------------------------------]
 
-[section:rate_limiting Rate Limiting __example__]
+[section:rate_limiting 速率限制 __示例__]
 
-The
-[link beast.ref.boost__beast__basic_stream `basic_stream`]
-class template supports an additional `RatePolicy` template parameter. Objects
-of this type must meet the requirements of __RatePolicy__. They are used to
-implement rate limiting or bandwidth management. The default policy for
-`basic_stream` and `tcp_stream` is
-[link beast.ref.boost__beast__unlimited_rate_policy `unlimited_rate_policy`],
-which places no limits on reading and writing. The library comes with the
-[link beast.ref.boost__beast__simple_rate_policy `simple_rate_policy`],
-allowing for independent control of read and write limits expressed in terms
-of bytes per second. The follow code creates an instance of the basic stream
-with a simple rate policy, and sets the read and write limits:
+[link beast.ref.boost__beast__basic_stream `basic_stream`] 类模板支持额外的 `RatePolicy` 模板参数。该类型的对象必须满足 __RatePolicy__ 概念的要求，用于实现速率限制或带宽管理。`basic_stream` 和 `tcp_stream` 的默认策略为 [link beast.ref.boost__beast__unlimited_rate_policy `unlimited_rate_policy`]，该策略对读写操作不施加任何限制。该库提供 [link beast.ref.boost__beast__simple_rate_policy `simple_rate_policy`] 策略，支持以字节/秒为单位分别控制读写速率限制。以下代码创建一个使用简单速率策略的 basic_stream 实例，并设置读写限制：
 
 [code_core_3_timeouts_8]
 
-More sophisticated rate policies can be implemented as user-defined types which
-meet the requirements of __RatePolicy__. Here, we develop a rate policy that
-measures the instantaneous throughput of reads and writes. First we write a
-small utility class that applies an exponential smoothing function to a series
-of discrete rate samples, to calculate instantaneous throughput.
+更复杂的速率策略可以作为用户自定义类型来实现，只需满足 __RatePolicy__ 概念的要求即可。下面我们开发一个速率策略，用于测量读写操作的瞬时吞吐量。首先编写一个辅助类，该类对一系列离散的速率采样值应用指数平滑函数，以计算瞬时吞吐量。
 
 [code_core_3_timeouts_3f]
 
-Then we define our rate policy object. We friend the type
-[link beast.ref.boost__beast__rate_policy_access `rate_policy_access`] to
-allow our implementation to be private, but still allow the `basic_stream`
-access to call the required functions. This lets us avoid having to write
-a cumbersome friend declaration for the `basic_stream` class template.
-Public members of rate policy objects become part of the stream object's
-interface, through a call to `rate_policy`.
+接着定义速率策略对象。我们让类型 [link beast.ref.boost__beast__rate_policy_access `rate_policy_access`] 成为友元，这样可以将实现设为私有，同时仍然允许 `basic_stream` 访问所需函数。这种方式可以避免为 `basic_stream` 类模板编写繁琐的友元声明。速率策略对象的公有成员会通过调用 `rate_policy` 成为流对象接口的一部分。
 
 [code_core_3_timeouts_4f]
 
-To use our new policy we declare an instance of the stream, and then use it
-with stream algorithms as usual. At any time, we can determine the current
-read or write rates by calling into the policy.
+要使用新策略，我们声明一个流实例，然后像往常一样配合流算法使用。任何时候都可以通过调用策略中的方法来获取当前的读速率或写速率。
 
 [code_core_3_timeouts_9]
 
