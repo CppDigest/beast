@@ -7,105 +7,57 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:detect_ssl Detect SSL __example__]
+[section:detect_ssl 检测 SSL __示例__]
 
-In this example we will build a simple function to detect the presence of the
-[@https://tools.ietf.org/html/rfc2246#section-7.4 TLS client handshake]
-given an input buffer sequence. Then we build on the example by adding a
-synchronous stream algorithm. Finally, we implement an asynchronous
-detection function using a composed operation. This SSL detector may
-be used to allow a server to accept both TLS and plain (unencrypted)
-connections at the same port.
+本示例将构建一个简单函数，用于检测输入缓冲区序列中是否存在 TLS 客户端握手协议。然后在该示例的基础上，添加一个同步流算法。最后，通过组合操作实现异步检测函数。该 SSL 检测器可用于让服务器在同一端口上同时接受 TLS 和明文（未加密）连接。
 
-Here is the declaration for a function template to detect the SSL client
-handshake. The function accepts any object whose type meets the requirements
-of __ConstBufferSequence__. This gives callers flexibility to use a buffer
-object whose behavior is appropriate to the task.
+以下函数模板声明用于检测 SSL 客户端握手。该函数接受任何满足 __ConstBufferSequence__ 概念要求的对象，从而使调用方能够根据任务需要灵活选择合适的缓冲区对象。
 
 [example_core_detect_ssl_1]
 
-The algorithm examines the buffer starting from the beginning, and
-performs a series of qualifying checks against the TLS specification.
-When not enough data exists to be certain, the returned value of
-`boost::indeterminate` informs the caller to read more data into the buffer.
-The function definition for the declaration above follows:
+该算法从缓冲区开头开始检查，并按照 TLS 规范进行一系列验证。如果数据不足，无法确定结果，则返回 `boost::indeterminate`，通知调用方继续向缓冲区读入更多数据。上面声明的函数，其定义如下：
 
 [example_core_detect_ssl_2]
 
-The detection function above is suitably generic and targeted in
-focus that it may be used as a building block to create higher level
-abstractions. Our goal is to create a ['stream algorithm]: a function
-which is invoked with a stream, that reads or writes (or both) to achieve
-a purpose. In this case, to detect the TLS client handshake. Stream
-algorithms may be synchronous or asynchronous. Because synchronous algorithms
-are easier to write, we start there. Then we build the asynchronous version,
-trying to model it similarly to make reasoning about it easier.
+上述检测函数足够通用，且目标明确，可以作为基础模块来构建更高级的抽象。接下来要创建一个流算法：该算法接收一个流作为参数，通过执行读写操作来达到特定目的，这里就是检测 TLS 客户端握手。流算法可以是同步的，也可以是异步的。同步算法更容易编写，因此先实现同步版本，再在此基础上构建异步版本，并尽量让两者风格相似，便于理解。
 
-The synchronous version is implemented thusly:
+同步版本的实现如下：
 
 [example_core_detect_ssl_3]
 
-Now that we have the synchronous version, we can attempt to model the
-asynchronous version similarly. A function which launches an asynchronous
-operation is called an ['initiating function].  While the synchronous
-version above produces an error code through an output parameter, the
-asynchronous version delivers the error code to a completion handler
-or other custom mechanism defined by the completion token. The signature
-of the initiating function reflects these differences.
+有了同步版本之后，可以尝试以类似方式构建异步版本。启动异步操作的函数称为发起函数。上述同步版本通过输出参数返回错误码，而异步版本则通过完成处理器或由完成令牌定义的其他自定义机制来传递错误码。发起函数的签名反映了这些差异。
 
-First we declare the initiating function and document the requirements,
-parameters, preconditions, and effects:
+首先声明发起函数，并说明其使用要求、参数、前置条件及功能效果：
 
 [example_core_detect_ssl_4]
 
-There are two additional components required to implement the initiating
-function:
+实现发起函数还需要以下两个额外组件：
 
-* An intermediate completion handler, called the "composed operation"
+* 一个中间完成处理器，称为“组合操作”
   object, which holds the state of the operation while it is in progress,
   and also holds the user's completion handler to be invoked when the
   opeartion completes, and
 
-* An "initiation" function object which when invoked with parameters
+* 一个“发起”函数对象，当使用参数调用时
   captured at the call site of the initiating function, constructs the 
   composed operation with the captured arguments and launches it.
 
-Here we forward declare the composed operation type, and provide the
-definition of the initiation function object. They are placed in the
-`detail` namespace since they should not be public:
+这里先对组合操作类型进行前置声明，然后给出发起函数对象的定义。因为这些组件属于内部实现细节，不对外公开，所以都放在 `detail` 命名空间中：
 
 [example_core_detect_ssl_5]
 
-The initiating function definition itself is straightforward. We perform
-type checking on the parameters, and then let `net::async_initiate`
-capture the parameter list along with a copy of our initiation function
-object. Depending on the specialization of `async_result` for the type
-of `CompletionToken`, the initiation function may be invoked immediately.
-Alternatively, it may be invoked later, after the initiating function
-returns. This is known as "lazy execution," and allows efficient and
-expressive abstractions to be written.
+发起函数的定义本身并不复杂：先对参数进行类型检查，再通过 `net::async_initiate` 捕获参数列表和发起函数对象的一个副本。根据 `CompletionToken` 类型对应的 `async_result` 特化版本，发起函数可以立即执行，也可以在发起函数返回之后再执行。后者称为“延迟执行”，这种机制便于编写高效且表达力强的抽象。
 
 [example_core_detect_ssl_6]
 
-Now we will declare our composed operation. There is a considerable
-amount of necessary boilerplate to get this right, but the result
-is worth the effort.
+接下来声明组合操作。虽然需要编写不少必要的样板代码，但最终效果是值得的。
 
 [example_core_detect_ssl_7]
 
-The boilerplate is all done, and now we need to implement the function
-call operator that turns this composed operation a completion handler
-with the signature `void(error_code, std::size_t)` which is exactly
-the signature needed when performing asynchronous reads. This function
-is a transformation of the synchronous version of `detect_ssl` above,
-but with the inversion of flow that characterizes code written in the
-callback style:
+样板代码已经全部完成，接下来需要实现函数调用运算符，使该组合操作成为一个具有 `void(error_code, std::size_t)` 签名的完成处理器，而这正是执行异步读取时所需的签名。该函数是对上述同步版本 `detect_ssl` 的一种转换，但与同步版本不同，它采用了回调风格代码特有的控制流反转方式：
 
 [example_core_detect_ssl_8]
 
-The examples
-[path_link example/advanced/server/advanced_server.cpp advanced-server] and
-[path_link example/advanced/server-flex/advanced_server_flex.cpp advanced-server-flex]
-use this SSL detection function.
+示例 [path_link example/advanced/server/advanced_server.cpp advanced-server] 和 [path_link example/advanced/server-flex/advanced_server_flex.cpp advanced-server-flex] 使用了该 SSL 检测函数。
 
 [endsect]
