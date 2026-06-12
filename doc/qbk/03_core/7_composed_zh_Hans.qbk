@@ -7,94 +7,46 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Writing Composed Operations]
+[section 编写组合操作]
 
-Asynchronous operations are started by calling a free function or member
-function known as an asynchronous ['__async_initfn__]. This function accepts
-parameters specific to the operation as well as a __CompletionToken__. The
-token is either a completion handler, or a type defining how the caller is
-informed of the asynchronous operation result. Networking provides the
-special tokens __use_future__ and __yield_context__ for using futures
-and coroutines respectively. This system of customizing the return value
-and method of completion notification is known as the
-['Universal Asynchronous Model] described in __N3747__, and a built in
-to __NetTS__. Here is an example of an initiating function which reads a
-line from the stream and echoes it back. This function is developed
-further in the next section:
+异步操作通过调用一个自由函数或成员函数来启动，该函数被称为异步[发起函数]。发起函数接收操作相关的参数以及一个 __CompletionToken__ 完成令牌。该令牌可以是一个完成处理器，也可以是一种用于定义调用方如何获知异步操作结果的方式。网络库提供 __use_future__ 和 __yield_context__ 这两种特殊令牌，分别用于支持 future 和协程。这种自定义返回值及完成通知方式的机制被称为 __N3747__ 中描述的通用异步模型，并已内置到 __NetTS__ 中。以下是一个发起函数的示例，该函数用于从流中读取一行数据并将其回显回去。下一节将进一步开发此函数：
 
 [example_core_echo_op_1]
 
 [tip
-    This initiating function receives the dynamic buffer by lvalue-reference,
+    该发起函数通过左值引用接收动态缓冲区，
     instead of by rvalue-reference as specified in networking. An explanation
     for this difference may be found in
     [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p1100r0.html [P1100R0] Efficient composition with DynamicBuffer].
 ]
-Authors using Beast can reuse the library's primitives to create their
-own initiating functions for performing a series of other, intermediate
-asynchronous operations before invoking a final completion handler.
-The set of intermediate actions produced by an initiating function is
-known as a
-[@http://blog.think-async.com/2009/08/composed-operations-coroutines-and-code.html ['composed operation]].
-To ensure full interoperability and well-defined behavior, __Asio__ imposes
-requirements on the implementation of composed operations. These classes
-and functions make it easier to develop initiating functions and their
-composed operations:
+使用 Beast 的开发者可以复用库中的基本组件，来创建自己的发起函数。这些发起函数会在执行一系列中间异步操作之后，最终调用一个完成处理器。发起函数所产生的这一系列中间动作，被称为 [组合操作]。为确保良好的互操作性和行为的一致性，__Asio__ 对组合操作的实现方式提出了一些要求。以下提供的类和函数，可以帮助开发者更轻松地编写发起函数及其对应的组合操作：
 
-[table Asynchronous Helpers
-[[Name][Description]]
+[table 异步辅助函数
+[[名称][描述]]
 [[
     [link beast.ref.boost__beast__async_base `async_base`]
     [link beast.ref.boost__beast__stable_async_base `stable_async_base`]
-][
-    This class is designed to be used as a base class when authoring
-    composed asynchronous operations expressed as an intermediate
-    completion handler. This eliminates the need for the extensive
-    boilerplate to propagate the associated executor and the associated
-    allocator.
+][该类作为基类，专门用于编写以中间完成处理器形式表达的组合异步操作。使用它，可以避免编写大量用于传递关联执行器和关联分配器的样板代码。
 ]]
 [[
     [link beast.ref.boost__beast__allocate_stable `allocate_stable`]
-][
-    For composed operation algorithms which need stable storage for
-    temporary objects, this function may be used. Memory for the
-    stable storage is allocated using the allocator associated with
-    the final completion handler. The implementation automatically
-    destroys the temporary object before the final completion handler
-    is invoked, or when the intermediate completion handler is
-    destroyed.
+][对于需要为临时对象提供稳定存储的组合操作算法，可以使用此函数。该函数通过最终完成处理器所关联的分配器来分配稳定存储所需的内存。它会在最终完成处理器被调用之前，或者中间完成处理器被销毁时，自动销毁这些临时对象。
 ]]
 [[
     [link beast.ref.boost__beast__bind_handler `bind_handler`]
-][
-    This function creates a new handler which, when invoked, calls
-    the original handler with the list of bound arguments. Any
-    parameters passed in the invocation will be substituted for
-    placeholders present in the list of bound arguments. Parameters
-    which are not matched to placeholders are silently discarded.
+][该函数用于创建一个新的处理器。当这个新处理器被调用时，它会使用预先绑定的参数列表去调用原始的处理器。调用时传入的参数，会替换掉绑定列表中的占位符；而那些没有对应占位符的参数，则会被悄悄丢弃。
 
-    The passed handler and arguments are forwarded into the returned
-    handler, whose associated allocator and associated executor will
-    be the same as those of the original handler.
+传入的处理器和参数，都会被转发给返回的新处理器。这个新处理器的关联分配器和关联执行器，与原始处理器完全相同。
 ]]
 [[
     [link beast.ref.boost__beast__bind_front_handler `bind_front_handler`]
-][
-    This function creates a new handler which, when invoked, calls
-    the original handler with the list of bound arguments, along with
-    the list of invoked arguments at either the front or the back of
-    the argument list. Placeholders are not supported.
+][该函数用于创建新处理器。调用该新处理器时，系统会对原始处理器进行调用，并同时传入绑定参数列表以及调用参数列表。调用参数列表可位于参数列表的前端或后端。该函数不支持占位符。
 
-    The passed handler and arguments are forwarded into the returned
-    handler, whose associated allocator and associated executor will
-    will be the same as those of the original handler.
+传入的处理器与参数被转发至返回的新处理器。该新处理器的关联分配器及关联执行器均与原始处理器保持一致。
 ]]
 [[
     [link beast.ref.boost__beast__saved_handler `saved_handler`]
-][
-    This wrapper safely stores a completion handler so it may be invoked
-    later, allowing an implementation to "pause" an operation until some
-    condition is met.
+][该包装类用于安全存储完成处理器，以便后续调用。通过该机制，实现方可以对操作进行“暂停”，直到满足特定条件后再继续执行。
 ]]
 ]
 
