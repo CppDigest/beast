@@ -7,243 +7,145 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Buffer Types]
+[section 缓冲区类型]
 
-To facilitate working with instances of the __ConstBufferSequence__ and
-__MutableBufferSequence__ concepts introduced in __Asio__, Beast treats
-those sequences as a special type of range. The following algorithms and
-wrappers are provided which transform these ranges efficiently using lazy
-evaluation. No memory allocations are used in the transformations; instead,
-they create lightweight iterators over the existing, unmodified memory
-buffers. Control of buffers is retained by the caller; ownership is not
-transferred.
+为方便处理 __Asio__ 中定义的 __ConstBufferSequence__ 和 __MutableBufferSequence__ 这两种概念，Beast 将它们视为一种特殊的范围类型。该库提供以下算法和包装器，采用延迟求值的方式对这类范围进行高效转换。转换时不会分配内存，只是在已有且未修改的内存缓冲区上创建轻量级迭代器。缓冲区的控制权依然属于调用方，不涉及所有权转移。
 
-[table Buffer Algorithms and Types
-[[Name][Description]]
+[table 缓冲区算法与类型
+[[名称][描述]]
 [[
     [link beast.ref.boost__beast__buffer_bytes `buffer_bytes`]
-][
-    This is a more reliable version of
-    [@boost:/doc/html/boost_asio/reference/buffer_size.html `net::buffer_size`]
-    which is easier to use and also works for types which are convertible
-    to `net::const_buffer` or `net::mutable_buffer`.
+][这是一个更可靠的 `net::buffer_size` 版本，使用起来更简单，并且适用于可转换为 `net::const_buffer` 或 `net::mutable_buffer` 的类型。
 ]]
 [[
     [link beast.ref.boost__beast__buffers_cat `buffers_cat`]
-][
-    This functions returns a new buffer sequence which, when iterated,
-    traverses the sequence which would be formed if all of the input buffer
-    sequences were concatenated. With this routine, multiple calls to a
-    stream's `write_some` function may be combined into one, eliminating
-    expensive system calls.
+][该函数返回一个新的缓冲区序列，对该序列进行迭代遍历时，其效果相当于将所有输入缓冲区序列拼接在一起。利用该例程，可以将对流 `write_some` 函数的多次调用合并为一次，从而减少昂贵的系统调用。
 ]]
 [[
     [link beast.ref.boost__beast__buffers_cat_view `buffers_cat_view`]
-][
-    This class represents the buffer sequence formed by concatenating
-    two or more buffer sequences. This is type of object returned by
-    [link beast.ref.boost__beast__buffers_cat `buffers_cat`].
+][该类表示将两个或多个缓冲区序列拼接后形成的新缓冲区序列。该类型与 [link beast.ref.boost__beast__buffers_cat `buffers_cat`] 返回的对象类型一致。
 ]]
 [[
     [link beast.ref.boost__beast__buffers_front `buffers_front`]
-][
-    This function returns the first buffer in a buffer sequence,
-    or a buffer of size zero if the buffer sequence has no elements.
+][该函数用于返回缓冲区序列中的第一个缓冲区。如果该序列为空，则返回一个大小为零的缓冲区。
 ]]
 [[
     [link beast.ref.boost__beast__buffers_prefix `buffers_prefix`]
-][
-    This function returns a new buffer or buffer sequence which represents
-    a prefix of the original buffers.
+][该函数用于返回一个代表原始缓冲区前缀的新缓冲区或缓冲区序列。
 ]]
 [[
     [link beast.ref.boost__beast__buffers_prefix_view `buffers_prefix_view`]
-][
-    This class represents the buffer sequence formed from a prefix of
-    an existing buffer sequence. This is the type of buffer returned by
-    [link beast.ref.boost__beast__buffers_prefix `buffers_prefix`].
+][该类表示从现有缓冲区序列前缀中形成的新缓冲区序列。该类型与 [link beast.ref.boost__beast__buffers_prefix `buffers_prefix`] 返回的缓冲区类型一致。
 ]]
 [[
     [link beast.ref.boost__beast__buffers_range `buffers_range`]
     [link beast.ref.boost__beast__buffers_range_ref `buffers_range_ref`]
-][
-    This function returns an iterable range representing the passed
-    buffer sequence. The values obtained when iterating the range
-    will always be a constant buffer, unless the underlying buffer
-    sequence is mutable, in which case the value obtained when iterating
-    will be a mutable buffer. It is intended as a notational convenience
-    when writing a ['range-for] statement over a buffer sequence.
+][该函数用于返回一个表示所传入缓冲区序列的可迭代范围。迭代该范围时获取的值始终为常量缓冲区，除非底层缓冲区序列是可变的，此时迭代获取的值将变为可变缓冲区。该函数旨在为编写遍历缓冲区序列的 [范围 for] 语句提供便捷的语法表达。
 
-    The function
-    [link beast.ref.boost__beast__buffers_range_ref `buffers_range`]
-    maintains a copy of the buffer sequence, while
-    [link beast.ref.boost__beast__buffers_range_ref `buffers_range_ref`]
-    maintains a reference (in this case, the caller must ensure that
-    the lifetime of the referenced buffer sequence extends until the
-    range object is destroyed).
+[link beast.ref.boost__beast__buffers_range `buffers_range`] 函数会保留缓冲区序列的副本，而 [link beast.ref.boost__beast__buffers_range_ref `buffers_range_ref`] 则只保留引用（此时调用方需确保被引用缓冲区序列的生命周期延续到该范围对象销毁为止）。
 ]]
 [[
     [link beast.ref.boost__beast__buffers_suffix `buffers_suffix`]
-][
-    This class wraps the underlying memory of an existing buffer sequence
-    and presents a suffix of the original sequence. The length of the suffix
-    may be progressively shortened. This lets callers work with sequential
-    increments of a buffer sequence.
+][该类用于包装现有缓冲区序列的底层内存，并呈现原始序列的一个后缀。该后缀的长度可以逐步缩短，方便调用方按顺序逐步处理缓冲区序列中的内容。
 ]]
 [[
     [link beast.ref.boost__beast__buffers_to_string `buffers_to_string`]
-][
-    This function converts a buffer sequence to a `std::string`. It can
-    be used for diagnostic purposes and tests.
+][该函数用于将缓冲区序列转换为 `std::string` 字符串，可用于诊断和测试场景。
 ]]
 [[
  [link beast.ref.boost__beast__buffer_ref `buffer_ref`]
  [link beast.ref.boost__beast__ref `ref`]
-][
-    This function converts a beast buffer, that is to be passed by reference,
-    into a buffer reference, that can be passed by value into asio functions.
-
-    It implements the __DynamicBuffer__v2__ concept.
+][该函数用于将通过引用传递的 Beast 缓冲区转换为可通过值传递给 Asio 函数的缓冲区引用。该函数实现了 __DynamicBuffer__v2__ 概念。
 ]]
 ]
 
-The __DynamicBuffer__ concept introduced in __Asio__ models a buffer
-sequence which supports an owning, resizable range. Beast provides this
-set of additional implementations of the dynamic buffer concept:
+__Asio__ 中引入的 __DynamicBuffer__ 概念用于描述一种支持所有权且可调整大小的缓冲区序列。Beast 提供以下一组动态缓冲区概念的补充实现：
 
-[table Dynamic Buffer Implementations
-[[Name][Description]]
+[table 动态缓冲区实现类型
+[[名称][描述]]
 [[
     [link beast.ref.boost__beast__buffers_adaptor `buffers_adaptor`]
-][
-    This wrapper adapts any __MutableBufferSequence__ into a
-    __DynamicBuffer__ with an upper limit on the total size of the input and
-    output areas equal to the size of the underlying mutable buffer sequence.
-    The implementation does not perform heap allocations.
+][该包装器用于将任意 __MutableBufferSequence__ 适配为 __DynamicBuffer__，其输入与输出区域的总大小上限等于底层可变缓冲区序列的大小。该实现不进行堆内存分配。
 ]]
 [[
     [link beast.ref.boost__beast__flat_buffer `flat_buffer`]
     [link beast.ref.boost__beast__basic_flat_buffer `basic_flat_buffer`]
-][
-    Guarantees that input and output areas are buffer sequences with
-    length one.
-    Upon construction an optional upper limit to the total size of the
-    input and output areas may be set.
-    The basic container is an
-    [@https://en.cppreference.com/w/cpp/named_req/AllocatorAwareContainer [*AllocatorAwareContainer]].
+][该类保证输入与输出区域均为长度为一的缓冲区序列。构造时可设置输入与输出区域总大小的可选上限。该基本容器是一个 [@https://en.cppreference.com/w/cpp/named_req/AllocatorAwareContainer [分配器感知容器]]。
 ]]
 [[
     [link beast.ref.boost__beast__multi_buffer `multi_buffer`]
     [link beast.ref.boost__beast__basic_multi_buffer `basic_multi_buffer`]
-][
-    Uses a sequence of one or more character arrays of varying sizes.
-    Additional character array objects are appended to the sequence to
-    accommodate changes in the size of the character sequence.
-    The basic container is an
-    [@https://en.cppreference.com/w/cpp/named_req/AllocatorAwareContainer [*AllocatorAwareContainer]].
+][该类使用一个或多个大小不同的字符数组构成的序列。当字符序列的大小发生变化时，会向该序列中追加额外的字符数组对象。该基本容器是一个 [@https://en.cppreference.com/w/cpp/named_req/AllocatorAwareContainer [分配器感知容器]]。
 ]]
 [[
     [link beast.ref.boost__beast__flat_static_buffer `flat_static_buffer`]
     [link beast.ref.boost__beast__flat_static_buffer_base `flat_static_buffer_base`]
-][
-    Guarantees that input and output areas are buffer sequences with
-    length one.
-    Provides the facilities of a dynamic buffer, subject to an upper
-    limit placed on the total size of the input and output areas defined
-    by a constexpr template parameter. The storage for the sequences are
-    kept in the class; the implementation does not perform heap allocations.
+][该类保证输入与输出区域均为长度为一的缓冲区序列。它提供动态缓冲区的功能，但输入与输出区域的总大小受模板常量表达式参数所定义的上限约束。该序列的存储空间保存在类内部，实现不进行堆内存分配。
 ]]
 [[
     [link beast.ref.boost__beast__static_buffer `static_buffer`]
     [link beast.ref.boost__beast__static_buffer_base `static_buffer_base`]
-][
-    Provides the facilities of a circular dynamic buffer. subject to an
-    upper limit placed on the total size of the input and output areas
-    defined by a constexpr template parameter.
-    The implementation never moves memory during buffer operations.
-    The storage for the sequences are kept in the class; the implementation
-    does not perform heap allocations.
+][该类提供循环动态缓冲区的功能，输入与输出区域的总大小受模板常量表达式参数所定义的上限约束。实现过程中不会移动缓冲区中的内存数据。该序列的存储空间保存在类内部，实现不进行堆内存分配。
 ]]
 ]
 
-The buffers provide different guarantees regarding the allocated memory; stable means that existing
-mutable and const_buffers obtained by calling `data` or `prepare`, will remain valid.
+这些缓冲区在内存分配方面提供不同的保证。“稳定”意味着通过调用 `data` 或 `prepare` 获取的现有可变缓冲区和常量缓冲区将保持有效。
 
-Note that copies always requires a new call to `data` and `prepare`.`
+请注意，拷贝操作始终需要重新调用 `data` 和 `prepare`。
 
-[table Memory stability
-[[Name] [Allocation] [buffer sequence length] [Max Size] [Movable] [prepare/commit] [consume]]
+[table 内存稳定性
+[[名称] [内存分配] [缓冲区序列长度] [最大容量] [可移动语义] [数据准备与提交] [消耗]]
 [
     [[link beast.ref.boost__beast__flat_buffer `flat_buffer`]]
-    [dynamic] [1] [dynamic] [yes] [invalidating] [invalidating]
+    [动态的] [1] [动态的] [yes] [失效] [失效]
 ]
 [
     [[link beast.ref.boost__beast__multi_buffer `multi_buffer`]]
-    [dynamic] [dynamic] [stable] [yes] [invalidating]
+    [动态的] [动态的] [稳定的] [yes] [失效]
 ]
 [
     [[link beast.ref.boost__beast__flat_static_buffer `flat_static_buffer`]]
-    [static] [1] [static] [no] [invalidating]
+    [静态的] [1] [静态的] [no] [失效]
 ]
 [
     [[link beast.ref.boost__beast__static_buffer `static_buffer`]]
-    [static] [1-2] [static] [no] [may invalidate]
+    [静态的] [1-2] [静态的] [no] [可能导致失效]
 ]
 ]
 
-These two functions facilitate buffer interoperability with standard
-output streams.
+这两个函数用于促进缓冲区与标准输出流之间的互操作性。
 
-[table Buffer Output Streams
-[[Name][Description]]
+[table 缓冲区输出流
+[[名称][描述]]
 [[
     [link beast.ref.boost__beast__make_printable `make_printable`]
-][
-    This function wraps a __ConstBufferSequence__ so it may be
-    used with `operator<<` and `std::ostream`.
+][该函数用于包装 __ConstBufferSequence__，使其能够与 `operator<<` 和 `std::ostream` 配合使用。
 ]]
 [[
     [link beast.ref.boost__beast__ostream `ostream`]
-][
-    This function returns a `std::ostream` which wraps a dynamic buffer.
-    Characters sent to the stream using `operator<<` are stored in the
-    dynamic buffer.
+][该函数用于返回一个包装了动态缓冲区的 `std::ostream` 对象。通过 `operator<<` 发送到该流的字符会存储到动态缓冲区中。
 ]]
 ]
 
-These type traits are provided to facilitate writing compile-time
-metafunctions which operate on buffers:
+以下类型特征用于编写操作缓冲区的编译期元函数：
 
-[table Buffer Algorithms and Types
-[[Name][Description]]
+[table 缓冲区算法与类型
+[[名称][描述]]
 [[
     [link beast.ref.boost__beast__buffers_iterator_type `buffers_iterator_type`]
-][
-    This metafunction is used to determine the type of iterator
-    used by a particular buffer sequence.
+][该元函数用于确定某个缓冲区序列所使用的迭代器类型。
 ]]
 [[
     [link beast.ref.boost__beast__buffers_type `buffers_type`]
-][
-    This metafunction is used to determine the underlying buffer type for
-    a list of buffer sequence. The equivalent type of the alias will vary
-    depending on the template type argument.
+][该元函数用于确定缓冲区序列列表的底层缓冲区类型。该别名对应的具体类型会随模板类型参数的不同而变化。
 ]]
 [[
     [link beast.ref.boost__beast__is_const_buffer_sequence `is_const_buffer_sequence`]
-][
-    This metafunction is used to determine if all of the specified types
-    meet the requirements of __ConstBufferSequence__. This type alias
-    will be `std::true_type` if each specified type meets the requirements,
-    otherwise, this type alias will be `std::false_type`.
+][该元函数用于判断所有指定类型是否都满足 __ConstBufferSequence__ 概念的要求。若每个指定类型都满足要求，则该类型别名为 `std::true_type`；否则为 `std::false_type`。
 ]]
 [[
     [link beast.ref.boost__beast__is_mutable_buffer_sequence `is_mutable_buffer_sequence`]
-][
-    This metafunction is used to determine if all of the specified types
-    meet the requirements of __MutableBufferSequence__. This type alias
-    will be `std::true_type` if each specified type meets the requirements,
-    otherwise, this type alias will be `std::false_type`.
+][该元函数用于判断所有指定类型是否都满足 __MutableBufferSequence__ 概念的要求。若每个指定类型都满足要求，则该类型别名为 `std::true_type`；否则为 `std::false_type`。
 ]]
 ]
 
