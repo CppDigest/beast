@@ -9,107 +9,72 @@
 
 
 
-[section:stream_types Streams]
+[section:stream_types 流类型]
 
-A __Stream__ is a communication channel where data is reliably transferred as
-an ordered sequence of bytes. Streams are either synchronous or asynchronous,
-and may allow reading, writing, or both. Note that a particular type may model
-more than one concept. For example, the networking types  __socket__ and
-__ssl_stream__ support both __SyncStream__ and __AsyncStream__. All stream
-algorithms in Beast are declared as template functions using these concepts:
+__Stream__ 是一种通信通道，数据以有序字节序列的形式在其中可靠传输。流可分为同步流与异步流，可支持读操作、写操作或两者同时支持。需要注意的是，某个具体类型可能同时符合多个概念模型。例如，网络库中的 __socket__ 与 __ssl_stream__ 类型同时支持 __SyncStream__ 与 __AsyncStream__ 两种概念。Beast 中的所有流算法均以模板函数形式声明，并使用这些概念进行约束：
 
-[table Stream Concepts
-[[Concept][Description]]
+[table 流概念
+[[概念][描述]]
 [
     [__SyncReadStream__]
-    [
-        Supports buffer-oriented blocking reads.
-    ]
+    [用于支持面向缓冲区的阻塞读取操作。]
 ][
     [__SyncWriteStream__]
-    [
-        Supports buffer-oriented blocking writes.
-    ]
+    [用于支持面向缓冲区的阻塞写入操作。]
 ][
     [__SyncStream__]
-    [
-        A stream supporting buffer-oriented blocking reads and writes.
-    ]
+    [一种流类型，用于支持面向缓冲区的阻塞读写操作。]
 ][
     [__AsyncReadStream__]
-    [
-        Supports buffer-oriented asynchronous reads.
-    ]
+    [用于支持面向缓冲区的异步读取操作。]
 ][
     [__AsyncWriteStream__]
-    [
-        Supports buffer-oriented asynchronous writes.
-    ]
+    [用于支持面向缓冲区的异步写入操作。]
 ][
     [__AsyncStream__]
-    [
-        A stream supporting buffer-oriented asynchronous reads and writes.
-    ]
+    [一种流类型，用于支持面向缓冲区的异步读写操作。]
 ]
 ]
 
-These template metafunctions check whether a given type meets the
-requirements for the various stream concepts, and some additional
-useful utilities. The library uses these type checks internally
-and also provides them as public interfaces so users may use the
-same techniques to augment their own code. The use of these type
-checks helps provide more concise errors during compilation:
+这些模板元函数用于检查某个类型是否满足各类流概念的要求，并提供一些额外的实用工具。该库内部使用这些类型检查，同时也将其作为公共接口开放，方便用户用同样的方式增强自己的代码。采用这些类型检查机制，有助于在编译时给出更清晰的错误提示。
 
-[table Type Traits and Metafunctions
-[[Name][Description]]
+[table 类型特征与元函数
+[[名称][描述]]
 [[
     [link beast.ref.boost__beast__executor_type `executor_type`]
-][
-    An alias for the type of object returned by `get_executor`.
+][用于表示 `get_executor` 返回的对象类型的别名。
 ]]
 [[
     [link beast.ref.boost__beast__has_get_executor `has_get_executor`]
-][
-    Determine if the `get_executor` member function is present.
+][用于判断是否存在 `get_executor` 成员函数。
 ]]
 [[
     [link beast.ref.boost__beast__is_async_read_stream `is_async_read_stream`]
-][
-    Determine if a type meets the requirements of __AsyncReadStream__.
+][用于判断某个类型是否符合 __AsyncReadStream__ 概念的要求。
 ]]
 [[
     [link beast.ref.boost__beast__is_async_stream `is_async_stream`]
-][
-    Determine if a type meets the requirements of both __AsyncReadStream__
-    and __AsyncWriteStream__.
+][用于判断某个类型是否同时符合 __AsyncReadStream__ 与 __AsyncWriteStream__ 概念的要求。
 ]]
 [[
     [link beast.ref.boost__beast__is_async_write_stream `is_async_write_stream`]
-][
-    Determine if a type meets the requirements of __AsyncWriteStream__.
+][用于判断某个类型是否符合 __AsyncWriteStream__ 概念的要求。
 ]]
 [[
     [link beast.ref.boost__beast__is_sync_read_stream `is_sync_read_stream`]
-][
-    Determine if a type meets the requirements of __SyncReadStream__.
+][用于判断某个类型是否符合 __SyncReadStream__ 概念的要求。
 ]]
 [[
     [link beast.ref.boost__beast__is_sync_stream `is_sync_stream`]
-][
-    Determine if a type meets the requirements of both __SyncReadStream__
-    and __SyncWriteStream__.
+][用于判断某个类型是否同时符合 __SyncReadStream__ 与 __SyncWriteStream__ 概念的要求。
 ]]
 [[
     [link beast.ref.boost__beast__is_sync_write_stream `is_sync_write_stream`]
-][
-    Determine if a type meets the requirements of __SyncWriteStream__.
+][用于判断某个类型是否符合 __SyncWriteStream__ 概念的要求。
 ]]
 ]
 
-Using the type checks with `static_assert` on function or class template
-types will provide users with helpful error messages and prevent undefined
-behaviors. This example shows how a template function which writes to a
-synchronous stream may check its argument:
+在函数或类模板类型上使用 `static_assert` 配合这些类型检查，可以给用户提供更清晰的错误信息，同时避免未定义行为。以下示例展示一个用于向同步流写入数据的模板函数，该示例演示如何对其参数类型进行检查：
 
 [snippet_core_3]
 
