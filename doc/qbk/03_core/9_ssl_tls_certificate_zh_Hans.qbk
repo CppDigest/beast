@@ -64,48 +64,36 @@ Boost.Asio 提供多种加载证书授权机构证书的方法：
 
 [heading 通用名称与主题备用名称]
 
-The Subject Alternative Name (SAN) is an extension in X.509 certificates that
-allows multiple domain names, subdomains, or IP addresses to be associated with
-a single SSL/TLS certificate. Before that it was the Common Name field in the
-certificate subject which could contain a single hostname.
+主题备用名称（SAN）是 X.509 证书中的一种扩展字段，允许将多个域名、子域名或 IP 地址关联到同一张 SSL/TLS 证书上。在此之前，证书主题中的通用名称字段只能包含单个主机名。
 
 [@https://datatracker.ietf.org/doc/html/rfc6125#appendix-B.2 RFC 6125]
-recommends that if a certificate includes a SAN dNSName field, the client must
-ignore the subject CN field. Some modern browsers, such as Google Chrome, check
-only the SAN section in an SSL/TLS certificate and reject certificates that
-contain only the CN field.
+该建议指出，如果证书中包含 SAN 的 dNSName 字段，客户端必须忽略主题 CN 字段。某些现代浏览器（例如 Google Chrome）仅检查 SSL/TLS 证书中的 SAN 部分，并拒绝仅包含 CN 字段的证书。
 
 [/-----------------------------------------------------------------------------]
 
-[heading Private Key]
+[heading 私钥]
 
-The private key of a certificate is required during the SSL/TLS handshake to
-prove that the certificate's provider is its rightful owner
+证书的私钥在 SSL/TLS 握手过程中是必需的，用于证明证书的提供方是该证书的合法所有者。
 
-The following Boost.Asio methods can be used for loading a private key:
+以下 Boost.Asio 方法可用于加载私钥：
 
 * [@boost:/doc/html/boost_asio/reference/ssl__context/use_private_key.html `net::ssl::context::use_private_key`]
 * [@boost:/doc/html/boost_asio/reference/ssl__context/use_private_key_file.html `net::ssl::context::use_private_key_file`]
 * [@boost:/doc/html/boost_asio/reference/ssl__context/use_rsa_private_key.html `net::ssl::context::use_rsa_private_key`]
 * [@boost:/doc/html/boost_asio/reference/ssl__context/use_rsa_private_key_file.html `net::ssl::context::use_rsa_private_key_file`]
 
-If the private key is secured with a password, the
-[@boost:/doc/html/boost_asio/reference/ssl__context/set_password_callback.html
-net::ssl::context::set_password_callback] allows specifying a callable object to
-retrieve the password.
+如果私钥受密码保护，可以使用 [@boost:/doc/html/boost_asio/reference/ssl__context/set_password_callback.html net::ssl::context::set_password_callback] 设置一个可调用对象，用于获取该密码。
 
 [/-----------------------------------------------------------------------------]
 
-[heading Self-Signed and Self-Issued Certificates]
+[heading 自签名证书与自颁发证书]
 
-A self-issued certificate is a certificate where the issuer and subject are the
-same entity.
+自颁发证书是指证书的颁发者与主体为同一实体。
 
-A self-signed certificate is a self-issued certificate in which the digital
-signature can be verified using the public key within the certificate.
+自签名证书是一种自颁发证书，其数字签名可使用证书内的公钥进行验证。
 
 [warning
-    Installing an untrusted, self-issued, or self-signed CA certificate poses a
+    安装不受信任、自颁发或自签名的 CA 证书会带来安全风险。
     significant security risk, as there are no restrictions on the domains for
     which it can issue certificates. This allows attackers to generate
     fraudulent certificates for any public domain, enabling man-in-the-middle
@@ -114,40 +102,31 @@ signature can be verified using the public key within the certificate.
 
 [/-----------------------------------------------------------------------------]
 
-[heading Diffie-Hellman (DH) Parameters]
+[heading Diffie-Hellman（DH）参数]
 
-Diffie-Hellman (DH) key exchange is a cryptographic protocol that allows two
-parties to securely establish a shared secret over an insecure communication
-channel. The key exchange process involves both parties agreeing on a set of
-parameters, known as Diffie-Hellman parameters, which include a large prime
-number `p` and a generator `g`. Since generating these parameters is a
-computationally expensive task, a user might prefer to provide a precomputed
-value at startup.
+Diffie-Hellman（DH）密钥交换是一种密码学协议，允许双方在不安全的通信通道上安全地建立共享密钥。该密钥交换过程涉及双方约定一组参数，即 Diffie-Hellman 参数，其中包括一个大素数 `p` 和一个生成元 `g`。由于生成这些参数是一项计算开销较大的任务，用户可能更倾向于在启动时提供预先计算好的值。
 
-The following Boost.Asio methods can be used for loading DH parameters:
+以下 Boost.Asio 方法可用于加载 DH 参数：
 
 * [@boost:/doc/html/boost_asio/reference/ssl__context/use_tmp_dh.html `net::ssl::context::use_tmp_dh`]
 * [@boost:/doc/html/boost_asio/reference/ssl__context/use_tmp_dh_file.html `net::ssl::context::use_tmp_dh_file`]
 
-If no DH parameter is provided, OpenSSL will refuse to perform any handshake
-that uses DHE-based cipher suites but will still work with other cipher suites,
-such as those based on ECDHE.
+如果未提供 DH 参数，OpenSSL 将拒绝执行任何使用基于 DHE 的加密套件的握手，但仍可与其他加密套件（例如基于 ECDHE 的套件）正常工作。
 
 [/-----------------------------------------------------------------------------]
 
-[heading A Self-Issued Certificate Example]
+[heading 自颁发证书示例]
 
-In the following example, we will generate a self-signed CA certificate and use
-it to issue both server and client certificates.
+在以下示例中，将生成一个自签名的 CA 证书，并使用该证书来签发服务器证书和客户端证书。
 
-* Generate a CA certificate:
+* 生成 CA 证书：
 
 ```
 openssl req -new -newkey rsa:4096 -keyout ca.key -x509 -out ca.crt -subj "/CN=localhost" -days 365
 ```
 
 
-* Generate a Server CSR:
+* 生成服务器证书签名请求（CSR）：
 
 ```
 openssl req -new -newkey rsa:4096 -keyout server.key -out server.csr -subj "/CN=localhost" -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
@@ -161,37 +140,35 @@ openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -copy_extensions copy 
 ```
 
 
-* Generate a Client CSR:
+* 生成客户端证书签名请求（CSR）：
 
 ```
 openssl req -new -newkey rsa:4096 -keyout client.key -out client.csr -subj "/CN=client.1"
 ```
 
 
-* Sign the Client CSR using our CA: 
+* 使用 CA 对客户端 CSR 进行签名： 
 
 ```
 openssl x509 -req -in client.csr -CA ca.crt -CAkey ca.key -days 365 -out client.crt 
 ```
 
-* Generate a DH parameters file:
+* 生成 DH 参数文件：
 
 ```
 openssl dhparam -out dh4096.pem 4096
 ```
 
-Server example: [path_link example/doc/ssl/server.cpp server.cpp]
+服务器端示例：[path_link example/doc/ssl/server.cpp server.cpp]
 
-Note that the server is configured in such a way that it requests and verifies
-the client certificate. You can disable this by commenting out the related line
-in the example.
+注意，该服务器的配置方式要求对客户端证书进行请求和验证。如果需要禁用此功能，可以注释掉示例中的相关代码行。
 
-You can test the server using this cURL command:
+可以使用以下 cURL 命令测试该服务器：
 
 ```
 curl https://localhost:8080 --cacert ca.crt --cert client.crt --key client.key
 ```
 
-Also, you can use the client example: [path_link example/doc/ssl/client.cpp client.cpp]
+此外，也可以使用客户端示例：[path_link example/doc/ssl/client.cpp client.cpp]
 
 [endsect]
