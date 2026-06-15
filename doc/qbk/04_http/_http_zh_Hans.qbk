@@ -10,17 +10,14 @@
 [section:using_http HTTP]
 
 [warning
-    Higher level functions such as Basic
+    像 Basic 这类更高层级的函数
     Authentication,  mime/multipart encoding, cookies, automatic handling
     of redirects, gzipped transfer encodings, caching, or proxying (to name
     a few) are not directly provided, but nothing stops users from creating
     these features using Beast's HTTP message types.
 ]
 
-This library offers programmers simple and performant models of HTTP messages
-and their associated operations including synchronous, asynchronous, and
-buffer-oriented parsing and serialization of messages in the HTTP/1 wire
-format using __Asio__. Specifically, the library provides:
+该库为程序员提供简洁高效的 HTTP 消息模型及其相关操作，包括使用 __Asio__ 对 HTTP/1 线路格式的消息进行同步、异步及面向缓冲区的解析与序列化。具体功能如下：
 
 [variablelist
 [
@@ -31,166 +28,53 @@ format using __Asio__. Specifically, the library provides:
     ]
 ][
     [Stream Reading]
-    [
-        The functions
-        [link beast.ref.boost__beast__http__read `read`],
-        [link beast.ref.boost__beast__http__read_header `read_header`],
-        [link beast.ref.boost__beast__http__read_some `read_some`],
-        [link beast.ref.boost__beast__http__async_read `async_read`],
-        [link beast.ref.boost__beast__http__async_read_header `async_read_header`], and
-        [link beast.ref.boost__beast__http__async_read_some `async_read_some`]
-        read HTTP/1 message data from a
-        [link beast.concepts.streams stream].
+    [[link beast.ref.boost__beast__http__read `read`]、[link beast.ref.boost__beast__http__read_header `read_header`]、[link beast.ref.boost__beast__http__read_some `read_some`]、[link beast.ref.boost__beast__http__async_read `async_read`]、[link beast.ref.boost__beast__http__async_read_header `async_read_header`] 以及 [link beast.ref.boost__beast__http__async_read_some `async_read_some`] 这些函数用于从 [link beast.concepts.streams 流] 中读取 HTTP/1 消息数据。
 ]
 ][
-    [Stream Writing]
-    [
-        The functions
-        [link beast.ref.boost__beast__http__write `write`],
-        [link beast.ref.boost__beast__http__write_header `write_header`],
-        [link beast.ref.boost__beast__http__write_some `write_some`],
-        [link beast.ref.boost__beast__http__async_write `async_write`],
-        [link beast.ref.boost__beast__http__async_write_header `async_write_header`], and
-        [link beast.ref.boost__beast__http__async_write_some `async_write_some`]
-        write HTTP/1 message data to a
-        [link beast.concepts.streams stream].
-    ]
+    [流式写入操作]
+    [[link beast.ref.boost__beast__http__write `write`]、[link beast.ref.boost__beast__http__write_header `write_header`]、[link beast.ref.boost__beast__http__write_some `write_some`]、[link beast.ref.boost__beast__http__async_write `async_write`]、[link beast.ref.boost__beast__http__async_write_header `async_write_header`] 以及 [link beast.ref.boost__beast__http__async_write_some `async_write_some`] 这些函数用于将 HTTP/1 消息数据写入到 [link beast.concepts.streams 流] 中。]
 ][
-    [Serialization]
-    [
-        The __serializer__ produces a series of octet buffers
-        conforming to the __rfc7230__ wire representation of
-        a __message__.
-    ]
+    [序列化]
+    [__serializer__ 用于生成与 __message__ 的 __rfc7230__ 线路表示形式相一致的八位字节缓冲区序列。]
 ][
-    [Parsing]
-    [
-        The __parser__ attempts to convert a series of octet
-        buffers into a __message__.
-    ]
+    [解析]
+    [__parser__ 用于尝试将一系列八位字节缓冲区转换为 __message__。]
 ]
 ]
 
-Interfaces for operating on HTTP messages are structured into several
-layers. The highest level provides ease of use, while lower levels provide
-progressively more control, options, and flexibility. At the lowest level
-customization points are provided, where user defined types can replace
-parts of the implementation. The layers are arranged thusly:
+操作 HTTP 消息的接口分为多个层次。最高层接口注重易用性，越往下层，提供的控制能力、可配置选项和灵活性就越强。最底层提供定制点，允许用户用自定义类型替换部分内部实现。各层组织方式如下：
 
 [table
 [[Level][Read/Write What][Description]]
 [
     [[*6]]
-    [
-        __message__
-    ][
-        At the highest level, these free functions send or receive
-        a complete HTTP message in one call. They are designed for
-        ease of use:
-        [link beast.ref.boost__beast__http__read.overload4 `read`],
-        [link beast.ref.boost__beast__http__write.overload4 `write`],
-        [link beast.ref.boost__beast__http__async_read.overload2 `async_read`], and
-        [link beast.ref.boost__beast__http__async_write.overload2 `async_write`].
-    ]
+    [__消息__][最顶层接口通过一次函数调用即可完成完整 HTTP 消息的发送或接收，旨在简化使用。相关函数包括：[link beast.ref.boost__beast__http__read.overload4 `read`]、[link beast.ref.boost__beast__http__write.overload4 `write`]、[link beast.ref.boost__beast__http__async_read.overload2 `async_read`] 以及 [link beast.ref.boost__beast__http__async_write.overload2 `async_write`]。]
 ][
     [[*5]]
-    [
-        __parser__, __serializer__
-    ][
-        For more control, callers may take responsibility for managing the
-        required __parser__ or __serializer__ transient state objects.
-        This allows additional configuration such as limiting the number
-        of bytes for message components during parsing, or regulating the
-        size of buffers emitted during output. These functions send or
-        receive complete messages using a serializer or parser:
-        [link beast.ref.boost__beast__http__read.overload2 `read`],
-        [link beast.ref.boost__beast__http__write.overload2 `write`],
-        [link beast.ref.boost__beast__http__async_read.overload1 `async_read`], and
-        [link beast.ref.boost__beast__http__async_write.overload1 `async_write`].
-
-    ]
+    [__解析器__, __序列化器__][若需更多控制权，调用方可以自行管理所需的 __parser__ 或 __serializer__ 临时状态对象。这样便可以实现额外配置，例如在解析过程中限制消息组件的最大字节数，或控制输出时缓冲区的大小。以下函数通过使用解析器或序列化器来发送或接收完整消息：[link beast.ref.boost__beast__http__read.overload2 `read`]、[link beast.ref.boost__beast__http__write.overload2 `write`]、[link beast.ref.boost__beast__http__async_read.overload1 `async_read`] 以及 [link beast.ref.boost__beast__http__async_write.overload1 `async_write`]。]
 ][
     [[*4]]
-    [
-        __header__
-    ][
-        Sometimes it is necessary to first send or receive the HTTP
-        header. For example, to read the header and take action before
-        continuing to read the body. These functions use a __parser__
-        or __serializer__ to read or write the header:
-        [link beast.ref.boost__beast__http__read_header.overload2 `read_header`],
-        [link beast.ref.boost__beast__http__write_header.overload2 `write_header`],
-        [link beast.ref.boost__beast__http__async_read_header `async_read_header`], and
-        [link beast.ref.boost__beast__http__async_write_header `async_write_header`].
-    ]
+    [__头部__][有时需要先发送或接收 HTTP 头部，例如在读取头部后根据其内容决定后续操作，然后再继续读取消息体。以下函数使用 __parser__ 或 __serializer__ 来读取或写入头部：[link beast.ref.boost__beast__http__read_header.overload2 `read_header`]、[link beast.ref.boost__beast__http__write_header.overload2 `write_header`]、[link beast.ref.boost__beast__http__async_read_header `async_read_header`] 以及 [link beast.ref.boost__beast__http__async_write_header `async_write_header`]。]
 ][
     [[*3]]
-    [
-        partial __message__
-    ][
-        All of the stream operations at higher levels thus far have operated
-        on a complete header or message. At this level it is possible to
-        send and receive messages incrementally. This allows resource
-        constrained implementations to perform work bounded on storage,
-        or allows better control when setting timeouts for example.
-        These functions read or write bounded amounts of data and return
-        the number of bytes transacted:
-        [link beast.ref.boost__beast__http__read_some.overload2 `read_some`],
-        [link beast.ref.boost__beast__http__write_some.overload2 `write_some`],
-        [link beast.ref.boost__beast__http__async_read_some `async_read_some`], and
-        [link beast.ref.boost__beast__http__async_write_some `async_write_some`].
-    ]
+    [部分 __消息__][到目前为止，所有较高层次的流操作都针对完整的消息头部或完整消息进行。而在此层次，则可以实现消息的增量式发送与接收。这对资源受限的实现特别有用，可以在有限的存储空间内完成任务，或在设置超时等场景下提供更精细的控制。以下函数用于读取或写入限定量的数据，并返回实际传输的字节数：[link beast.ref.boost__beast__http__read_some.overload2 `read_some`]、[link beast.ref.boost__beast__http__write_some.overload2 `write_some`]、[link beast.ref.boost__beast__http__async_read_some `async_read_some`] 以及 [link beast.ref.boost__beast__http__async_write_some `async_write_some`]。]
 ][
     [[*2]]
     [
         [@https://tools.ietf.org/html/rfc7230#section-4.1 ['chunked-body]]
-    ][
-        Until now parse and serialize operations apply or remove the chunked
-        transfer coding as needed for message payloads whose size is not known
-        ahead of time. For some domain specific niches, it is necessary
-        to assume direct control over incoming or outgoing chunks in a chunk
-        encoded message payload.
-        For parsing this is achieved by setting hooks using the functions
-        [link beast.ref.boost__beast__http__parser.on_chunk_header `on_chunk_header`] and/or
-        [link beast.ref.boost__beast__http__parser.on_chunk_body `on_chunk_body`].
-        For serializing callers may first emit the header, and then use
-        these buffer sequence adapters to control the contents of each chunk
-        including
-        [@https://tools.ietf.org/html/rfc7230#section-4.1.1 ['chunk extensions]]
-        and the
-        [@https://tools.ietf.org/html/rfc7230#section-4.1.2 ['trailer-part]]:
-        [link beast.ref.boost__beast__http__chunk_body `chunk_body`],
-        [link beast.ref.boost__beast__http__chunk_crlf `chunk_crlf`],
-        [link beast.ref.boost__beast__http__chunk_header `chunk_header`], and
-        [link beast.ref.boost__beast__http__chunk_last `chunk_last`].
-    ]
+    ][到目前为止，解析和序列化操作会根据需要自动对消息体应用或移除分块传输编码。但在某些特定领域，需要对分块编码的消息体中的传入或传出数据块进行直接控制。在解析端，可以通过设置钩子来实现：使用 [link beast.ref.boost__beast__http__parser.on_chunk_header `on_chunk_header`] 和/或 [link beast.ref.boost__beast__http__parser.on_chunk_body `on_chunk_body`] 函数。在序列化端，调用方可以先发送消息头部，然后使用以下缓冲区序列适配器来控制每个数据块的内容，包括分块扩展和尾部部分：[link beast.ref.boost__beast__http__chunk_body `chunk_body`]、[link beast.ref.boost__beast__http__chunk_crlf `chunk_crlf`]、[link beast.ref.boost__beast__http__chunk_header `chunk_header`] 以及 [link beast.ref.boost__beast__http__chunk_last `chunk_last`]。]
 ][
     [[*1]]
-    [
-        buffers
-    ][
-        For ultimate control, the use of library stream algorithms may
-        be bypassed entirely and instead work directly with buffers by
-        calling members of __parser__ or __serializer__.
-    ]
+    [缓冲区][若需最高级别的控制，可以完全绕过库的流算法，直接通过调用 __parser__ 或 __serializer__ 的成员函数来操作缓冲区。]
 ][
     [[*0]]
     [
         ['user-defined]
-    ][
-        In addition to the typical customization points of __Stream__
-        and __DynamicBuffer__, user-defined types may replace parts of
-        the library implementation at the lowest level. The customization
-        points include __Fields__ for creating a container to store HTTP
-        fields, __Body__ for defining containers and algorithms used for
-        HTTP message payloads, and user-defined subclasses of
-        __basic_parser__ for implementing custom message representation
-        strategies.
-    ]
+    ][除了常见的 __Stream__ 和 __DynamicBuffer__ 定制点外，用户自定义类型还可以在最底层替换库实现的部分组件。这些定制点包括：用于创建存储 HTTP 字段容器的 __Fields__、用于定义 HTTP 消息体容器及相关算法的 __Body__，以及用于实现自定义消息表示策略的 __basic_parser__ 子类。]
 ]]
 
 [note
-    This documentation assumes some familiarity with __Asio__ and
+    本文档假定读者已具备一定的 Asio 使用经验，并
     the HTTP protocol specification described in __rfc7230__. Sample
     code and identifiers mentioned in this section is written as if
     these declarations are in effect:
