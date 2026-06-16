@@ -7,105 +7,68 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Message Stream Operations]
+[section 消息流操作]
 
-Beast provides synchronous and asynchronous algorithms to parse and
-serialize HTTP/1 wire format messages on streams. These functions form
-the message-oriented stream interface:
+Beast 提供同步和异步算法，用于在流上解析和序列化 HTTP/1 线路格式的消息。这些函数构成面向消息的流接口：
 
-[table Message Stream Operations
-[[Name][Description]]
+[table 消息流操作
+[[名称][描述]]
 [[
     [link beast.ref.boost__beast__http__read.overload3 [*read]]
-][
-    Read a __message__ from a __SyncReadStream__.
+][从 __SyncReadStream__ 读取 __message__。
 ]]
 [[
     [link beast.ref.boost__beast__http__async_read.overload2 [*async_read]]
-][
-    Read a __message__ from an __AsyncReadStream__.
+][从 __AsyncReadStream__ 读取 __message__。
 ]]
 [[
     [link beast.ref.boost__beast__http__write.overload1 [*write]]
-][
-    Write a __message__ to a __SyncWriteStream__.
+][将 __message__ 写入 __SyncWriteStream__。
 ]]
 [[
     [link beast.ref.boost__beast__http__async_write [*async_write]]
-][
-    Write a __message__ to an __AsyncWriteStream__.
+][将 __message__ 写入 __AsyncWriteStream__。
 ]]
 ]
 
-All synchronous stream operations come in two varieties. One which throws
-an exception upon error, and another which accepts as the last parameter an
-argument of type [link beast.ref.boost__beast__error_code `error_code&`]. If an error
-occurs this argument will be set to contain the error code.
+所有同步流操作都提供两种形式：一种在出错时抛出异常，另一种则在参数列表末尾接受一个类型为 [link beast.ref.boost__beast__error_code `error_code&`] 的引用参数。如果操作出错，该参数会被设置为对应的错误码。
 
 
 
-[heading Reading]
+[heading 读取]
 
-Because a serialized header is not length-prefixed, algorithms which
-parse messages from a stream may read past the end of a message for
-efficiency. To hold this surplus data, all stream read operations use
-a passed-in __DynamicBuffer__ which must be persisted between calls
-until the end of stream is reached or the stream object is destroyed.
-Each read operation may consume bytes remaining in the buffer, and
-leave behind new bytes. In this example we declare the buffer and a
-message variable, then read a complete HTTP request synchronously:
+由于序列化后的头部没有长度前缀，从流中解析消息的算法为了提高效率，可能会读取超过消息末尾的数据。为了保存这些多余的数据，所有流读操作都依赖一个传入的 __DynamicBuffer__，该缓冲区在两次调用之间必须保持有效，直到流结束或流对象销毁为止。每次读操作可能会消耗缓冲区中已有的字节，也可能留下新读入的字节。以下示例声明一个缓冲区和一个消息变量，然后同步读取一个完整的 HTTP 请求：
 
 [http_snippet_4]
 
-This example uses __flat_buffer__. Beast's __basic_parser__ is
-optimized for structured HTTP data located in a single contiguous
-(['flat]) memory buffer. When not using a flat buffer the implementation
-may perform an additional memory allocations to restructure the input
-into a single buffer for parsing.
+该示例使用 __flat_buffer__。Beast 的 __basic_parser__ 针对位于单个连续（扁平）内存缓冲区中的结构化 HTTP 数据进行了优化。若未使用扁平缓冲区，实现可能需要进行额外的内存分配，将输入数据重新组织为单个缓冲区以便解析。
 
 [tip
-    Other Implementations of __DynamicBuffer__ may avoid parser
+    其他 __DynamicBuffer__ 实现可能避免使用解析器。
     memory allocation by always returning buffer sequences of
     length one.
 ]
 
-Messages may also be read asynchronously. When performing asynchronous
-stream read operations the stream, buffer, and message variables must
-remain valid until the operation has completed. Beast asynchronous
-initiation functions use Asio's completion handler model. This call
-reads a message asynchronously and reports the error code upon
-completion. The handler is called with the error, set to any that
-occurs, and the number of bytes parsed. This number may be used to
-measure the relative amount of work performed, or it may be ignored
-as this example shows.
+消息也支持异步读取。在执行异步流读操作期间，流对象、缓冲区和消息变量必须保持有效，直到操作完成。Beast 的异步发起函数采用 Asio 的完成处理器模型。该调用会异步读取消息，并在操作完成时将错误码传递给处理器。处理器被调用时，会收到发生的错误和已解析的字节数。这个字节数可以用于衡量相对的工作量，也可以像示例中那样直接忽略。
 
 [http_snippet_5]
 
-If a read stream algorithm cannot complete its operation without exceeding
-the maximum specified size of the dynamic buffer provided, the error
-[link beast.ref.boost__beast__http__error `buffer_overflow`]
-is returned. This is one technique which may be used to impose a limit on
-the maximum size of an HTTP message header for protection from buffer
-overflow attacks. The following code will print the error message:
+如果流读取算法在操作过程中超出所提供动态缓冲区的最大大小限制，则会返回 [link beast.ref.boost__beast__http__error `buffer_overflow`] 错误。这是一种可用于限制 HTTP 消息头部最大大小、以防止缓冲区溢出攻击的手段。以下代码用于输出该错误信息：
 
 [http_snippet_6]
 
 
 
-[heading Writing]
+[heading 写入]
 
-A set of free functions allow serialization of an entire HTTP message to
-a stream. This example constructs and sends an HTTP response:
+一组自由函数可用于将完整的 HTTP 消息序列化并写入流。以下示例构造并发送一个 HTTP 响应：
 
 [http_snippet_7]
 
-The asynchronous version could be used instead:
+也可以使用异步版本替代：
 
 [http_snippet_8]
 
-The completion handler is called with the number of bytes written to the
-stream, which includes protocol specific data such as the delimiters in
-the header and line endings. The number may be used to measure the amount
-of data transferred, or it may be ignored as in the example.
+完成处理器被调用时，会收到已写入流的字节数，该数量包含协议特定数据（例如头部中的分隔符和行结束符）。此数值可用于衡量传输的数据量，也可像示例中那样直接忽略。
 
 [endsect]
