@@ -7,191 +7,131 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Message Containers]
+[section 消息容器]
 
-Beast provides a single class template __message__ and some aliases which
-model HTTP/1 and
-[@https://tools.ietf.org/html/rfc7540 HTTP/2]
-messages:
+Beast 提供单个类模板 __message__ 及若干别名，用于表示 HTTP/1 和 HTTP/2 消息：
 
-[table Message
-[[Name][Description]]
-[[
-    __message__
+[table 消息
+[[名称][描述]]
+[[__消息__
 ][
     ```
-    /// An HTTP message
-    template<
-        bool isRequest,             // `true` for requests, `false` for responses
-        class Body,                 // Controls the container and algorithms used for the body
-        class Fields = fields>      // The type of container to store the fields
-    class message;
+/// HTTP 消息类
+template<
+bool isRequest, // 若为请求则为 true，若为响应则为 false
+class Body, // 用于控制消息体的容器及算法
+class Fields = fields> // 用于存储字段的容器类型
+class message;
     ```
 ]]
 [[
     [link beast.ref.boost__beast__http__request `request`]
 ][
     ```
-    /// A typical HTTP request
-    template<class Body, class Fields = fields>
-    using request = message<true, Body, Fields>;
+/// 典型的 HTTP 请求
+template<class Body, class Fields = fields>
+using request = message<true, Body, Fields>;
     ```
 ]]
 [[
     [link beast.ref.boost__beast__http__response `response`]
 ][
     ```
-    /// A typical HTTP response
-    template<class Body, class Fields = fields>
-    using response = message<false, Body, Fields>;
+/// 典型的 HTTP 响应
+template<class Body, class Fields = fields>
+using response = message<false, Body, Fields>;
     ```
 ]]
 ]
 
-The container offers value semantics including move and copy if supported
-by __Body__ and __Fields__. User defined template function parameters can
-accept any message, or can use partial specialization to accept just
-requests or responses. The default __fields__ is a provided associative
-container using the standard allocator and supporting modification and
-inspection of fields. As per __rfc7230__, a non-case-sensitive comparison
-is used for field names. User defined types for fields are possible.
-The `Body` type determines the type of the container used to represent the
-body as well as the algorithms for transferring buffers to and from the
-container. The library comes with a collection of common body types. As
-with fields, user defined body types are possible.
+该容器提供值语义，支持移动和拷贝操作（前提是 __Body__ 和 __Fields__ 支持这些操作）。用户定义的模板函数参数可以接受任意消息，也可通过偏特化仅接受请求或响应。默认的 __fields__ 是一个关联容器，使用标准分配器，支持字段的修改与查询。根据 __rfc7230__，字段名称比较时不区分大小写。用户也可以自定义字段类型。`Body` 类型决定消息体的容器类型，以及用于在容器与缓冲区之间传输数据的算法。该库提供一组常用的消息体类型。与字段类似，用户也可以自定义消息体类型。
 
-Sometimes it is desired to only work with a header. Beast provides a single
-class template __header__ and some aliases to model HTTP/1 and HTTP/2 headers:
+有时只需处理头部信息。Beast 提供单个类模板 __header__ 及若干别名，用于表示 HTTP/1 和 HTTP/2 头部：
 
-[table Header
-[[Name][Description]]
-[[
-    __header__
+[table 头部
+[[名称][描述]]
+[[__头部__
 ][
     ```
-    /// An HTTP header
-    template<
-        bool isRequest,             // `true` for requests, `false` for responses
-        class Fields = fields>      // The type of container to store the fields
-    class header;
+/// HTTP 头部
+template<
+bool isRequest, // 若为请求则为 true，若为响应则为 false
+class Fields = fields> // 用于存储字段的容器类型
+class header;
     ```
 ]]
 [[
     [link beast.ref.boost__beast__http__request_header `request_header`]
 ][
     ```
-    /// A typical HTTP request header
-    template<class Fields>
-    using request_header = header<true, Fields>;
+/// 典型的 HTTP 请求头部
+template<class Fields>
+using request_header = header<true, Fields>;
     ```
 ]]
 [[
     [link beast.ref.boost__beast__http__response_header `response_header`]
 ][
     ```
-    /// A typical HTTP response header
-    template<class Fields>
-    using response_header = header<false, Fields>;
+/// 典型的 HTTP 响应头部
+template<class Fields>
+using response_header = header<false, Fields>;
     ```
 ]]
 ]
 
-Requests and responses share the version, fields, and body but have
-a few members unique to the type. This is implemented by declaring the
-header classes as partial specializations of `isRequest`. __message__
-is derived from __header__; a message may be passed as an argument to
-a function taking a suitably typed header as a parameter. Additionally,
-`header` is publicly derived from `Fields`; a message inherits all the
-member functions of `Fields`. This diagram shows the inheritance
-relationship between header and message, along with some of the
-notable differences in members in each partial specialization:
+请求和响应共享版本号、字段及消息体，但各自拥有一些特有的成员。该设计通过将 `header` 类声明为 `isRequest` 的偏特化来实现。__message__ 派生自 __header__，因此消息可作为参数传递给接受相应类型头部参数的函数。此外，`header` 公开继承自 `Fields`，因此消息也继承了 `Fields` 的所有成员函数。下图展示 `header` 与 `message` 的继承关系，以及每个偏特化中部分显著成员的差异：
 
 [$beast/images/message.png [width 730px] [height 459px]]
 
-[heading:body Body Types]
+[heading:body 消息体类型]
 
-Beast defines the __Body__ concept, which determines both the type of
-the [link beast.ref.boost__beast__http__message.body `message::body`] member
-(as seen in the diagram above) and may also include algorithms for
-transferring buffers in and out. These algorithms are used during
-parsing and serialization. Users may define their own body types which
-meet the requirements, or use the ones that come with the library:
+Beast 定义 __Body__ 概念，该概念决定 [link beast.ref.boost__beast__http__message.body `message::body`] 成员的类型，同时还可包含用于传入和传出缓冲区的算法。这些算法在解析和序列化过程中使用。用户可以定义满足要求的自定义消息体类型，也可以直接使用该库提供的现有类型：
 
 [table
 [[Name][Description]]
 [[
     [link beast.ref.boost__beast__http__buffer_body `buffer_body`]
-][
-    A body whose
-    [link beast.ref.boost__beast__http__buffer_body__value_type `value_type`]
-    holds a raw pointer and size to a caller-provided buffer.
-    This allows for serialization of body data coming from
-    external sources, and incremental parsing of message body
-    content using a fixed size buffer.
+][该消息体类型的 [link beast.ref.boost__beast__http__buffer_body__value_type `value_type`] 包含一个原始指针及其长度，指向调用方提供的缓冲区。该类型支持对来自外部来源的消息体数据进行序列化，并使用固定大小的缓冲区进行消息体内容的增量解析。
 ]]
 [[
     [link beast.ref.boost__beast__http__dynamic_body `dynamic_body`]
 
     [link beast.ref.boost__beast__http__basic_dynamic_body `basic_dynamic_body`]
-][
-    A body whose `value_type` is a __DynamicBuffer__. It inherits
-    the insertion complexity of the underlying choice of dynamic buffer.
-    Messages with this body type may be serialized and parsed.
+][该消息体类型的 `value_type` 为一个 __DynamicBuffer__。其插入操作的复杂度取决于底层动态缓冲区的选择。带有该消息体类型的消息支持序列化和解析操作。
 ]]
 [[
     [link beast.ref.boost__beast__http__empty_body `empty_body`]
-][
-    A special body with an empty `value_type` indicating that the
-    message has no body. Messages with this body may be serialized
-    and parsed; however, body octets received while parsing a message
-    with this body will generate a unique error.
+][该消息体类型为一个特殊的空消息体，其 `value_type` 为空，表示消息不包含消息体。带有该消息体类型的消息支持序列化和解析操作；但在解析过程中如果接收到消息体数据，则会生成一个特定的错误。
 ]]
 [[
     [link beast.ref.boost__beast__http__file_body `file_body`]
 
     [link beast.ref.boost__beast__http__basic_file_body `basic_file_body`]
-][
-    This body is represented by a file opened for either reading or
-    writing. Messages with this body may be serialized and parsed.
-    HTTP algorithms will use the open file for reading and writing,
-    for streaming and incremental sends and receives.
+][该消息体类型通过一个已打开的文件来表示，可用于读取或写入。带有该消息体类型的消息支持序列化和解析操作。HTTP 算法会利用这个已打开的文件执行读写操作，从而支持流式传输及增量式数据收发。
 ]]
 [[
     [link beast.ref.boost__beast__http__span_body `span_body`]
-][
-    A body whose `value_type` is a
-    [@boost:/libs/core/doc/html/core/span.html `span`],
-    a non-owning reference to a single linear buffer of bytes.
-    Messages with this body type may be serialized and parsed.
+][该消息体类型的 `value_type` 为 [@boost:/libs/core/doc/html/core/span.html `span`]，这是一个指向单个线性字节缓冲区的非拥有引用。带有该消息体类型的消息可进行序列化和解析。
 ]]
 [[
     [link beast.ref.boost__beast__http__string_body `string_body`]
 
     [link beast.ref.boost__beast__http__basic_string_body `basic_string_body`]
-][
-    A body whose `value_type` is `std::basic_string` or `std::string`.
-    Insertion complexity is amortized constant time, while capacity
-    grows geometrically. Messages with this body type may be serialized
-    and parsed. This is the type of body used in the examples.
+][该消息体类型的 `value_type` 为 `std::basic_string` 或 `std::string`。插入操作的均摊复杂度为常数时间，容量以几何级数增长。带有该消息体类型的消息支持序列化和解析操作。此类型即为示例中使用的消息体类型。
 ]]
 [[
     [link beast.ref.boost__beast__http__vector_body `vector_body`]
-][
-    A body whose `value_type` is `std::vector`. Insertion complexity
-    is amortized constant time, while capacity grows geometrically.
-    Messages with this body type may be serialized and parsed.
+][该消息体类型的 `value_type` 为 `std::vector`。插入操作的均摊复杂度为常数时间，容量以几何级数增长。带有该消息体类型的消息支持序列化和解析操作。
 ]]
 ]
 
-[heading Usage]
+[heading 用法]
 
-These examples show how to create and fill in request and response
-objects: Here we build an
-[@https://tools.ietf.org/html/rfc7231#section-4.3.1 HTTP GET]
-request with an empty message body:
+以下示例展示如何创建并填充请求和响应对象。这里构造一个带有空消息体的 [@https://tools.ietf.org/html/rfc7231#section-4.3.1 HTTP GET] 请求：
 
-[table Create Request
-[[Statements] [Serialized Result]]
+[table 创建请求
+[[声明] [序列化结果]]
 [[
     [http_snippet_2]
 ][
@@ -204,15 +144,10 @@ request with an empty message body:
 ]]
 ]
 
-In this code we create an HTTP response with a status code indicating success.
-This message has a body with a non-zero length. The function
-[link beast.ref.boost__beast__http__message.prepare_payload `message::prepare_payload`]
-automatically sets the Content-Length or Transfer-Encoding field
-depending on the content and type of the `body` member. Use of this function
-is optional; these fields may also be set explicitly.
+以下代码创建一个带有成功状态码的 HTTP 响应。该消息包含一个非空的消息体。prepare_payload 函数会根据 body 成员的内容和类型自动设置 Content-Length 或 Transfer-Encoding 字段。该函数可调用也可不调用；这些字段也可手动显式设置。
 
-[table Create Response
-[[Statements] [Serialized Result]]
+[table 创建响应
+[[声明] [序列化结果]]
 [[
     [http_snippet_3]
 ][
@@ -226,10 +161,6 @@ is optional; these fields may also be set explicitly.
 ]]
 ]
 
-The implementation will automatically fill in the obsolete
-[@https://tools.ietf.org/html/rfc7230#section-3.1.2 reason-phrase]
-from the status code when serializing a message. Or it may
-be set directly using
-[link beast.ref.boost__beast__http__header.reason.overload2 `header::reason`].
+当序列化消息时，实现会根据状态码自动填充已废弃的 [@https://tools.ietf.org/html/rfc7230#section-3.1.2 原因短语]。也可通过调用 [link beast.ref.boost__beast__http__header.reason.overload2 `header::reason`] 直接设置该字段。
 
 [endsect]
