@@ -7,68 +7,35 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Buffer-Oriented Serializing]
+[section 面向缓冲区的序列化]
 [block'''<?dbhtml stop-chunking?>''']
 
-An instance of __serializer__ can be invoked directly, without using
-the provided stream operations. This could be useful for implementing
-algorithms on objects whose interface does not conform to __Stream__.
-For example, a
-[@https://github.com/libuv/libuv *libuv* socket].
-The serializer interface is interactive; the caller invokes it repeatedly
-to produce buffers until all of the serialized octets have been generated.
-Then the serializer is destroyed.
+__serializer__ 实例可直接调用，无需依赖库提供的流操作。这对于在接口不符合 __Stream__ 要求的对象（例如 [@https://github.com/libuv/libuv libuv 套接字]）上实现算法时非常有用。序列化器接口是交互式的：调用方反复调用它以生成缓冲区，直到所有序列化后的八位字节都已生成完毕为止，随后销毁该序列化器。
 
-To obtain the serialized next buffer sequence, call
-[link beast.ref.boost__beast__http__serializer.next `serializer::next`].
-Then, call 
-[link beast.ref.boost__beast__http__serializer.consume `serializer::consume`]
-to indicate the number of bytes consumed. This updates the next
-set of buffers to be returned, if any.
-`serializer::next` takes an error code parameter and invokes a visitor
-argument with the error code and buffer of unspecified type. In C++14
-this is easily expressed with a generic lambda. The function
-[link beast.ref.boost__beast__http__serializer.is_done `serializer::is_done`]
-will return `true` when all the buffers have been produced. This C++14
-example prints the buffers to standard output:
+要获取序列化后的下一个缓冲区序列，可调用 [link beast.ref.boost__beast__http__serializer.next `serializer::next`]。随后调用 [link beast.ref.boost__beast__http__serializer.consume `serializer::consume`] 来告知已消耗的字节数，该操作会更新后续需要返回的缓冲区集（如果有的话）。`serializer::next` 接受一个错误码参数，并通过一个访问器参数返回错误码和缓冲区（缓冲区类型未指定）。在 C++14 中，可以通过泛型 lambda 表达式轻松实现。当所有缓冲区都已生成后，[link beast.ref.boost__beast__http__serializer.is_done `serializer::is_done`] 会返回 `true`。以下 C++14 示例将缓冲区内容输出到标准输出：
 
 [http_snippet_14]
 
-Generic lambda expressions are only available in C++14 or later. A functor
-with a templated function call operator is necessary to use C++11 as shown:
+泛型 lambda 表达式仅在 C++14 及更高版本中可用。若要在 C++11 中使用，则需要使用带有模板化函数调用运算符的函数对象，如下所示：
 
 [http_snippet_15]
 
-[heading Split Serialization]
+[heading 拆分序列化]
 
-In some cases, such as the handling of the
-[@https://tools.ietf.org/html/rfc7231#section-5.1.1 Expect: 100-continue]
-field, it may be desired to first serialize the header, perform some other
-action, and then continue with serialization of the body. This is
-accomplished by calling
-[link beast.ref.boost__beast__http__serializer.split `serializer::split`]
-with a boolean indicating that when buffers are produced, the last buffer
-containing serialized header octets will not contain any octets corresponding
-to the body. The function
-[link beast.ref.boost__beast__http__serializer.is_header_done `serializer::is_header_done`]
-informs the caller whether the header been serialized fully. In this
-C++14 example we print the header first, followed by the body:
+在某些场景下（例如处理 [@https://tools.ietf.org/html/rfc7231#section-5.1.1 Expect: 100-continue] 字段时），可能需要先序列化头部，执行某些其他操作，然后再继续序列化消息体。这可以通过调用 [link beast.ref.boost__beast__http__serializer.split `serializer::split`] 来实现，传入一个布尔值参数，指示在生成缓冲区时，包含序列化头部八位字节的最后一个缓冲区不应包含任何与消息体对应的八位字节。[link beast.ref.boost__beast__http__serializer.is_header_done `serializer::is_header_done`] 函数用于告知调用方头部是否已完全序列化。以下 C++14 示例先打印头部，再打印消息体：
 
 [http_snippet_16]
 
 
 
-[section:write_to_std_ostream Write To std::ostream __example__]
+[section:write_to_std_ostream 写入 std::ostream __示例__]
 
-The standard library provides the type `std::ostream` for performing high
-level write operations on character streams. The variable `std::cout` is
-based on this output stream. This example uses the buffer oriented interface
-of __serializer__ to write an HTTP message to a `std::ostream`:
+标准库提供 `std::ostream` 类型，用于在字符流上执行高层写操作。变量 `std::cout` 基于该输出流实现。本示例使用 __serializer__ 的面向缓冲区接口，将 HTTP 消息写入 `std::ostream`：
 
 [example_http_write_ostream]
 
 [tip
-    Serializing to a `std::ostream` could be implemented using an alternate
+    将 HTTP 消息序列化到 std::ostream， 这一操作还可以通过其他方式实现：
     strategy: adapt the `std::ostream` interface to a __SyncWriteStream__,
     enabling use with the library's existing stream algorithms. This is
     left as an exercise for the reader.
