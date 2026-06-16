@@ -7,105 +7,93 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Serializer Stream Operations]
+[section 序列化器流操作]
 
-Non-trivial algorithms need to do more than send entire messages
-at once, such as:
+非平凡算法需要执行的操作不仅限于一次性发送完整消息，该算法需要做更多的事，例如：
 
-* Send the header first, and the body later.
+* 先发送头部，再发送消息体。
 
-* Send a message incrementally: bounded work in each I/O cycle.
+* 逐步发送消息：每个 I/O 周期内执行有限的工作量。
 
-* Use a series of caller-provided buffers to represent the body.
+* 使用调用方提供的一系列缓冲区来表示消息体。
 
-These tasks may be performed by using the serializer stream interfaces.
-To use these interfaces, first construct an appropriate serializer
-from the message to be sent:
+这些任务可通过使用序列化器流接口来完成。使用这些接口时，首先从待发送的消息构造相应的序列化器：
 
-[table Serializer
-[[Name][Description]]
-[[
-    __serializer__
+[table 序列化器
+[[名称][描述]]
+[[__序列化器__
 ][
     ```
-    /// Provides buffer oriented HTTP message serialization functionality.
-    template<
-        bool isRequest,
-        class Body,
-        class Fields = fields
-    >
-    class serializer;
+/// 提供面向缓冲区的 HTTP 消息序列化功能。
+template<
+bool isRequest,
+class Body,
+class Fields = fields
+>
+class serializer;
     ```
 ]]
 [[
     [link beast.ref.boost__beast__http__request_serializer `request_serializer`]
 ][
     ```
-    /// A serializer for HTTP/1 requests
-    template<
-        class Body,
-        class Fields = fields
-    >
-    using request_serializer = serializer<true, Body, Fields>;
+/// HTTP/1 请求序列化器
+template<
+class Body,
+class Fields = fields
+>
+using request_serializer = serializer<true, Body, Fields>;
     ```
 ]]
 [[
     [link beast.ref.boost__beast__http__response_serializer `response_serializer`]
 ][
     ```
-    /// A serializer for HTTP/1 responses
-    template<
-        class Body,
-        class Fields = fields
-    >
-    using response_serializer = serializer<false, Body, Fields>;
+/// HTTP/1 响应序列化器
+template<
+class Body,
+class Fields = fields
+>
+using response_serializer = serializer<false, Body, Fields>;
     ```
 ]]
 ]
 
-The choices for template types must match the message passed on construction.
-This code creates an HTTP response and the corresponding serializer:
+模板类型的选择必须与构造时传入的消息相匹配。以下代码用于创建一个 HTTP 响应及其对应的序列化器：
 
 [http_snippet_10]
 
-The stream operations which work on serializers are:
+用于操作序列化器的流操作如下：
 
-[table Serializer Stream Operations
-[[Name][Description]]
+[table 序列化器流操作
+[[名称][描述]]
 [[
     [link beast.ref.boost__beast__http__write.overload1 [*write]]
-][
-    Send everything in a __serializer__ to a __SyncWriteStream__.
+][将 __serializer__ 中的全部数据发送到 __SyncWriteStream__。
 ]]
 [[
     [link beast.ref.boost__beast__http__async_write.overload1 [*async_write]]
-][
-    Send everything in a __serializer__ asynchronously to an __AsyncWriteStream__.
+][将 __serializer__ 中的全部数据异步发送到 __AsyncWriteStream__。
 ]]
 [[
     [link beast.ref.boost__beast__http__write_header.overload1 [*write_header]]
-][
-    Send only the header from a __serializer__ to a __SyncWriteStream__.
+][仅将 __serializer__ 中的头部发送到 __SyncWriteStream__。
 ]]
 [[
     [link beast.ref.boost__beast__http__async_write_header [*async_write_header]]
-][
-    Send only the header from a __serializer__ asynchronously to an __AsyncWriteStream__.
+][仅将 __serializer__ 中的头部异步发送到 __AsyncWriteStream__。
 ]]
 [[
     [link beast.ref.boost__beast__http__write_some.overload1 [*write_some]]
-][
-    Send part of a __serializer__ to a __SyncWriteStream__.
+][将 __serializer__ 中的部分数据发送到 __SyncWriteStream__。
 ]]
 [[
     [link beast.ref.boost__beast__http__async_write_some [*async_write_some]]
-][
-    Send part of a __serializer__ asynchronously to an __AsyncWriteStream__.
+][将 __serializer__ 中的部分数据异步发送到 __AsyncWriteStream__。
 ]]
 ]
 
-Here is an example of using a serializer to send a message on a stream
-synchronously. This performs the same operation as calling `write(stream, m)`:
+以下示例演示如何使用序列化器在流上同步发送消息。其效果与直接调用 `write(stream, m)` 相同：
 
 [http_snippet_12]
 
