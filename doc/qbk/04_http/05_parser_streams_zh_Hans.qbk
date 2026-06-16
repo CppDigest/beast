@@ -7,130 +7,101 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Parser Stream Operations]
+[section 解析器流操作]
 
-Non-trivial algorithms need to do more than receive entire messages
-at once, such as:
+非平凡算法需要执行的操作不仅限于一次性接收完整消息，该算法需要做更多事，例如：
 
 
-* Receive the header first and body later.
+* 先接收头部，再接收消息体。
 
-* Receive a large body using a fixed-size buffer.
+* 使用固定大小缓冲区接收大型消息体。
 
-* Receive a message incrementally: bounded work in each I/O cycle.
+* 逐步接收消息：每个 I/O 周期内只处理有限的数据量。
 
-* Defer the commitment to a __Body__ type until after reading the header.
+* 在读取头部之后，再确定 __Body__ 类型。
 
-These types of operations require callers to manage the lifetime of
-associated state, by constructing a class derived from __basic_parser__.
-Beast comes with the derived instance __parser__ which creates complete
-__message__ objects using the __basic_fields__ Fields container.
+这类操作要求调用方管理相关状态的生命周期，具体方式为构造一个派生自 __basic_parser__ 的类。Beast 提供派生类 __parser__，该类型使用 __basic_fields__ 字段容器来创建完整的 __message__ 对象。
 
-[table Parser
-[[Name][Description]]
-[[
-    __parser__
+[table 解析器
+[[名称][描述]]
+[[__解析器__
 ][
     ```
-    /// An HTTP/1 parser for producing a message.
-    template<
-        bool isRequest,                         // `true` to parse an HTTP request
-        class Body,                             // The Body type for the resulting message
-        class Allocator = std::allocator<char>> // The type of allocator for the header
-    class parser
-        : public basic_parser<...>;
+/// 用于生成消息的 HTTP/1 解析器
+template<
+bool isRequest,                         // 若为 true 则解析 HTTP 请求
+class Body,                             // 结果消息的消息体
+class Allocator = std::allocator<char>> // 头部所使用的分配器
+class parser
+: public basic_parser<...>;
     ```
 ]]
 [[
     [link beast.ref.boost__beast__http__request_parser `request_parser`]
 ][
     ```
-    /// An HTTP/1 parser for producing a request message.
-    template<class Body, class Allocator = std::allocator<char>>
-    using request_parser = parser<true, Body, Allocator>;
+/// 用于生成请求消息的 HTTP/1 解析器
+template<class Body, class Allocator = std::allocator<char>>
+using request_parser = parser<true, Body, Allocator>;
     ```
 ]]
 [[
     [link beast.ref.boost__beast__http__response_parser `response_parser`]
 ][
     ```
-    /// An HTTP/1 parser for producing a response message.
-    template<class Body, class Allocator = std::allocator<char>>
-    using response_parser = parser<false, Body, Allocator>;
+/// 用于生成响应消息的 HTTP/1 解析器
+template<class Body, class Allocator = std::allocator<char>>
+using response_parser = parser<false, Body, Allocator>;
     ```
 ]]
 ]
 
 [note
-    The __basic_parser__ and classes derived from it handle octet streams
+    __basic_parser__ 及其派生类用于处理八位字节流。
     serialized in the HTTP/1 format described in __rfc7230__.
 ]
 
-The stream operations which work on parsers are:
+用于操作解析器的流操作如下：
 
-[table Parser Stream Operations
-[[Name][Description]]
+[table 解析器流操作
+[[名称][描述]]
 [[
     [link beast.ref.boost__beast__http__read.overload1 [*read]]
-][
-    Read everything into a parser from a __SyncReadStream__.
+][从 __SyncReadStream__ 读取所有数据到解析器。
 ]]
 [[
     [link beast.ref.boost__beast__http__async_read.overload1 [*async_read]]
-][
-    Read everything into a parser asynchronously from an __AsyncReadStream__.
+][从 __AsyncReadStream__ 异步读取所有数据到解析器。
 ]]
 [[
     [link beast.ref.boost__beast__http__read_header.overload1 [*read_header]]
-][
-    Read only the header octets into a parser from a __SyncReadStream__.
+][从 __SyncReadStream__ 仅读取头部八位字节到解析器。
 ]]
 [[
     [link beast.ref.boost__beast__http__async_read_header [*async_read_header]]
-][
-    Read only the header octets into a parser asynchronously from an __AsyncReadStream__.
+][从 __AsyncReadStream__ 异步仅读取头部八位字节到解析器。
 ]]
 [[
     [link beast.ref.boost__beast__http__read_some.overload1 [*read_some]]
-][
-    Read some octets into a parser from a __SyncReadStream__.
+][从 __SyncReadStream__ 读取部分八位字节到解析器。
 ]]
 [[
     [link beast.ref.boost__beast__http__async_read_some [*async_read_some]]
-][
-    Read some octets into a parser asynchronously from an __AsyncReadStream__.
+][从 __AsyncReadStream__ 异步读取部分八位字节到解析器。
 ]]
 ]
 
-As with message stream operations, parser stream operations require a
-persisted __DynamicBuffer__  for holding unused octets from the stream.
-The basic parser implementation is optimized for the case where this dynamic
-buffer stores its input sequence in a single contiguous memory buffer. It is
-advised to use an instance of __flat_buffer__, __flat_static_buffer__, or
-__flat_static_buffer_base__ for this purpose, although a user defined instance
-of __DynamicBuffer__ which produces input sequences of length one is also
-suitable.
+与消息流操作类似，解析器流操作也需要一个持久的 DynamicBuffer 来保存流中未使用的八位字节。当动态缓冲区使用单个连续内存块存储输入序列时，基本解析器实现能达到最优性能。因此，建议使用 flat_buffer、flat_static_buffer 或 flat_static_buffer_base 的实例；当然，用户自定义的 DynamicBuffer 实现，只要它能生成长度为 1 的输入序列，也同样适用。
 
-The parser contains a message constructed internally. Arguments passed
-to the parser's constructor are forwarded into the message container.
-The caller can access the message inside the parser by calling
-[link beast.ref.boost__beast__http__parser.get `parser::get`].
-If the `Fields` and `Body` types are [*MoveConstructible], the caller
-can take ownership of the message by calling
-[link beast.ref.boost__beast__http__parser.release `parser::release`]. In this example
-we read an HTTP response with a string body using a parser, then print
-the response:
+解析器内部包含一个已构造的消息对象。传入解析器构造函数的参数会转发到消息容器中。调用方可通过 [link beast.ref.boost__beast__http__parser.get `parser::get`] 访问该消息。若 `Fields` 和 `Body` 类型支持移动构造，调用方还可通过 [link beast.ref.boost__beast__http__parser.release `parser::release`] 获取消息的所有权。以下示例使用解析器读取一个包含字符串消息体的 HTTP 响应，并将其打印出来：
 
 [http_snippet_13]
 
 
 
-[section:incremental_read Incremental Read __example__]
+[section:incremental_read 增量读取 __示例__]
 
-This function uses
-[link beast.ref.boost__beast__http__buffer_body `buffer_body`]
-and parser stream operations to read a message body progressively
-using a small, fixed-size buffer:
+该函数使用 [link beast.ref.boost__beast__http__buffer_body `buffer_body`] 和解析器流操作，通过一个固定大小的小缓冲区逐步读取消息体：
 
 [example_incremental_read]
 
@@ -138,10 +109,9 @@ using a small, fixed-size buffer:
 
 
 
-[section:read_large_response_body Reading large response body __example__]
+[section:read_large_response_body 读取大型响应消息体 __示例__]
 
-This example presents how to increase the default limit of the response body size,
-thus the content larger than the default 8MB can be read.
+本示例展示如何提高响应消息体大小的默认限制，以便读取超过默认 8MB 大小的内容。
 
 [example_read_large_response_body]
 
