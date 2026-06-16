@@ -7,96 +7,53 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Buffer-Oriented Parsing]
+[section 面向缓冲区的解析]
 [block'''<?dbhtml stop-chunking?>''']
 
-A subclass of __basic_parser__ can be invoked directly, without using 
-the provided stream operations. This could be useful for implementing
-algorithms on objects whose interface does not conform to __Stream__.
-For example, a
-[@http://zeromq.org/ *ZeroMQ* socket].
-The basic parser interface is interactive; the caller invokes the function
-[link beast.ref.boost__beast__http__basic_parser.put `basic_parser::put`]
-repeatedly with buffers until an error occurs or the parsing is done. The
-function
-[link beast.ref.boost__beast__http__basic_parser.put_eof `basic_parser::put_eof`]
-Is used when the caller knows that there will never be more data (for example,
-if the underlying connection is closed), 
+__basic_parser__ 的子类可以直接调用，无需使用库提供的流操作。这对于在接口不符合 __Stream__ 要求的对象（例如 [@http://zeromq.org/ ZeroMQ 套接字]）上实现算法时非常有用。基本解析器接口是交互式的：调用方反复调用 [link beast.ref.boost__beast__http__basic_parser.put `basic_parser::put`] 函数并传入缓冲区，直到发生错误或解析完成。当调用方确认不会再有更多数据时（例如底层连接已关闭），可使用 [link beast.ref.boost__beast__http__basic_parser.put_eof `basic_parser::put_eof`] 函数。 
 
-[heading Parser Options]
+[heading 解析器选项]
 
-The parser provides a few options which may be set before parsing begins:
+解析器提供若干选项，这些选项可在解析开始前进行设置：
 
-[table Parser Options
-[[Name][Default][Description]]
+[table 解析器选项
+[[名称][默认值][描述]]
 [[
     [link beast.ref.boost__beast__http__basic_parser.eager.overload2 `eager`]
 ][
     `false`
-][
-    Normally the parser returns after successfully parsing a structured
-    element (header, chunk header, or chunk body) even if there are octets
-    remaining in the input. This is necessary when attempting to parse the
-    header first, or when the caller wants to inspect information which may
-    be invalidated by subsequent parsing, such as a chunk extension. The
-    `eager` option controls whether the parser keeps going after parsing
-    structured element if there are octets remaining in the buffer and no
-    error occurs. This option is automatically set or cleared during certain
-    stream operations to improve performance with no change in functionality.
+][在通常处理流程中，即便输入数据中仍存在未解析的八位字节，解析器在成功解析一个结构化元素（如头部、分块头部或分块体）后也会立即返回。此行为在需要先解析头部，或调用方希望在后续解析可能覆盖某些信息（例如分块扩展）之前进行检查的场景下非常关键。`eager` 选项用于控制解析器在成功解析结构化元素后，若缓冲区中仍存在剩余字节且未发生错误，是否继续执行解析。该选项会在特定流操作中被自动启用或禁用，以便在不影响功能的前提下优化性能。
 ]]
 [[
     [link beast.ref.boost__beast__http__basic_parser.skip.overload2 `skip`]
 ][
     `false`
-][
-    This option controls whether or not the parser expects to see an HTTP
-    body, regardless of the presence or absence of certain fields such as
-    Content-Length or a chunked Transfer-Encoding. Depending on the request,
-    some responses do not carry a body. For example, a 200 response to a
-    [@https://tools.ietf.org/html/rfc7231#section-4.3.6 CONNECT] request
-    from a tunneling proxy, or a response to a
-    [@https://tools.ietf.org/html/rfc7231#section-4.3.2 HEAD] request.
-    In these cases, callers may use this function inform the parser that
-    no body is expected. The parser will consider the message complete
-    after the header has been received.
+][该选项用于控制解析器是否期待接收 HTTP 消息体，这个判断独立于 Content-Length 或分块传输编码等字段是否存在。某些类型的响应本身就不包含消息体。例如，隧道代理对 CONNECT 请求返回的 200 响应，或者对 HEAD 请求的响应。在这些场景下，调用方可以使用该函数告知解析器不需要消息体。解析器在收到头部后就会将消息视为已完整接收。
 ]]
 [[
     [link beast.ref.boost__beast__http__basic_parser.body_limit `body_limit`]
 ][
     1MB/8MB
-][
-    This function sets the maximum allowed size of the content body.
-    When a body larger than the specified size is detected, an error
-    is generated and parsing terminates. This setting helps protect
-    servers from resource exhaustion attacks. The default limit when
-    parsing requests is 1MB, and for parsing responses 8MB.
+][该函数用于设置消息体允许的最大大小。一旦检测到消息体超过该限制，就会触发错误并终止解析过程。这项设置有助于防范资源耗尽攻击，提升服务器安全性。解析请求时的默认限制为 1MB，解析响应时的默认限制为 8MB。
 ]]
 [[
     [link beast.ref.boost__beast__http__basic_parser.header_limit `header_limit`]
 ][
     8KB
-][
-    This function sets the maximum allowed size of the header
-    including all field name, value, and delimiter characters
-    and also including the CRLF sequences in the serialized
-    input.
+][该函数用于设置头部允许的最大大小，该大小包括所有字段名、字段值、分隔符字符以及序列化输入中的 CRLF 序列。
 ]]
 ]
 
 
 
-[section:read_from_std_istream Read From std::istream __example__]
+[section:read_from_std_istream 从 std::istream 读取 __示例__]
 
-The standard library provides the type `std::istream` for performing high
-level read operations on character streams. The variable `std::cin` is based
-on this input stream. This example uses the buffer oriented interface of
-__basic_parser__ to build a stream operation which parses an HTTP message
-from a `std::istream`:
+标准库提供 `std::istream` 类型，用于在字符流上执行高层读取操作。`std::cin` 变量就是基于该输入流实现的。本示例借助 __basic_parser__ 的面向缓冲区接口，构建一个流操作，用于从 `std::istream` 中解析 HTTP 消息：
 
 [example_http_read_istream]
 
 [tip
-    Parsing from a `std::istream` could be implemented using an alternate
+    从 `std::istream` 解析数据，该操作还可以通过另一种方式实现：
     strategy: adapt the `std::istream` interface to a __SyncReadStream__,
     enabling use with the library's existing stream algorithms. This is
     left as an exercise for the reader.
