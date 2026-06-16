@@ -7,42 +7,17 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Protocol Primer]
+[section 协议入门]
 
-The HTTP protocol defines the
-[@https://tools.ietf.org/html/rfc7230#section-2.1 client and server roles]:
-clients send requests and servers send back responses. When a client and
-server have established a connection, the client sends a series of requests
-while the server sends back at least one response for each received request
-in the order those requests were received.
+HTTP 协议定义了客户端和服务器的角色：客户端发送请求，服务器返回响应。当客户端与服务器建立连接后，客户端会连续发送多个请求，服务器则按照收到请求的顺序，为每个请求至少返回一个响应。
 
-A request or response is an
-[@https://tools.ietf.org/html/rfc7230#section-3 HTTP message]
-(referred to hereafter as "message") having two parts:
-a header with structured metadata and an optional variable-length body
-holding arbitrary data. A serialized header is one or more text lines
-where each line ends in a carriage return followed by linefeed (`"\r\n"`).
-An empty line marks the end of the header. The first line in the header
-is called the ['start-line]. The contents of the start line contents are
-different for requests and responses.
+请求或响应统称为 HTTP 消息（以下简称“消息”），由两部分组成：包含结构化元数据的头部，以及一个可选的、长度可变的消息体，用于承载任意数据。序列化后的头部由一行或多行文本组成，每行以回车换行符（`"\r\n"`）结尾。一个空行用于标识头部的结束。头部的第一行称为起始行，起始行的具体内容在请求和响应中有所不同。
 
-Every message contains a set of zero or more field name/value pairs,
-collectively called "fields". The names and values are represented using
-text strings with various requirements. A serialized field contains the
-field name, then a colon followed by a space (`": "`), and finally the field
-value with a trailing CRLF.
+每条消息都包含零个或多个字段，每个字段由字段名和字段值组成，统称为“字段”。字段名和字段值以文本字符串表示，并需满足各项特定要求。序列化后的字段格式为：字段名后跟冒号和空格（`: `），接着是字段值，并以 CRLF 结尾。
 
-[heading Requests]
+[heading 请求]
 
-Clients send requests, which contain a
-[@https://tools.ietf.org/html/rfc7230#section-3.1.1 method]
-and
-[@https://tools.ietf.org/html/rfc7230#section-5.3 request-target],
-and
-[@https://tools.ietf.org/html/rfc7230#section-2.6 HTTP-version].
-The method identifies the operation to be performed while the target
-identifies the object on the server to which the operation applies.
-The version is almost always 1.1, but older programs sometimes use 1.0.
+客户端发送的请求包含 [@https://tools.ietf.org/html/rfc7230#section-3.1.1 方法]、[@https://tools.ietf.org/html/rfc7230#section-5.3 请求目标] 以及 [@https://tools.ietf.org/html/rfc7230#section-2.6 HTTP 版本]。方法指明要执行的操作，目标则指明该操作作用于服务器上的哪个对象。版本号通常为 1.1，但较旧的程序有时仍使用 1.0。
 
 [table
 [[Serialized Request][Description]]
@@ -52,25 +27,13 @@ The version is almost always 1.1, but older programs sometimes use 1.0.
     User-Agent: Beast\r\n
     \r\n
 ```
-][
-    This request has a method of "GET", a target of "/", and indicates
-    HTTP version 1.1. It contains a single field called "User-Agent"
-    whose value is "Beast". There is no message body.
+][该请求的方法为 `"GET"`，目标为 `"/"`，并指定使用 HTTP 版本 1.1。该请求包含一个名为 `"User-Agent"` 的字段，其值为 `"Beast"`，且不包含消息体。
 ]]
 ]
 
-[heading Responses]
+[heading 响应]
 
-Servers send responses, which contain a
-[@https://tools.ietf.org/html/rfc7231#section-6 status-code],
-[@https://tools.ietf.org/html/rfc7230#section-3.1.2 reason-phrase], and
-[@https://tools.ietf.org/html/rfc7230#section-2.6 HTTP-version].
-The reason phrase is
-[@https://tools.ietf.org/html/rfc7230#section-3.1.2 obsolete]:
-clients SHOULD ignore the reason-phrase content. Here is a response which
-includes a body. The special
-[@https://tools.ietf.org/html/rfc7230#section-3.3.2  Content-Length]
-field informs the remote host of the size of the body which follows.
+服务器发送的响应包含 [@https://tools.ietf.org/html/rfc7231#section-6 状态码]、[@https://tools.ietf.org/html/rfc7230#section-3.1.2 原因短语] 以及 [@https://tools.ietf.org/html/rfc7230#section-2.6 HTTP 版本]。其中，原因短语已被 [@https://tools.ietf.org/html/rfc7230#section-3.1.2 废弃]，客户端应忽略其内容。
 
 [table
 [[Serialized Response][Description]]
@@ -82,73 +45,38 @@ field informs the remote host of the size of the body which follows.
     \r\n
     Hello, world!
 ```
-][
-    This response has a
-    [@https://tools.ietf.org/html/rfc7231#section-6 200 status code]
-    meaning the operation requested completed successfully. The obsolete
-    reason phrase is "OK". It specifies HTTP version 1.1, and contains
-    a body 13 octets in size with the text "Hello, world!".
+][该响应的 [@https://tools.ietf.org/html/rfc7231#section-6 状态码为 200]，表示请求操作成功完成。已废弃的原因短语为 “OK”。该响应指定 HTTP 版本 1.1，并包含一个大小为 13 个八位字节的消息体，内容为文本 “Hello, world!”。
 ]]
 ]
 
-[heading Body]
+[heading 消息体]
 
-Messages may optionally carry a body. The size of the message body
-is determined by the semantics of the message and the special fields
-Content-Length and Transfer-Encoding.
-[@https://tools.ietf.org/html/rfc7230#section-3.3 rfc7230 section 3.3]
-provides a comprehensive description for how the body length is
-determined.
+消息可以携带消息体（可选）。消息体的大小由消息本身的语义，以及 Content-Length 和 Transfer-Encoding 这两个特殊字段共同决定。关于如何确定消息体长度，详见 [@https://tools.ietf.org/html/rfc7230#section-3.3 rfc7230 第 3.3 节]。
 
-[heading Special Fields]
+[heading 特殊字段]
 
-Certain fields appearing in messages are special. The library understands
-these fields when performing serialization and parsing, taking automatic
-action as needed when the fields are parsed in a message and also setting
-the fields if the caller requests it.
+消息中的某些字段具有特殊含义。在执行序列化和解析时，该库能够识别这些字段，并在解析到这些字段时自动采取相应操作；同时，如果调用方提出要求，该库也会对这些字段进行设置。
 
-[table Special Fields
-[[Field][Description]]
+[table 特殊字段
+[[字段][描述]]
 [
     [
         [@https://tools.ietf.org/html/rfc7230#section-6.1 [*`Connection`]]
 
         [@https://tools.ietf.org/html/rfc7230#appendix-A.1.2 [*`Proxy-Connection`]]
-    ][
-        This field allows the sender to indicate desired control options
-        for the current connection. Common values include "close",
-        "keep-alive", and "upgrade".
-    ]
+    ][该字段允许发送方指定当前连接所需的控制选项。常见值包括 `close`、`keep-alive` 和 `upgrade`。]
 ][
     [
         [@https://tools.ietf.org/html/rfc7230#section-3.3.2 [*`Content-Length`]]
-    ][
-        When present, this field informs the recipient about the exact
-        size in bytes of the body which follows the message header.
-    ]
+    ][该字段用于告知接收方消息头部之后的消息体的确切字节数。]
 ][
     [
         [@https://tools.ietf.org/html/rfc7230#section-3.3.1 [*`Transfer-Encoding`]]
-    ][
-        This optional field lists the names of the sequence of transfer codings
-        that have been (or will be) applied to the content payload to form
-        the message body.
-
-        Beast understands the "chunked" coding scheme when it is the last
-        (outermost) applied coding. The library will automatically apply
-        chunked encoding when the content length is not known ahead of time
-        during serialization, and the library will automatically remove chunked
-        encoding from parsed messages when present.
-    ]
+    ][该可选字段用于列出已应用或将要应用于内容有效载荷的传输编码序列，以形成消息体。Beast 能够识别作为最后（最外层）应用的编码方案中的 “chunked” 编码。当序列化过程中无法预先确定内容长度时，该库会自动应用分块编码；同样，在解析消息时如果存在分块编码，该库也会自动将其移除。]
 ][
     [
         [@https://tools.ietf.org/html/rfc7230#section-6.7 [*`Upgrade`]]
-    ][
-        The Upgrade header field provides a mechanism to transition from
-        HTTP/1.1 to another protocol on the same connection. For example, it
-        is the mechanism used by WebSocket's initial HTTP handshake to
-        establish a WebSocket connection.
-    ]
+    ][Upgrade 头部字段提供一种在同一连接上从 HTTP/1.1 切换到其他协议的机制。例如，WebSocket 的初始 HTTP 握手就是利用该机制来建立 WebSocket 连接的。]
 ]
 ]
 
