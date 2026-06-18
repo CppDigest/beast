@@ -7,57 +7,24 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Chunked Encoding]
+[section 分块传输编码]
 
-For message payloads whose size is not known ahead of time, HTTP
-version 1.1 defines the
-[@https://tools.ietf.org/html/rfc7230#section-4.1 ['chunked]]
-transfer coding. This coding consists of zero or more
-[@https://tools.ietf.org/html/rfc7230#section-4.1 ['chunked bodies]],
-followed by a
-[@https://tools.ietf.org/html/rfc7230#section-4.1 ['last chunk]].
-Each chunked body may contain optional application-defined, connection-specific
-[@https://tools.ietf.org/html/rfc7230#section-4.1.1 ['chunk-extensions]].
-The last chunk may contain additional HTTP field values in a section
-of the last chunk called a
-[@https://tools.ietf.org/html/rfc7230#section-4.1.2 ['chunk-trailer]].
-The field values are "promised" in the header as a comma delimited list
-of field names in the
-[@https://tools.ietf.org/html/rfc7230#section-4.4 [*Trailer]]
-field value. Clients indicate their willingness to accept trailers
-by including the "trailers" token in the
-[@https://tools.ietf.org/html/rfc7230#section-4.3 [*TE]]
-field value.
+对于无法预先确定大小的消息有效载荷，HTTP 版本 1.1 定义了 [@https://tools.ietf.org/html/rfc7230#section-4.1 分块] 传输编码。该编码由零个或多个 [@https://tools.ietf.org/html/rfc7230#section-4.1 分块体] 组成，后跟一个 [@https://tools.ietf.org/html/rfc7230#section-4.1 最后分块]。每个分块体可以包含可选的、由应用程序定义的、与连接相关的 [@https://tools.ietf.org/html/rfc7230#section-4.1.1 分块扩展]。最后分块可以包含一个称为 [@https://tools.ietf.org/html/rfc7230#section-4.1.2 分块尾部] 的部分，其中包含额外的 HTTP 字段值。这些字段值在头部中通过 [@https://tools.ietf.org/html/rfc7230#section-4.4 Trailer] 字段值以逗号分隔的字段名列表进行“承诺”。客户端通过在 [@https://tools.ietf.org/html/rfc7230#section-4.3 TE] 字段值中包含“trailers”标记来表示愿意接受尾部字段。
 
-[heading Serializing Chunks]
+[heading 序列化分块数据]
 
-The __serializer__ automatically applies the chunked transfer encoding
-when a message returns `true` from
-[link beast.ref.boost__beast__http__message.chunked.overload1 `message::chunked`].
-The boundaries between chunks emitted by the serializer are implementation
-defined. Chunk extensions and trailers are omitted. Applications which
-need precise control over the chunk boundaries, extensions, and trailers
-may use a set of helper classes which enable manual emission of message
-payloads using chunk encoding.
+当消息中的 [link beast.ref.boost__beast__http__message.chunked.overload1 `message::chunked`] 返回 `true` 时，__serializer__ 会自动应用分块传输编码。序列化器发出的分块之间的边界由实现定义，分块扩展和尾部字段会被省略。如果应用程序需要对分块边界、扩展和尾部字段进行精确控制，可以使用一组辅助类来手动发送采用分块编码的消息有效载荷。
 
-To use these helper classes, first serialize the header portion of the
-message using the standard interface. Then prepare the buffers, chunk
-extensions, and desired trailers, and use them with these helpers:
+使用这些辅助类时，首先通过标准接口序列化消息的头部部分，然后准备缓冲区、分块扩展以及所需的尾部字段，再配合以下辅助类进行使用：
 
-[table Chunking Helpers
-[[Name][Description]]
+[table 分块辅助类
+[[名称][描述]]
 [
     [[link beast.ref.boost__beast__http__chunk_body `chunk_body`]]
-    [
-        A buffer sequence representing a complete chunk body.
-    ]
+    [一个表示完整分块体的缓冲区序列。]
 ][
     [[link beast.ref.boost__beast__http__chunk_crlf `chunk_crlf`]]
-    [
-        A buffer sequence representing the CRLF (`"\r\n"`) delimiter.
-        This class is used when the caller desires to emit the
-        chunk body in two or more individual stream operations.
-    ]
+    [一个表示 CRLF（`"\r\n"`）分隔符的缓冲区序列。该辅助类用于调用方希望将分块体分成两次或多次独立流操作发送的场景。]
 ][
     [
         [link beast.ref.boost__beast__http__chunk_extensions `chunk_extensions`]
@@ -65,164 +32,88 @@ extensions, and desired trailers, and use them with these helpers:
 
         [link beast.ref.boost__beast__http__basic_chunk_extensions `basic_chunk_extensions`]
     ]
-    [
-        This is a simple, allocating container which lets callers
-        easily build up a set of chunk extensions.
-    ]
+    [这是一个简单的、可分配内存的容器，能够让调用方轻松构建一组分块扩展。]
 ][
     [[link beast.ref.boost__beast__http__chunk_header `chunk_header`]]
-    [
-        A buffer sequence representing a hex-encoded chunk size,
-        followed by an optional set of chunk extensions, including
-        the terminating CRLF (`"\r\n"`) delimiter which precedes
-        the chunk body. This class is used when the caller desires
-        to emit the chunk body in two or more individual stream
-        operations.
-    ]
+    [一个表示十六进制编码的分块大小的缓冲区序列，并附带一组可选的分块扩展（含分块体前的终止 CRLF（`"\r\n"`）分隔符）。该辅助类用于调用方希望将分块体分成两次或多次独立流操作发送的场景。]
 ][
     [[link beast.ref.boost__beast__http__chunk_last `chunk_last`]]
-    [
-        A buffer sequence representing a last chunk. The last chunk
-        indicates the end of the chunked message payload, and may
-        contain optional trailer fields.
-    ]
+    [一个表示最后分块的缓冲区序列。最后分块用于标识分块消息有效载荷的结束，并可以包含可选的尾部字段。]
 ][
     [
         [link beast.ref.boost__beast__http__make_chunk `make_chunk`]
 
         [link beast.ref.boost__beast__http__make_chunk_last `make_chunk_last`]
     ]
-    [
-        These helper functions are used to construct a chunk
-        or last chunk directly at call sites.
-    ]
+    [这些辅助函数用于在调用点直接构造分块或最后分块。]
 ]]
 
-We demonstrate the use of these objects first by declaring a function
-which returns the next buffer sequence to use as a chunk body:
+首先声明一个函数，用于返回下一个作为分块体的缓冲区序列，以此演示这些对象的用法：
 
 [http_snippet_17]
 
-This example demonstrates sending a complete chunked message payload
-manually. No chunk extensions or trailers are emitted:
+本示例演示如何手动发送完整的分块消息有效载荷，过程中不发送分块扩展或尾部字段：
 
 [http_snippet_18]
 
-The following code sends additional chunks, and sets chunk extensions
-using the helper container. The container automatically quotes values
-in the serialized output when necessary:
+以下代码发送额外的分块，并使用辅助容器设置分块扩展。该容器在必要时会自动对序列化输出中的值进行引号处理：
 
 [http_snippet_19]
 
-Callers can take over the generation and management of the extensions
-buffer by passing a non-owning string. Note that this requires the
-string contents to adhere to the correct syntax for chunk extensions,
-including the needed double quotes for values which contain spaces:
+调用方可以通过传递一个非拥有字符串来接管扩展缓冲区的生成和管理。需要注意的是，这要求字符串内容符合分块扩展的正确语法，包括对包含空格的字段值使用必要的双引号：
 
 [http_snippet_20]
 
-The next code sample emits a chunked response which promises two
-trailer fields and delivers them in the last chunk. The implementation
-allocates memory using the default or a passed-in allocator to hold
-the state information required to serialize the trailer:
+以下代码示例发送一个分块响应，该响应承诺携带两个尾部字段，并在最后分块中发送这些字段。实现会使用默认分配器或传入的分配器分配内存，用于保存序列化尾部所需的状态信息：
 
 [http_snippet_21]
 
-Using a custom allocator to serialize the last chunk:
+使用自定义分配器序列化最后分块：
 
 [http_snippet_22]
 
-Alternatively, callers can take over the generation and lifetime
-management of the serialized trailer fields by passing in a non-owning
-string:
+或者，调用方也可以传入一个非拥有字符串，自行负责序列化尾部字段的生成及其生命周期管理：
 
 [http_snippet_23]
 
-For the ultimate level of control, a caller can manually compose the
-chunk itself by first emitting a header with the correct chunk body
-size, and then by emitting the chunk body in multiple calls to the
-stream write function. In this case the caller is responsible for
-also emitting the terminating CRLF (`"\r\n"`):
+若需要最高级别的控制，调用方可以手动组合分块：先发送一个带有正确分块体大小的头部，然后通过多次调用流写入函数来发送分块体。此时，调用方还需负责发送终止的 CRLF（`"\r\n"`）：
 
 [http_snippet_24]
 
-[heading Parsing Chunks]
+[heading 解析分块]
 
-The __parser__ automatically removes the chunked transfer coding when
-it is the last encoding in the list. However, it also discards the
-chunk extensions and does not provide a way to determine the boundaries
-between chunks. Advanced applications which need to access the chunk
-extensions or read complete individual chunks may use a callback
-interface provided by __parser__:
+当分块传输编码位于编码列表的末尾时，__parser__ 会自动将其移除。但在此过程中，解析器会丢弃分块扩展，也不提供确定分块之间边界的方法。对于需要访问分块扩展或读取完整分块的高级应用，可以使用 __parser__ 提供的回调接口：
 
-[table Chunking Parse Callbacks
-[[Name][Description]]
+[table 分块解析回调接口
+[[名称][描述]]
 [
     [[link beast.ref.boost__beast__http__parser.on_chunk_header `on_chunk_header`]]
-    [
-        Set a callback to be invoked on each chunk header.
+    [设置一个回调函数，在每次解析分块头部时调用。
 
-        The callback will be invoked once for every chunk in the message
-        payload, as well as once for the last chunk. The invocation 
-        happens after the chunk header is available but before any body
-        octets have been parsed.
+该回调函数会对消息体中的每个分块调用一次，同时对最后一个分块也调用一次。调用时机在分块头部可用之后、分块体数据开始解析之前。
 
-        The extensions are provided in raw, validated form, use
-        [link beast.ref.boost__beast__http__basic_chunk_extensions.parse `chunk_extensions::parse`]
-        to parse the extensions into a structured container for easier access.
-        The implementation type-erases the callback without requiring
-        a dynamic allocation. For this reason, the callback object is
-        passed by a non-constant reference.
+分块扩展以原始格式提供，且已经过验证。可以使用 [link beast.ref.boost__beast__http__basic_chunk_extensions.parse `chunk_extensions::parse`] 将扩展解析为结构化容器，便于访问。该实现通过类型擦除处理回调，且无需动态分配内存，因此回调对象通过非常量引用传递。
 
-        The function object will be called with this equivalent signature:
-        ```
-        void
-        callback(
-            std::uint64_t size,         // Size of the chunk, zero for the last chunk
-            string_view extensions,     // The chunk-extensions in raw form
-            error_code& ec);            // May be set by the callback to indicate an error
-        ```
-    ]
+回调函数对象的调用签名等效于：]
 ][
     [[link beast.ref.boost__beast__http__parser.on_chunk_body `on_chunk_body`]]
-    [
-        Set a callback to be invoked on chunk body data.
+    [设置一个回调函数，在分块体数据到达时调用。
 
-        The callback will be invoked one or more times to provide
-        buffers corresponding to the chunk body for the current chunk.
-        The callback receives the number of octets remaining in this
-        chunk body including the octets in the buffer provided.
+该回调函数会被调用一次或多次，用于提供当前分块体对应的缓冲区数据。回调函数会收到当前分块体中剩余的字节数（包含当前缓冲区中的字节）。
 
-        The callback must return the number of octets actually consumed.
-        Any octets not consumed will be presented again in a subsequent
-        invocation of the callback.
-        The implementation type-erases the callback without requiring
-        a dynamic allocation. For this reason, the callback object is
-        passed by a non-constant reference.
+回调函数必须返回实际消耗的字节数。未被消耗的字节会在后续回调调用中再次提供。该实现通过类型擦除处理回调，且无需动态分配内存，因此回调对象通过非常量引用传递。
 
-        The function object will be called with this equivalent signature:
-        ```
-        std::size_t
-        callback(
-            std::uint64_t remain,       // Octets remaining in this chunk, includes `body`
-            string_view body,           // A buffer holding some or all of the remainder of the chunk body
-            error_code& ec);            // May be set by the callback to indicate an error
-        ```
-    ]
+回调函数对象的调用签名等效于：]
 ]]
 
-This example will read a message header from the stream, and then manually
-read each chunk. It recognizes the chunk boundaries and outputs the contents
-of each chunk as it comes in. Any chunk extensions are printed, each extension
-on its own line. Finally, any trailers promised in the header are printed.
+本示例将从流中读取消息头部，然后手动读取每个分块。示例能够识别分块边界，并在分块到达时输出其内容。所有分块扩展都会被打印，每个扩展单独占一行。最后，还会打印头部中承诺的尾部字段。
 
 [example_chunk_parsing]
 
-Given the HTTP response as input on the left, the output of the function shown
-above is shown on the right:
+给定左侧的 HTTP 响应作为输入，上述函数的输出结果如右侧所示：
 
-[table Chunk Parsing Example Output
-[[Input][Output]]
+[table 分块解析示例输出
+[[输入][输出]]
 [
     [
     ```
@@ -247,16 +138,16 @@ above is shown on the right:
     ]
     [
     ```
-    Chunk Body: First
-    Extension: quality = 1.0
-    Chunk Body: Hello, world!
-    Extension: file = abc.txt
-    Extension: quality = 0.7
-    Chunk Body: The Next Chunk
-    Extension: last
-    Chunk Body: Last one
-    Expires: never
-    Content-MD5: f4a5c16584f03d90
+分块体：First
+扩展：quality = 1.0
+分块体：Hello, world!
+扩展：file = abc.txt
+扩展：quality = 0.7
+分块体：The Next Chunk
+扩展：last
+分块体：Last one
+Expires: never
+Content-MD5: f4a5c16584f03d90
     ```
     ]
 ]]
