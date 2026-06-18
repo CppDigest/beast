@@ -7,106 +7,72 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:BodyReader BodyReader]
+[section:BodyReader 消息体读取器]
 
-A [*BodyReader] provides an online algorithm to transfer a series of zero
-or more buffers containing parsed body octets into a message container. The
-__parser__ creates an instance of this type when needed, and calls into
-it zero or more times to transfer buffers. The interface of [*BodyReader]
-is intended to allow the conversion of buffers into these scenarios for
-representation:
+[*BodyReader] 提供一种在线算法，用于将包含已解析消息体八位字节的零个或多个缓冲区序列传输到消息容器中。__parser__ 在需要时创建该类型的实例，并零次或多次调用它以传输缓冲区。[*BodyReader] 的接口设计用于允许将缓冲区转换为这些表示形式的场景：
 
-* Storing a body in a dynamic buffer
-* Storing a body in a user defined container with a custom allocator
-* Transformation of incoming body data before storage, for example
+* 将消息体存储在动态缓冲区中
+* 将消息体存储在使用自定义分配器的用户定义容器中
+* 在存储前对传入的消息体数据进行转换，例如：
   to compress it first.
-* Saving body data to a file
+* 将消息体数据保存到文件
 
-[heading Associated Types]
+[heading 关联类型]
 
 * [link beast.ref.boost__beast__http__is_body_reader `is_body_reader`]
 * __Body__
 
-[heading Requirements]
+[heading 要求]
 
 [warning
-    These requirements may undergo non-backward compatible
+    这些要求可能发生不向后兼容的变更
     changes in subsequent versions.
 ]
 
-In this table:
+在下表中：
 
-* `R` denotes a type meeting the requirements of [*BodyReader].
-* `B` denotes a __Body__ where
+R 表示满足 [*BodyReader] 要求的类型。
+
+B 表示一个 Body 类型，其中
       `std::is_same<R, B::reader>::value == true`.
-* `a` denotes a value of type `R`.
-* `b` is an object whose type meets the requirements of __ConstBufferSequence__
-* `h` denotes a value of type `header<isRequest, Fields>&`.
-* `v` denotes a value of type `Body::value_type&`.
-* `n` is a value of type `boost::optional<std::uint64_t>`.
-* `ec` is a value of type [link beast.ref.boost__beast__error_code `error_code&`].
+* `a` 表示类型为 `R` 的值。
+* `b` 是一个类型满足 __ConstBufferSequence__ 要求的对象。
+* `h` 表示类型为 `header<isRequest, Fields>&` 的值。
+* `v` 表示类型为 `Body::value_type&` 的值。
+* `n` 表示类型为 `boost::optional<std::uint64_t>` 的值。
+* `ec` 表示类型为 [link beast.ref.boost__beast__error_code `error_code&`] 的值。
 
-[table Valid expressions
-[[Expression] [Type] [Semantics, Pre/Post-conditions]]
+[table 有效表达式
+[[表达式] [类型] [语义、前置条件与后置条件]]
 [
     [`R{h,v};`]
     []
-    [
-        Constructible from `h` and `v`. The lifetime of `h` and `v`
-        is guaranteed to end no earlier than after the `R` is destroyed.
-        The reader shall not access the contents of `h` or `v` before
-        the first call to `init`, permitting lazy construction of the
-        message.
-    ]
+    [可从 `h` 和 `v` 构造。`h` 和 `v` 的生命周期保证不早于 `R` 销毁前结束。读取器在首次调用 `init` 之前不应访问 `h` 或 `v` 的内容，以支持消息的延迟构造。]
 ][
     [`a.init(n, ec)`]
     []
-    [
-        Called once to fully initialize the object before any calls to
-        `put`. The message body is valid before entering this function,
-        and remains valid until the reader is destroyed.
-        The value of `n` will be set to the content length of the
-        body if known, otherwise `n` will be equal to `boost::none`.
-        Implementations of [*BodyReader] may use this information to
-        optimize allocation.
+    [在调用 put 之前调用一次，以完全初始化对象。消息体在进入该函数前有效，并持续有效直到读取器销毁为止。n 的值在已知时表示消息体的内容长度，否则为 boost::none。[*BodyReader] 的实现可使用此信息优化内存分配。
 
-        The function will ensure that `!ec` is `true` if there was
-        no error or set to the appropriate error code if there was one. 
-    ]
+该函数在无错误时确保 !ec 为 true，否则将 ec 设置为对应的错误码。]
 ][
     [`a.put(b,ec)`]
     [`std::size_t`]
-    [
-        This function is called to append some or all of the buffers
-        specified by `b` into the body representation. The number of
-        bytes inserted from `b` is returned. If the number of bytes
-        inserted is less than the total input, the remainder of the
-        input will be presented in the next call to `put`.
-        The function will ensure that `!ec` is `true` if there was
-        no error or set to the appropriate error code if there was one. 
-    ]
+    [调用此函数以将 `b` 指定的部分或全部缓冲区追加到消息体表示中。返回从 `b` 插入的字节数。如果插入的字节数少于输入总量，剩余部分将在下一次调用 `put` 时传入。该函数在无错误时确保 `!ec` 为 `true`，否则将 `ec` 设置为对应的错误码。]
 ][
     [`a.finish(ec)`]
     []
-    [
-        This function is called when no more body octets are remaining.
-        The function will ensure that `!ec` is `true` if there was
-        no error or set to the appropriate error code if there was one. 
-    ]
+    [该函数在无更多消息体八位字节时调用。该函数在无错误时确保 `!ec` 为 `true`，否则将 `ec` 设置为对应的错误码。]
 ][
     [`is_body_reader<B>`]
     [`std::true_type`]
-    [
-        An alias for `std::true_type` for `B`, otherwise an alias
-        for `std::false_type`.
-    ]
+    [若 `B` 存在，则为 `std::true_type` 的别名，否则为 `std::false_type` 的别名。]
 ]]
 
-[heading Exemplar]
+[heading 示例]
 
 [concept_BodyReader]
 
-[heading Models]
+[heading 模型]
 
 * [link beast.ref.boost__beast__http__basic_dynamic_body.reader `basic_dynamic_body::reader`]
 * [link beast.ref.boost__beast__http__basic_file_body__reader `basic_file_body::reader`]
