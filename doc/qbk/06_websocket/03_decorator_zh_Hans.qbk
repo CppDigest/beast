@@ -9,76 +9,56 @@
 
 [/-----------------------------------------------------------------------------]
 
-[section:decorator Decorator]
+[section:decorator 修饰器]
 
-For programs which need to modify either the outgoing WebSocket HTTP Upgrade
-request, the outgoing WebSocket HTTP Upgrade response, or both, the stream
-supports an optional property called a ['decorator]. This is a function 
-pointer or callable object which is invoked before the implementation
-sends an HTTP message. The decorator receives a modifiable reference to
-the message, allowing for modifications. The interface to this system
-uses:
+对于需要修改出站 WebSocket HTTP 升级请求或响应（或两者都需要）的程序，流支持一个可选属性，称为“修饰器”。修饰器是一个函数指针或可调用对象，在实现发送 HTTP 消息前会被调用。修饰器接收一个可修改的消息引用，允许对其进行修改。该系统的接口使用以下类型：
 
-[table WebSocket Decorator Interface
-[[Name][Description]]
+[table WebSocket 修饰器接口
+[[名称][描述]]
 [[
     [link beast.ref.boost__beast__websocket__request_type `request_type`]
-][
-    This is the type of the object passed to the decorator to
-    represent HTTP Upgrade requests.
+][该类型表示传递给修饰器的对象，用于表示 HTTP 升级请求。
 ]]
 [[
     [link beast.ref.boost__beast__websocket__response_type `response_type`]
-][
-    This is the type of the object passed to the decorator to
-    represent HTTP Upgrade response.
+][该类型表示传递给修饰器的对象，用于表示 HTTP 升级响应。
 ]]
 [[
     [link beast.ref.boost__beast__websocket__stream_base__decorator `stream_base::decorator`]
-][
-    Objects of this type are used to hold a decorator to be
-    set on the stream using `set_option`.
+][该类型的对象用于保存修饰器，并通过 `set_option` 将其设置在流上。
 ]]
 [[
     [link beast.ref.boost__beast__websocket__stream.set_option `stream::set_option`]
-][
-    This function is used to set a `stream_base::decorator` on the stream.
+][该函数用于在流上设置 `stream_base::decorator`。
 ]]
 ]
 
-This declares a normal function which decorates outgoing HTTP requests:
+以下声明一个普通函数，该函数用于装饰出站 HTTP 请求。
 
 [code_websocket_3_1]
 
-When using a decorator, it must be set on the stream before any handshaking
-takes place. This sets the decorator on the stream, to be used for all
-subsequent calls to accept or handshake:
+使用修饰器时，必须在进行任何握手之前将其设置在流上。以下代码将修饰器设置在流上，供后续所有 `accept` 或 `handshake` 调用使用：
 
 [code_websocket_3_2]
 
-Alternatively, a function object may be used. Small function objects will
-not incur a memory allocation. The follow code declares and sets a function
-object as a decorator:
+也可以使用函数对象。小型函数对象不会产生内存分配。以下代码声明并设置一个函数对象作为修饰器：
 
 [code_websocket_3_3]
 
-A lambda may be used in place of a named function object:
+也可以使用 lambda 表达式代替具名函数对象：
 
 [code_websocket_3_4]
 
-It also possible for a single decorator to handle both requests and
-responses, if it is overloaded for both types either as a generic
-lambda (C++14 and later) or as a class as shown here:
+单个修饰器也可以同时处理请求和响应，只需为这两种类型提供重载，可以通过泛型 lambda（C++14 及更高版本）或类来实现，如下所示：
 
 [code_websocket_3_5]
 
-The implementation takes ownership by decay-copy of the invocable object
-used as the decorator. Move-only types are possible:
+实现会通过退化拷贝的方式获取用作修饰器的可调用对象的所有权。只可移动的类型也同样适用：
 
 [code_websocket_3_6]
 
 [important
-    Undefined behavior results if the decorator modifies the fields
+    如果修饰器修改以下字段，将导致未定义行为：
     specific to perform the WebSocket Upgrade, such as the Upgrade
     or Connection fields.
 ]
