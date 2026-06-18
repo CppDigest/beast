@@ -7,16 +7,10 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Custom Body Types]
+[section 自定义消息体类型]
 [block'''<?dbhtml stop-chunking?>''']
 
-User-defined types are possible for the message body, where the type meets the
-__Body__ requirements. This simplified class declaration
-shows the customization points available to user-defined body types:
-```
-/// Defines a Body type
-struct body
-{
+用户可以为消息体定义自己的类型，只要该类型符合 __Body__ 的要求。下面这个简化的类声明展示了用户自定义消息体类型有哪些可用的定制点：``` /// 定义一个消息体类型 struct body {
     /// This determines the return type of the `message::body` member function
     using value_type = ...;
 
@@ -33,49 +27,25 @@ struct body
 }
 ```
 
-The meaning of the nested types is as follows
+嵌套类型的含义如下：
 
-[table Body Type Members
-[[Name][Description]]
+[table 消息体类型的成员
+[[名称][描述]]
 [
     [`value_type`]
-    [
-        Determines the type of the
-        [link beast.ref.boost__beast__http__message.body `message::body`]
-        member.
-    ]
+    [用于确定 [link beast.ref.boost__beast__http__message.body `message::body`] 成员的类型。]
 ][
-    [`reader`]
-    [
-        An optional nested type meeting the requirements of __BodyReader__,
-        which provides the algorithm for storing a forward range of buffer
-        sequences in the body representation.
-        If present, this body type may be used with a __parser__.
-    ]
+    [`读取器`]
+    [一个可选的嵌套类型，需满足 __BodyReader__ 的要求。该类型提供一种算法，用于将前向缓冲区序列范围存储到消息体的表示形式中。如果该嵌套类型存在，则对应的消息体类型可以配合 __parser__ 使用。]
 ][
-    [`writer`]
-    [
-        An optional nested type meeting the requirements of __BodyWriter__,
-        which provides the algorithm for converting the body representation
-        to a forward range of buffer sequences.
-        If present this body type may be used with a __serializer__.
-    ]
+    [`写入器`]
+    [一个可选的嵌套类型，需满足 __BodyWriter__ 的要求。该类型提供一种算法，用于将消息体的表示形式转换为前向缓冲区序列范围。如果该嵌套类型存在，则对应的消息体类型可以配合 __serializer__ 使用。]
 ]
 ]
 
-[heading Value Type]
+[heading 值类型]
 
-The `value_type` nested type allows the body to define the declaration of
-the body type as it appears in the message. This can be any type. For
-example, a body's value type may specify `std::vector<char>` or 
-`std::list<std::string>`. A custom body may even set the value type to
-something that is not a container for body octets, such as a
-[@boost:/libs/filesystem/doc/reference.html#class-path `boost::filesystem::path`].
-Or, a more structured container may be chosen. This declares a body's
-value type as a JSON tree structure produced from a
-[@boost:/doc/html/json/input_output.html#json.input_output.parsing.streaming_parser `boost::json::stream_parser`]:
-```
-#include <boost/json/stream_parser.hpp>
+`value_type` 嵌套类型允许消息体定义其在消息中的声明形式，该类型可以是任意类型。例如，消息体的值类型可以指定为 `std::vector<char>` 或 `std::list<std::string>`。自定义消息体甚至可以将值类型设置为非消息体字节容器类型，例如 [@boost:/libs/filesystem/doc/reference.html#class-path `boost::filesystem::path`]，或者选择结构更复杂的容器。以下声明将消息体的值类型定义为由 [@boost:/doc/html/json/input_output.html#json.input_output.parsing.streaming_parser `boost::json::stream_parser`] 生成的 JSON 树结构：``` #include <boost/json/stream_parser.hpp>
 
 struct Body
 {
@@ -86,67 +56,39 @@ struct Body
 };
 ```
 
-As long as a suitable reader or writer is available to provide the
-algorithm for transferring buffers in and out of the value type,
-those bodies may be parsed or serialized.
+只要存在合适的读取器或写入器来提供在值类型之间传输缓冲区的算法，这些消息体就可以进行解析或序列化。
 
 
 
-[section:file_body File Body __example__]
+[section:file_body 文件消息体 __示例__]
 
-Use of the flexible __Body__ concept customization point enables authors to
-preserve the self-contained nature of the __message__ object while allowing
-domain specific behaviors. Common operations for HTTP servers include sending
-responses which deliver file contents, and allowing for file uploads. In this
-example we build the
-[link beast.ref.boost__beast__http__basic_file_body `basic_file_body`]
-type which supports both reading and
-writing to a file on the file system. The interface is a class templated
-on the type of file used to access the file system, which must meet the
-requirements of __File__.
+利用灵活的 __Body__ 概念定制点，开发者可以在保持 __message__ 对象自包含特性的同时，赋予其特定领域的行为。HTTP 服务器常见的操作包括发送包含文件内容的响应，以及支持文件上传。本示例构建了 [link beast.ref.boost__beast__http__basic_file_body `basic_file_body`] 类型，支持对文件系统中的文件进行读写操作。该接口是一个类模板，其模板参数为用于访问文件系统的文件类型，该类型必须满足 __File__ 的要求。
 
-First we declare the type with its nested types:
+首先声明该类型及其嵌套类型：
 
 [example_http_file_body_1]
 
-We will start with the definition of the `value_type`. Our strategy
-will be to store the file object directly in the message container
-through the `value_type` field. To use this body it will be necessary
-to call `msg.body.file().open()` first with the required information
-such as the path and open mode. This ensures that the file exists
-throughout the operation and prevent the race condition where the
-file is removed from the file system in between calls.
+首先定义 `value_type`。我们的策略是通过 `value_type` 字段直接将文件对象存储在消息容器中。要使用该消息体，需要先调用 `msg.body.file().open()`，并传入路径和打开模式等必要信息。这样可以确保文件在整个操作期间存在，避免在调用间隙文件被从文件系统中删除的竞争条件。
 
 [example_http_file_body_2]
 
-Our implementation of __BodyWriter__ will contain a small buffer
-from which the file contents are read. The buffer is provided to
-the implementation on each call until everything has been read in.
+__BodyWriter__ 的实现将包含一个小型缓冲区，用于读取文件内容。每次调用时都会向实现提供该缓冲区，直到所有数据读取完毕。
 
 [example_http_file_body_3]
 
-And here are the definitions for the functions we have declared:
+以下是已声明函数的定义：
 
 [example_http_file_body_4]
 
-Files can be read now, and the next step is to allow writing to files
-by implementing the __BodyReader__. The style is similar to the writer,
-except that buffers are incoming instead of outgoing. Here's the
-declaration:
+现在可以读取文件。下一步是实现 BodyReader 以支持写入文件。该实现的风格与写入器类似，只是缓冲区方向相反——数据从外部传入而非传出。声明如下：
 
 [example_http_file_body_5]
 
-Finally, here is the implementation of the reader member functions:
+最后是读取器成员函数的实现部分：
 
 [example_http_file_body_6]
 
-We have created a full featured body type capable of reading and
-writing files on the filesystem, integrating seamlessly with the
-HTTP algorithms and message container. The body type works with
-any file implementation meeting the requirements of __File__ so
-it may be transparently used with solutions optimized for particular
-platforms. Example HTTP servers which use file bodies are available
-in the example directory.
+我们已经创建了一个功能完整、支持文件读写且与 HTTP 算法和消息容器无缝集成的消息体类型。该消息体类型适用于任何满足 __File__ 要求的文件实现，因此可以透明地用于针对特定平台优化的方案。示例目录中包含使用文件消息体的 HTTP 服务器示例。
 
 [endsect]
 
