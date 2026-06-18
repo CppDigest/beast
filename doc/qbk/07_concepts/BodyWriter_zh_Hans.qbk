@@ -7,111 +7,71 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:BodyWriter BodyWriter]
+[section:BodyWriter 消息体写入器]
 
-A [*BodyWriter] provides an
-[@https://en.wikipedia.org/wiki/Online_algorithm online algorithm]
-to obtain a sequence of zero
-or more buffers from a body during serialization. The implementation creates
-an instance of this type when needed, and calls into it one or more times to
-retrieve buffers holding body octets. The interface of [*BodyWriter] is
-intended to obtain buffers for these scenarios:
+[*BodyWriter] 提供一种 [@https://en.wikipedia.org/wiki/Online_algorithm 在线算法]，用于在序列化过程中从消息体获取零个或多个缓冲区序列。实现会在需要时创建该类型的实例，并调用一次或多次以检索包含消息体八位字节的缓冲区。[BodyWriter] 的接口设计用于获取以下场景的缓冲区：
 
-* A body that does not entirely fit in memory.
-* A body produced incrementally from coroutine output.
-* A body represented by zero or more buffers already in memory.
-* A body whose size is not known ahead of time.
-* Body data generated dynamically from other threads.
-* Body data computed algorithmically.
+* 无法完整存入内存的消息体。
+* 由协程输出逐步生成的消息体。
+* 由已在内存中的零个或多个缓冲区表示的消息体。
+* 大小无法预先确定的消息体。
+* 由其他线程动态生成的消息体数据。
+* 通过算法计算得到的消息体数据。
 
-[heading Associated Types]
+[heading 关联类型]
 
 * [link beast.ref.boost__beast__http__is_body_writer `is_body_writer`]
 * __Body__
 
-[heading Requirements]
+[heading 要求]
 
 [warning
-    These requirements may undergo non-backward compatible
+    这些要求可能发生不向后兼容的变更
     changes in subsequent versions.
 ]
 
-In this table:
+在下表中：
 
-* `W` denotes a type meeting the requirements of [*BodyWriter].
-* `B` denotes a __Body__ where
+W 表示满足 [*BodyWriter] 要求的类型。
+
+B 表示一个 Body 类型，其中
       `std::is_same<W, B::writer>::value == true`.
-* `a` denotes a value of type `W`.
-* `h` denotes a const value of type `header<isRequest, Fields> const&`.
-* `v` denotes a possibly const value of type `Body::value_type&`.
-* `ec` is a value of type [link beast.ref.boost__beast__error_code `error_code&`].
-* `W<T>` is the type `boost::optional<std::pair<T, bool>>`.
+* `a` 表示类型为 `W` 的值。  
+* `h` 表示类型为 `header<isRequest, Fields> const&` 的常量值。  
+* `v` 表示类型可能为常量的 `Body::value_type&` 值。  
+* `ec` 表示类型为 [link beast.ref.boost__beast__error_code `error_code&`] 的值。  
+* `W<T>` 表示类型 `boost::optional<std::pair<T, bool>>`。
 
-[table Valid expressions
-[[Expression] [Type] [Semantics, Pre/Post-conditions]]
+[table 有效表达式
+[[表达式] [类型] [语义、前置条件与后置条件]]
 [
     [`W::const_buffers_type`]
     []
-    [
-        A type which meets the requirements of __ConstBufferSequence__.
-        This is the type of buffer returned by `W::get`.
-    ]
+    [该类型满足 ConstBufferSequence 的要求，为 W::get 返回的缓冲区类型。]
 ][
     [`W{h,v};`]
     []
-    [
-        Constructible from `h` and `v`. The lifetime of `h` and `v`
-        are guaranteed to end no earlier than after the `W` is destroyed.
-        The writer shall not access the contents of `h` or `v` before
-        the first call to `init`, permitting lazy construction of the
-        message.
+    [可从 `h` 和 `v` 构造。`h` 和 `v` 的生命周期保证不早于 `W` 销毁前结束。写入器在首次调用 `init` 之前不应访问 `h` 或 `v` 的内容，以支持消息的延迟构造。
 
-        The constructor may optionally require that `h` and `v` are
-        `const` references, with these consequences:
+构造函数可选择要求 `h` 和 `v` 为 const 引用，其影响如下：
 
-        * If `W` requires that `h` and `v` are const references, then
-        the corresponding serializer constructors for messages with this
-        body type will will accept a const reference to a message,
-        otherwise:
-
-        * If `W` requires that `h` and `v` are non-const references,
-        then the corresponding serializer constructors for messages with
-        this body type will require a non-const reference to a message.
-    ]
+* 若 `W` 要求 `h` 和 `v` 为 const 引用，则对应消息体类型的序列化器构造函数将接受对消息的 const 引用。
+* 否则，若 `W` 要求 `h` 和 `v` 为非 const 引用，则对应消息体类型的序列化器构造函数将要求对消息的非 const 引用。]
 ][
     [`a.init(ec)`]
     []
-    [
-        Called once to fully initialize the object before any calls to
-        `get`. The message body becomes valid before entering this function,
-        and remains valid until the writer is destroyed.
-        The function will ensure that `!ec` is `true` if there was
-        no error or set to the appropriate error code if there was one. 
-    ]
+    [最终译文：在调用 get 之前调用一次，以完全初始化对象。消息体在进入该函数前有效，并持续有效直到写入器销毁。该函数在无错误时确保 !ec 为 true，否则将 ec 设置为对应的错误码。]
 ][
     [`a.get(ec)`]
     [`W<W::const_buffers_type>`]
-    [
-        Called one or more times after `init` succeeds. This function
-        returns `boost::none` if all buffers representing the body have
-        been returned in previous calls or if it sets `ec` to indicate an
-        error. Otherwise, if there are buffers remaining the function
-        should return a pair with the first element containing a non-zero
-        length buffer sequence representing the next set of octets in
-        the body, while the second element is a `bool` meaning `true`
-        if there may be additional buffers returned on a subsequent call,
-        or `false` if the buffer returned on this call is the last
-        buffer representing the body.
-        The function will ensure that `!ec` is `true` if there was
-        no error or set to the appropriate error code if there was one. 
-    ]
+    [`init` 成功后，该函数被调用一次或多次。若之前调用已返回代表该主体的所有缓冲区，或该函数设置 `ec` 用于指示错误，则该函数返回 `boost::none`。若仍存在剩余缓冲区，则该函数应返回一个 pair，其第一元素包含一个长度非零的缓冲区序列，用于表示该主体中下一组八位字节；其第二元素为 `bool` 类型，`true` 用于表示后续调用可能返回更多缓冲区，`false` 用于表示本次调用所返回的缓冲区为该主体最后一部分。该函数确保：若无错误，则 `!ec` 为 `true`；若存在错误，则将 `ec` 设为对应的错误码。]
 ]]
 
-[heading Exemplar]
+[heading 示例]
 
 [concept_BodyWriter]
 
-[heading Models]
+[heading 模型]
 
 * [link beast.ref.boost__beast__http__basic_dynamic_body.writer `basic_dynamic_body::writer`]
 * [link beast.ref.boost__beast__http__basic_file_body__writer `basic_file_body::writer`]
