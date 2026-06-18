@@ -7,9 +7,9 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:concepts Concepts]
+[section:concepts 概念]
 
-This section describes all of the concepts defined by the library.
+本节介绍该库定义的所有概念。
 
 [include Body.qbk]
 [include BodyReader.qbk]
