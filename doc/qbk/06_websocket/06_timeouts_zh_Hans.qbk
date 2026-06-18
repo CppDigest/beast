@@ -9,100 +9,62 @@
 
 [/-----------------------------------------------------------------------------]
 
-[section:timeouts Timeouts]
+[section:timeouts 超时]
 
-While
-[link beast.ref.boost__beast__basic_stream `basic_stream`] and
-[link beast.ref.boost__beast__basic_stream `tcp_stream`] support timeouts on
-general logical operations, the websocket stream has a more sophisticated timeout
-mechanism built-in which may be enabled and configured. The timeout features
-of the TCP or basic stream should not be used when working with a websocket
-stream. The interface to these timeout features is shown in this table.
+尽管 [link beast.ref.boost__beast__basic_stream `basic_stream`] 和 [link beast.ref.boost__beast__basic_stream `tcp_stream`] 支持对常规逻辑操作设置超时，但 WebSocket 流内置了更复杂的超时机制，可以启用并进行配置。在使用 WebSocket 流时，不应使用 TCP 或基础流的超时功能。这些超时功能的接口如下表所示。
 
-[table WebSocket Timeout Interface
-[[Name][Description]]
+[table WebSocket 超时接口
+[[名称][描述]]
 [[
     [link beast.ref.boost__beast__websocket__stream_base__timeout `stream_base::timeout`]
-][
-    This represents configured timeout settings for a websocket stream.
+][该结构表示 WebSocket 流的超时配置设置。
 ]]
 [[
     [link beast.ref.boost__beast__websocket__stream_base__timeout.suggested `stream_base::timeout::suggested`]
-][
-    This function returns the suggested timeout settings for a given role
-    (client or server).
+][该函数返回给定角色（客户端或服务器）的建议超时设置。
 ]]
 [[
     [link beast.ref.boost__beast__websocket__stream.set_option `stream::set_option`]
-][
-    This function sets timeout and other options on the stream.
+][该函数用于在流上设置超时及其他选项。
 ]]
 ]
 
-There are three timeout settings which may be set independently on the stream:
+流上可以独立设置三种超时配置：
 
-[table WebSocket Timeout Interface (2)
-[[Name][Type][Description]]
+[table WebSocket 超时接口（2）
+[[名称][类型][描述]]
 [
     [[link beast.ref.boost__beast__websocket__stream_base__timeout.handshake_timeout `timeout::handshake_timeout`]]
-    [`duration`]
-    [
-        This is the amount of time after which a handshake will time out.
-        The handshake timeout applies to client handshakes, server handshakes,
-        as well as the websocket closing handshake performed when either
-        end of the connection wish to shut down.
-        The value returned by
-        [link beast.ref.boost__beast__websocket__stream_base.none `stream_base::none()`]
-        may be assigned to disable this timeout.
-    ]
+    [`duration`（超时时间）]
+    [该值表示握手超时的时间长度。该超时适用于客户端握手、服务器握手，以及连接任一端希望关闭时执行的 WebSocket 关闭握手。可将 [link beast.ref.boost__beast__websocket__stream_base.none `stream_base::none()`] 的返回值赋给该值以禁用此超时。]
 ][
     [[link beast.ref.boost__beast__websocket__stream_base__timeout.idle_timeout `timeout::idle_timeout`]]
-    [`duration`]
-    [
-        If no data or control frames are received from the peer for a time
-        equal to the idle timeout, then the connection will time out.
-        The value returned by
-        [link beast.ref.boost__beast__websocket__stream_base.none `stream_base::none()`]
-        may be assigned to disable this timeout.
-    ]
+    [`duration`（超时时间）]
+    [如果在对端没有收到数据或控制帧的时间达到空闲超时设定值，则连接将触发超时。可将 [link beast.ref.boost__beast__websocket__stream_base.none `stream_base::none()`] 的返回值赋给该值以禁用此超时。]
 ][
     [[link beast.ref.boost__beast__websocket__stream_base__timeout.keep_alive_pings `timeout::keep_alive_pings`]]
-    [`bool`]
-    [
-        If the idle timeout is enabled, then the value of this setting
-        controls whether or not a ping frame will be sent to the peer if
-        no data is received for half of the idle timeout interval.
-    ]
+    [`bool`（布尔值）]
+    [如果空闲超时启用，则该设置控制当在空闲超时时间的一半内未收到数据时，是否向对端发送 ping 帧。]
 ]
 ]
 
-By default, timeouts on websocket streams are disabled. The easiest way
-to turn them on is to set the suggested timeout settings on the stream.
+默认情况下，WebSocket 流的超时功能处于禁用状态。启用该功能最简单的方式是在流上设置建议的超时配置。
 
 [code_websocket_6_1]
 
-For manual control over the settings, a timeout options object may be
-constructed. Here we enable only the handshake timeout.
+若需手动控制超时设置，可以构造一个超时选项对象。以下示例用于仅启用手动超时：
 
 [code_websocket_6_2]
 
-Timeout notifications are delivered to the caller by invoking the completion
-handler for an outstanding asynchronous read operation with the error code
-[link beast.ref.boost__beast__error `error::timeout`]. The implementation
-will close the socket or stream before delivering this error. It is not
-necessary to manually shut down the connection, as it will already be shut
-down. A read operation must be outstanding for the error to be delivered.
+超时通知会通过调用未完成的异步读操作的完成处理器传达给调用方，同时附带错误码 [link beast.ref.boost__beast__error `error::timeout`]。在传递此错误之前，实现会关闭套接字或流，因此无需手动关闭连接。要收到该错误，必须存在一个未完成的读操作。
 
 [code_websocket_6_3]
 
 [note
-    Websocket timeout features are available only when using asynchronous I/O.
+    WebSocket 超时功能仅在异步 I/O 模式下可用。
 ]
 
-The timeouts on the websocket stream are incompatible with the timeouts
-used in the `tcp_stream`. When constructing a websocket stream from a tcp
-stream that has timeouts enabled, the timeout should be disabled first before
-constructing the websocket stream, as shown.
+WebSocket 流的超时机制与 tcp_stream 的超时机制不兼容。当从已启用超时的 tcp 流构造 WebSocket 流时，应首先禁用 tcp 流的超时，如下所示。
 
 [code_websocket_6_4]
 
