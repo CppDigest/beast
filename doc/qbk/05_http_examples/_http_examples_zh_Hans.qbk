@@ -7,27 +7,17 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:more_examples HTTP Examples]
+[section:more_examples HTTP 示例]
 
-These examples in this section are working functions that may be found
-in the examples directory. They demonstrate the usage of the library for
-a variety of scenarios.
+本节提供的示例均为可运行函数，存放于 examples 目录中。这些示例展示了该库在不同场景下的具体用法。
 
 
 
-[section:change_body_type Change Body Type __example__]
+[section:change_body_type 修改消息体类型 __示例__]
 
-Sophisticated servers may wish to defer the choice of the Body template type
-until after the header is available. Then, a body type may be chosen
-depending on the header contents. For example, depending on the verb,
-target path, or target query parameters. To accomplish this, a parser
-is declared to read in the header only, using a trivial body type such as
-[link beast.ref.boost__beast__http__empty_body `empty_body`]. Then, a new parser is constructed
-from this existing parser where the body type is conditionally determined
-by information from the header or elsewhere.
+高级服务器可能希望等到获取头部信息后，再决定使用哪种 Body 模板类型。这样就能根据头部内容（例如请求方法、目标路径或查询参数）来选用合适的消息体类型。具体做法是：先使用一个简单的消息体类型（如 [link beast.ref.boost__beast__http__empty_body `empty_body`]）声明解析器，只用于读取头部。然后，基于这个已有的解析器构造一个新的解析器，并根据头部或其他信息来确定新解析器的消息体类型。
 
-This example illustrates how a server may make the commitment of a body
-type depending on the method verb:
+本示例演示服务器如何根据请求方法来决定使用哪种消息体类型：
 
 [example_http_defer_body]
 
@@ -35,18 +25,9 @@ type depending on the method verb:
 
 
 
-[section:expect_100_continue_client Expect 100-continue (Client) __example__]
+[section:expect_100_continue_client Expect: 100-continue（客户端） __示例__]
 
-The Expect field with the value "100-continue" in a request is special. It
-indicates that the after sending the message header, a client desires an
-immediate informational response before sending the message body, which
-presumably may be expensive to compute or large. This behavior is described in
-[@https://tools.ietf.org/html/rfc7231#section-5.1.1 rfc7231 section 5.1.1].
-Invoking the 100-continue behavior is implemented easily in a client by
-constructing a __serializer__ to send the header first, then receiving
-the server response, and finally conditionally send the body using the same
-serializer instance. A synchronous, simplified version (no timeout) of
-this client action looks like this:
+请求中的 Expect 字段若值为 `100-continue`，则具有特殊含义。它表示客户端在发送消息头部之后，希望在发送消息体之前立即收到一个信息性响应。这通常是因为消息体的计算开销较大或数据量较大。[@https://tools.ietf.org/html/rfc7231#section-5.1.1 rfc7231 第 5.1.1 节] 对此行为进行了详细说明。在客户端实现 100-continue 行为比较简单：先构造 __serializer__ 发送头部，然后接收服务器响应，最后根据情况使用同一个序列化器实例发送消息体。以下是一个同步的简化版本（不含超时）的实现：
 
 [example_http_send_expect_100_continue]
 
@@ -54,17 +35,9 @@ this client action looks like this:
 
 
 
-[section:expect_100_continue_server Expect 100-continue (Server) __example__]
+[section:expect_100_continue_server Expect: 100-continue（服务器） __示例__]
 
-The Expect field with the value "100-continue" in a request is special. It
-indicates that the after sending the message header, a client desires an
-immediate informational response before sending the message body, which
-presumably may be expensive to compute or large. This behavior is described in
-[@https://tools.ietf.org/html/rfc7231#section-5.1.1 rfc7231 section 5.1.1].
-Handling the Expect field can be implemented easily in a server by constructing
-a __parser__ to read the header first, then send an informational HTTP
-response, and finally read the body using the same parser instance. A
-synchronous version of this server action looks like this:
+请求中的 Expect 字段若值为 `100-continue`，则具有特殊含义。它表示客户端在发送消息头部之后，希望在发送消息体之前立即收到一个信息性响应。这通常是因为消息体的计算开销较大或数据量较大。[@https://tools.ietf.org/html/rfc7231#section-5.1.1 rfc7231 第 5.1.1 节] 对此行为进行了详细说明。在服务器端处理 Expect 字段较为简单：先构造一个 __parser__ 读取头部，然后发送一个信息性 HTTP 响应，最后使用同一个解析器实例读取消息体。以下是一个同步版本的服务器实现：
 
 [example_http_receive_expect_100_continue]
 
@@ -72,17 +45,9 @@ synchronous version of this server action looks like this:
 
 
 
-[section:head_request_client HEAD request (Client) __example__]
+[section:head_request_client HEAD 请求（客户端） __示例__]
 
-The
-[@https://tools.ietf.org/html/rfc7231#section-4.3.2 HEAD request]
-method indicates to the server that the client wishes to receive the
-entire header that would be delivered if the method was GET, except
-that the body is omitted. When a client wishes to receive the response
-to a HEAD request, it is necessary to inform the parser not to expect
-a body. This is done by calling
-[link beast.ref.boost__beast__http__basic_parser.skip `basic_parser::skip`]
-with the value `true`, as shown in this example:
+[@https://tools.ietf.org/html/rfc7231#section-4.3.2 HEAD 请求] 方法表示客户端希望服务器返回与 GET 请求相同的头部信息，但不包含消息体。当客户端需要接收 HEAD 请求的响应时，必须告知解析器不需要消息体。这可以通过调用 [link beast.ref.boost__beast__http__basic_parser.skip `basic_parser::skip`] 并传入 `true` 来实现，如下例所示：
 
 [example_http_do_head_request]
 
@@ -90,12 +55,9 @@ with the value `true`, as shown in this example:
 
 
 
-[section:head_response_server HEAD response (Server) __example__]
+[section:head_response_server HEAD 响应（服务器） __示例__]
 
-When a server receives a
-[@https://tools.ietf.org/html/rfc7231#section-4.3.2 HEAD request],
-the response should contain the entire header that would be delivered
-if the method was GET, except that the body is omitted.
+当服务器收到 [@https://tools.ietf.org/html/rfc7231#section-4.3.2 HEAD 请求] 时，响应应包含与 GET 请求相同的完整头部信息，但不包含消息体。
 
 [example_http_do_head_response]
 
@@ -103,19 +65,11 @@ if the method was GET, except that the body is omitted.
 
 
 
-[section:http_relay HTTP Relay __example__]
+[section:http_relay HTTP 中继 __示例__]
 
-An HTTP proxy acts as a relay between client and server. The proxy reads a
-request from the client and sends it to the server, possibly adjusting some
-of the headers and representation of the body along the way. Then, the
-proxy reads a response from the server and sends it back to the client,
-also with the possibility of changing the headers and body representation.
+HTTP 代理充当客户端与服务器之间的中继。代理从客户端读取请求并将其发送至服务器，其间可能会对部分头部字段及消息体表示形式进行调整。随后，代理从服务器读取响应并将其返回给客户端，同样可能对头部和消息体进行修改。
 
-The example that follows implements a synchronous HTTP relay. It uses a
-fixed size buffer, to avoid reading in the entire body so that the upstream
-connection sees a header without unnecessary latency. This example brings
-together all of the concepts discussed so far, it uses both a __serializer__
-and a __parser__ to achieve its goal:
+以下示例实现一个同步的 HTTP 中继。它使用固定大小的缓冲区，避免一次性读取整个消息体，从而使上游连接能够更及时地看到头部信息，减少不必要的延迟。该示例综合运用了此前讨论的所有概念，通过同时使用 __serializer__ 和 __parser__ 来实现目标：
 
 [example_http_relay]
 
@@ -123,22 +77,13 @@ and a __parser__ to achieve its goal:
 
 
 
-[section:send_child_process_output Send Child Process Output __example__]
+[section:send_child_process_output 发送子进程输出 __示例__]
 
-Sometimes it is necessary  to send a message whose body is not conveniently
-described by a single container. For example, when implementing an HTTP relay
-function a robust implementation needs to present body buffers individually
-as they become available from the downstream host. These buffers should be
-fixed in size, otherwise creating the unnecessary and inefficient burden of
-reading the complete message body before forwarding it to the upstream host.
+有时需要发送的消息体并不适合用单个容器来描述。例如，在实现 HTTP 中继功能时，一个健壮的实现需要从下游主机逐个获取可用的消息体缓冲区。这些缓冲区应具有固定大小，否则会造成不必要的低效负担——在转发到上游主机之前必须先读取完整的消息体。
 
-To enable these use-cases, the body type __buffer_body__ is provided. This
-body uses a caller-provided pointer and size instead of an owned container.
-To use this body, instantiate an instance of the serializer and fill in
-the pointer and size fields before calling a stream write function.
+为支持这类使用场景，该库提供了 __buffer_body__ 消息体类型。该消息体使用调用方提供的指针和大小，而非自身拥有的容器。使用此消息体时，需要先实例化一个序列化器，并在调用流写入函数之前填充指针和大小字段。
 
-This example reads from a child process and sends the output back in an
-HTTP response. The output of the process is sent as it becomes available:
+本示例从子进程读取输出，并将其以 HTTP 响应的形式发送回去。进程的输出会在可用时立即发送：
 
 [example_http_send_cgi_response]
 
