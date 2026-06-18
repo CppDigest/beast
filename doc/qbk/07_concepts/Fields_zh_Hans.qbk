@@ -7,225 +7,108 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:Fields Fields]
+[section:Fields 字段]
 
-An instance of [*Fields] is a container for holding HTTP header fields
-and their values. The implementation also calls upon the container to
-store the request target and non-standard strings for method and obsolete
-reason phrase as needed. Types which meet these requirements can always
-be serialized.
+`Fields` 的实例是一个用于存储 HTTP 报文字段及其值的容器。该实现还会根据需要调用此容器来存储请求目标，以及非标准的方法字符串和过时的原因短语字符串。满足这些要求的类型始终可以进行序列化。
 
-[heading Associated Types]
+[heading 关联类型]
 
 * [link beast.ref.boost__beast__http__is_fields `is_fields`]
 * __FieldsWriter__
 
-[heading Requirements]
+[heading 要求]
 
-In this table:
+在下表中:
 
-* `F` denotes a type that meets the requirements of [*Fields].
-* `W` denotes a type meeting the requirements of __FieldsWriter__.
-* `a` denotes a value of type `F`.
-* `c` denotes a (possibly const) value of type `F`.
-* `b` is a value of type `bool`
-* `n` is a value of type `boost::optional<std::uint64_t>`.
-* `s` is a value of type [link beast.ref.boost__beast__string_view `string_view`].
-* `v` is a value of type `unsigned int` representing the HTTP-version.
+* `F` 表示满足 [*Fields] 要求的类型。
+* `W` 表示满足 __FieldsWriter__ 要求的类型。
+* `a` 表示类型为 `F` 的值。
+* `c` 表示类型为 `F` 的值（可能带有 const 限定）。
+* `b` 表示类型为 `bool` 的值。
+* `n` 表示类型为 `boost::optional<std::uint64_t>` 的值。
+* `s` 表示类型为 [link beast.ref.boost__beast__string_view `string_view`] 的值。
+* `v` 表示类型为 `unsigned int` 的值，用于表示 HTTP 版本。
 
-[table Valid expressions
-[[Expression] [Type] [Semantics, Pre/Post-conditions]]
+[table 有效表达式
+[[表达式] [类型] [语义，前置条件 / 后置条件]]
 [
     [`F::writer`]
     [`W`]
-    [
-        A type which meets the requirements of __FieldsWriter__.
-    ]
+    [满足 __FieldsWriter__ 要求的类型。]
 ][
     [`c.get_method_impl()`]
     [`string_view`]
-    [
-        Returns the method text.
-        The implementation only calls this function for request
-        headers when retrieving the method text previously set
-        with a call to `set_method_impl` using a non-empty string.
-    ]
+    [返回方法文本。仅当使用非空字符串调用 `set_method_impl` 设置了方法文本后，在检索请求头时，实现才会调用此函数。]
 ][
     [`c.get_target_impl()`]
     [`string_view`]
-    [
-        Returns the target string.
-        The implementation only calls this function for request headers.
-    ]
+    [返回目标字符串。该函数仅在处理请求头时由实现调用。]
 ][
     [`c.get_reason_impl()`]
     [`string_view`]
-    [
-        Returns the obsolete request text.
-        The implementation only calls this for response headers when
-        retrieving the reason text previously set with a call to
-        `set_reason_impl` using a non-empty string.
-    ]
+    [返回过时的请求文本。仅当使用非空字符串调用 `set_reason_impl` 设置了原因文本后，在检索响应头时，实现才会调用此函数。]
 ][
     [`c.get_chunked_impl()`]
     [`bool`]
-    [
-        Returns `true` if the
-        [@https://tools.ietf.org/html/rfc7230#section-3.3.1 [*Transfer-Encoding]]
-        field value indicates that the payload is chunk encoded. Both
-        of these conditions must be true:
-        [itemized_list
-        [
-            The Transfer-Encoding field is present in the message.
-        ][
-            The last item in value of the field is "chunked".
-        ]]
-    ]
+    [如果 [@https://tools.ietf.org/html/rfc7230#section-3.3.1 [*Transfer-Encoding]] 字段值表明负载已进行分块编码，则返回 `true`。必须同时满足以下两个条件：[itemized_list [ 消息中存在 Transfer-Encoding 字段。 ][ 该字段值的最后一项为 "chunked"。 ]]]
 ][
     [`c.get_keep_alive_impl(v)`]
     [`bool`]
-    [
-        Returns `true` if the semantics of the
-        [@https://tools.ietf.org/html/rfc7230#section-6.1 [*Connection]]
-        field and version indicate that the connection should remain
-        open after the corresponding response is transmitted or received:
-
-        [itemized_list
-        [
-            If `(v < 11)` the function returns `true` if the "keep-alive"
-            token is present in the Connection field value. Otherwise the
-            function returns `false`.
-        ][
-            If `(v == 11)`, the function returns `false` if the "close"
-            token is present in the Connection field value. Otherwise the
-            function returns `true`.
-        ]]
-    ]
+    [如果 [@https://tools.ietf.org/html/rfc7230#section-6.1 [*Connection]] 字段的语义和版本表明，在发送或接收相应响应后连接应保持打开，则返回 true：
+[itemized_list [ 如果 (v < 11)，当 Connection 字段值中存在 "keep-alive" 标记时函数返回 true，否则返回 false。 ][ 如果 (v == 11)，当 Connection 字段值中存在 "close" 标记时函数返回 false，否则返回 true。 ]]]
 ][
     [`c.has_content_length()`]
     [`bool`]
-    [
-        Returns `true` if the
-        [@https://tools.ietf.org/html/rfc7230#section-3.3.2 [*Content-Length]]
-        field is present.
-    ]
+    [如果存在 @https://tools.ietf.org/html/rfc7230#section-3.3.2 [Content-Length] 字段，则返回 true。]
 ][
     [`a.set_method_impl(s)`]
     []
-    [
-        Stores a copy of `s` as the method text, or erases the previously
-        stored value if `s` is empty.
-        The implementation only calls this function for request headers.
-        This function may throw `std::invalid_argument` if the operation
-        is not supported by the container.
-    ]
+    [将 `s` 的副本存储为方法文本；若 `s` 为空，则擦除先前存储的值。此函数仅由实现对请求头进行调用。如果容器不支持该操作，函数可能会抛出 `std::invalid_argument` 异常。]
 ][
     [`a.set_target_impl(s)`]
     []
-    [
-        Stores a copy of `s` as the target, or erases the previously
-        stored value if `s` is empty.
-        The implementation only calls this function for request headers.
-        This function may throw `std::invalid_argument` if the operation
-        is not supported by the container.
-    ]
+    [将 `s` 的副本存储为目标；若 `s` 为空，则擦除先前存储的值。此函数仅由实现对请求头进行调用。如果容器不支持该操作，函数可能会抛出 `std::invalid_argument` 异常。]
 ][
     [`a.set_reason_impl(s)`]
     []
-    [
-        Stores a copy of `s` as the reason text, or erases the previously
-        stored value of the reason text if `s` is empty.
-        The implementation only calls this function for request headers.
-        This function may throw `std::invalid_argument` if the operation
-        is not supported by the container.
-    ]
+    [将 `s` 的副本存储为原因文本；若 `s` 为空，则擦除先前存储的原因文本。此函数仅由实现对请求头进行调用。如果容器不支持该操作，函数可能会抛出 `std::invalid_argument` 异常。]
 ][
     [`a.set_chunked_impl(b)`]
     []
-    [
-        Adjusts the
-        [@https://tools.ietf.org/html/rfc7230#section-3.3.1 [*Transfer-Encoding]]
-        field value as follows:
+    [根据 [@https://tools.ietf.org/html/rfc7230#section-3.3.1 [*Transfer-Encoding]] 字段值进行调整：
 
-        [itemized_list
-        [
-            If `b` is `true`, the "chunked" token is appended
-            to the list of encodings if it does not already appear
-            last in the list.
-            If the Transfer-Encoding field is absent, the field will
-            be inserted to the container with the value "chunked".
-        ][
-            If `b` is `false, the "chunked" token is removed from the
-            list of encodings if it appears last in the list.
-            If the result of the removal leaves the list of encodings
-            empty, the Transfer-Encoding field shall not appear when
-            the associated __FieldsWriter__ serializes the fields.
-        ]]
+- 如果 `b` 为 `true`，且 "chunked" 标记尚未位于编码列表末尾，则将其追加到列表末尾。如果不存在 Transfer-Encoding 字段，则向容器插入该字段，其值为 "chunked"。
+- 如果 `b` 为 `false`，且 "chunked" 标记位于编码列表末尾，则将其从列表中移除。如果移除后编码列表为空，则当关联的 `__FieldsWriter__` 序列化字段时，Transfer-Encoding 字段不应出现。
 
-        If the result of adjusting the field value produces an empty
-        string, the field is removed from the container.
-    ]
+如果调整字段值的结果产生空字符串，则从容器中移除该字段。]
 
 ][
     [`a.set_content_length_impl(n)`]
     []
-    [
-        Adjusts the
-        [@https://tools.ietf.org/html/rfc7230#section-3.3.2 [*Content-Length]]
-        field value as follows:
+    [根据 [@https://tools.ietf.org/html/rfc7230#section-3.3.2 [*Content-Length]] 字段值进行如下调整：
 
-        [itemized_list
-        [
-            If `n` contains a value, the Content-Length field
-            will be set to the text representation of the value.
-            Any previous Content-Length fields are removed from
-            the container.
-        ][
-            If `n` does not contain a value, any present Content-Length
-            fields are removed from the container.
-        ]]
-    ]
+- 如果 `n` 包含一个值，则将 Content-Length 字段设置为该值的文本表示。从容器中移除任何先前存在的 Content-Length 字段。
+- 如果 `n` 不包含值，则从容器中移除任何存在的 Content-Length 字段。]
 
 ][
     [`a.set_keep_alive_impl(v,b)`]
     []
-    [
-        Adjusts the
-        [@https://tools.ietf.org/html/rfc7230#section-6.1 [*Connection]]
-        field value depending on the values of `v` and `b`. The field
-        value is treated as
-        [@https://tools.ietf.org/html/rfc7230#section-6.1 ['connection-option]]
-        (rfc7230).
+    [根据 [@https://tools.ietf.org/html/rfc7230#section-6.1 [*Connection]] 字段值以及 `v` 和 `b` 的值进行如下调整。该字段值被视为 [@https://tools.ietf.org/html/rfc7230#section-6.1 ['connection-option]] (rfc7230)。
 
-        [itemized_list
-        [
-            If `(v < 11 && b)`, then all "close" tokens present in the
-            value are removed, and the "keep-alive" token is added to
-            the value if it is not already present.
-        ][
-            If `(v < 11 && ! b)`, then all "close" and "keep-alive"
-            tokens present in the value are removed.
+- 如果 `(v < 11 && b)`，则从字段值中移除所有 "close" 标记，若 "keep-alive" 标记尚不存在，则将其添加到字段值中。
+- 如果 `(v < 11 && !b)`，则从字段值中移除所有 "close" 和 "keep-alive" 标记。
+- 如果 `(v == 11 && b)`，则从字段值中移除所有 "keep-alive" 和 "close" 标记。
+- 如果 `(v == 11 && !b)`，则从字段值中移除所有 "keep-alive" 标记，若 "close" 标记尚不存在，则将其添加到字段值中。
 
-        ][
-            If `(v == 11 && b)`, then all "keep-alive" and "close"
-            tokens present in the value are removed.
-        ][
-            If `(v == 11 && ! b)`, then all "keep-alive" tokens present
-            in the value are removed, and the "close" token is added to
-            the value if it is not already present.
-        ]]
-
-        If the result of adjusting the field value produces an empty
-        string, the field is removed from the container.
-    ]
+如果调整字段值的结果产生空字符串，则从容器中移除该字段。]
 
 ]]
 
-[heading Exemplar]
+[heading 示例]
 
 [concept_Fields]
 
-[heading Models]
+[heading 模型]
 
 * [link beast.ref.boost__beast__http__basic_fields `basic_fields`]
 * [link beast.ref.boost__beast__http__fields `fields`]
