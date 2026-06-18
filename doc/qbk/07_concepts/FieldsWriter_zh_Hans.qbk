@@ -7,93 +7,63 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:FieldsWriter FieldsWriter]
+[section:FieldsWriter 字段写入器]
 
-A [*FieldsWriter] provides a algorithm to obtain a sequence of buffers
-representing the complete serialized HTTP/1 header for a set of fields.
-The implementation constructs an instance of this type when needed, and
-calls into it once to retrieve the buffers.
+[*FieldsWriter] 提供了一种算法，用于获取表示一组字段的完整序列化 HTTP/1 标头的缓冲区序列。实现会在需要时构造该类型的实例，并仅调用一次以获取缓冲区。
 
-[heading Associated Types]
+[heading 关联类型]
 
 * __FieldsWriter__
 
-[heading Requirements]
+[heading 要求]
 
 [warning
-    These requirements may undergo non-backward compatible
+    这些要求可能会发生非向后兼容的变更
     changes in subsequent versions.
 ]
 
-In this table:
+在下表中：
 
-* `W` denotes a type that meets the requirements of [*FieldsWriter].
-* `F` denotes a __Fields__ where
+* `W` 表示满足 [*FieldsWriter] 要求的类型。
+* `F` 表示 __Fields__，其中
       `std::is_same<W, F::writer>::value == true`.
-* `a` is a value of type `W`.
-* `f` is a value of type `F`.
-* `v` is an `unsigned` value representing the HTTP version.
-* `c` is an `unsigned` representing the HTTP status-code.
-* `m` is a value of type [link beast.ref.boost__beast__http__verb `verb`].
+* `a` 是类型为 `W` 的值。
+* `f` 是类型为 `F` 的值。
+* `v` 是表示 HTTP 版本的 `unsigned` 值。
+* `c` 是表示 HTTP 状态码的 `unsigned` 值。
+* `m` 是 [link beast.ref.boost__beast__http__verb `verb`] 类型的值。
 
-[table Valid expressions
-[[expression][type][semantics, pre/post-conditions]]
+[table 有效表达式
+[[表达式][类型][语义，前置/后置条件]]
 [
     [`W::const_buffers_type`]
     []
-    [
-        A type which meets the requirements of __ConstBufferSequence__.
-        This is the type of buffer returned by `W::get`.
-    ]
+    [一种满足 __ConstBufferSequence__ 要求的类型。该类型是 `W::get` 返回的缓冲区类型。]
 ][
     [`W{f,v,m}`]
     []
-    [
-        The implementation calls this constructor to indicate
-        that the fields being serialized form part of an HTTP
-        request. The lifetime of `f` is guaranteed
-        to end no earlier than after the `W` is destroyed.
-    ]
+    [实现调用该构造函数，用于表示正在序列化的字段属于 HTTP 请求。该对象 `f` 的生命周期保证在 `W` 销毁之后才会结束。]
 ][
     [`W{f,v,c}`]
     []
-    [
-        The implementation calls this constructor to indicate
-        that the fields being serialized form part of an HTTP
-        response. The lifetime of `f` is guaranteed
-        to end no earlier than after the `W` is destroyed.
-    ]
+    [实现调用该构造函数，用于表示正在序列化的字段属于 HTTP 响应。该对象 `f` 的生命周期保证在 `W` 销毁之后才会结束。]
 ][
     [`W{f}`]
     []
-    [
-        The implementation calls this constructor to indicate
-        that the fields being serialized form part of a chunked
-        encoding final-chunk trailer. The lifetime of `f` is
-        guaranteed to end no earlier than after the `W` is
-        destroyed.
-    ]
+    [实现调用该构造函数，用于表示正在序列化的字段属于分块传输编码的最终块尾部。该对象 `f` 的生命周期保证在 `W` 销毁之后才会结束。]
 ][
     [`a.get()`]
     [`W::const_buffers_type`]
-    [
-        Called once after construction, this function returns
-        a constant buffer sequence containing the serialized
-        representation of the HTTP request or response including
-        the final carriage return linefeed sequence (`"\r\n"`).
+    [该函数在构造后仅被调用一次，用于返回一个常量缓冲区序列。该序列包含 HTTP 请求或响应的序列化表示，以及最终的换行回车序列（"\r\n"）。
 
-        Copies may be made of the returned sequence, but the
-        underlying memory is still owned by the writer. The
-        implementation will destroy all copies of the buffer
-        sequence before destroying `a`.
-    ]
+返回的序列可以被拷贝，但底层内存仍由该写入器持有。实现会在销毁该对象 `a` 之前，销毁该缓冲区序列的所有拷贝。]
 ]]
 
-[heading Exemplar]
+[heading 示例]
 
 [concept_FieldsWriter]
 
-[heading Models]
+[heading 模型]
 
 * [link beast.ref.boost__beast__http__basic_fields.writer `basic_fields::writer`]
 
