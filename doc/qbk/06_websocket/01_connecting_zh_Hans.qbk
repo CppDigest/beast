@@ -7,26 +7,17 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:establishing_connections Connecting]
+[section:establishing_connections 连接操作]
 
-Before messages can be exchanged, a websocket stream first needs to be
-connected, and then to have the websocket handshake performed. The stream
-delegates the task of establishing the connection to the next layers.
-For example, if the next layer is a connectible stream or socket object,
-it can be accessed to call the necessary function for connecting.
-Here we make an outbound connection as a client would do.
+在交换消息之前，WebSocket 流需要先建立连接，然后执行 WebSocket 握手。流将建立连接的任务委托给下一层。例如，如果下一层是可连接的流或套接字对象，可以通过访问它来调用必要的连接函数。以下示例展示客户端建立出站连接的过程。
 
 [code_websocket_1_1]
 
-To accept incoming connections, an acceptor is used. The websocket stream
-may be constructed from the socket returned by the acceptor when an
-incoming connection is established.
+要接受入站连接，需使用 Acceptor。当建立入站连接时，可由 Acceptor 返回的套接字来构造 WebSocket 流。
 
 [code_websocket_1_2]
 
-Alternatively, the incoming connection may be accepted directly into
-the socket owned by the websocket stream, using this overload of the
-acceptor member function.
+或者，入站连接可以直接接受至 WebSocket 流所拥有的套接字中，使用 Acceptor 成员函数的此重载版本即可实现。
 
 [code_websocket_1_3]
 
