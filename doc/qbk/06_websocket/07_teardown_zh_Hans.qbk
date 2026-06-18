@@ -7,23 +7,11 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Teardown]
+[section 连接拆除]
 
-The WebSocket protocol requirements described in rfc6455 section 7.1.1
-outline an operation described as
-[@https://tools.ietf.org/html/rfc6455#section-7.1.1 ['Close the WebSocket Connection]].
-This operation cleanly discards bytes remaining at receiving endpoints
-and also closes the underlying TCP/IP connection. Orderly shutdowns are
-always preferred; for TLS or SSL streams, a protocol-level shutdown is
-desired. This presents a small issue for the
-[link beast.ref.boost__beast__websocket__stream `stream`]
-implementation: the stream's `NextLayer` template type requires only
-__SyncStream__ or __AsyncStream__, but those concepts do not support
-the operations to shut down the connection.
+WebSocket 协议规范（rfc6455 第 7.1.1 节）概述了一个称为“关闭 WebSocket 连接”的操作。该操作会清理接收端剩余字节，并同时关闭底层的 TCP/IP 连接。通常优先采用有序关闭方式；对于 TLS 或 SSL 流，则需要进行协议级的关闭。这给 [link beast.ref.boost__beast__websocket__stream stream] 的实现带来一个小问题：流的 NextLayer 模板类型仅要求满足 SyncStream 或 AsyncStream，但这些概念并不支持关闭连接的操作。
 
-To enable the implementation to perform the shutdown components of the
-close operation, the library exposes two customization points expressed
-as free functions associated with the next layer type:
+为使实现能够执行关闭操作中的关闭步骤，该库公开了两个定制点，它们是与下一层类型关联的自由函数：
 
 * [link beast.ref.boost__beast__websocket__teardown `teardown`]: Overloads
   of this function drain and shut down a stream synchronously.
@@ -31,35 +19,19 @@ as free functions associated with the next layer type:
 * [link beast.ref.boost__beast__websocket__async_teardown `async_teardown`]:
   Overloads of this function drain and shut down a stream asynchronously.
 
-The implementation provides suitable overloads of the teardown
-customization points when websocket streams are instantiated using the
-Asio types __socket__ or __ssl_stream__ for the next layer. In this
-case no user action is required. However, when the websocket stream is
-instantiated for a user-defined type, compile errors will result if the
-customization points are not provided for the user defined type.
-Furthermore, user-defined types that wrap one of the Asio objects
-mentioned earlier may wish to invoke a teardown customization point
-for the wrapped object. This is how those tasks are accomplished.
+当使用 Asio 类型 socket 或 ssl_stream 作为下一层来实例化 WebSocket 流时，实现会提供适当的拆除定制点重载，此时无需用户额外操作。但如果为自定义类型实例化 WebSocket 流，且未为该类型提供这些定制点，则会导致编译错误。另外，如果自定义类型封装了上述某个 Asio 对象，则可能需要调用被封装对象的拆除定制点。以下示例展示了如何完成这些操作。
 
-[heading User-defined Teardown]
+[heading 用户自定义拆除]
 
-To provide overloads of teardown for a user-defined type, simply declare
-the two free functions with the correct signature, accepting a reference
-to the user-defined type as the stream parameter:
+要为自定义类型提供拆除操作的重载，只需声明两个具有正确签名的自由函数，这些函数接受对自定义类型的引用作为流参数：
 
 [code_websocket_7_1]
 
-When the implementation invokes the asynchronous teardown function, it
-always uses an invokable completion handler. It is not necessary
-to specify the return type customization when creating user-defined
-overloads of `async_teardown`.
+当实现调用异步拆除函数时，总是传入一个可调用的完成处理器。定义 `async_teardown` 的自定义重载时，无需指定返回类型的定制。
 
-[heading Invoking Teardown]
+[heading 调用拆除操作]
 
-To invoke the customization point, first bring the default implementation
-into scope with a `using` statement. Then call the customization point
-without namespace qualification, allowing argument-dependent lookup to
-take effect:
+要调用该定制点，首先通过 `using` 声明将默认实现引入作用域，然后不使用命名空间限定符直接调用该定制点，以便让参数依赖查找（ADL）生效：
 
 [code_websocket_7_2]
 
