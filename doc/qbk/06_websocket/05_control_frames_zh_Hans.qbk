@@ -7,112 +7,52 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Control Frames]
+[section 控制帧]
 
-Control frames are small (less than 128 bytes) messages entirely contained
-in an individual WebSocket frame. They may be sent at any time by either
-peer on an established connection, and can appear in between continuation
-frames for a message. There are three types of control frames: ping, pong,
-and close.
+控制帧是小型消息（小于 128 字节），完全包含在单个 WebSocket 帧中。已建立连接的任意一端可以在任何时间发送控制帧，并且控制帧可以出现在消息的连续帧之间。控制帧分为三种类型：ping、pong 和 close。
 
-A sent ping indicates a request that the sender wants to receive a pong. A
-pong is a response to a ping. Pongs may be sent unsolicited, at any time.
-One use for an unsolicited pong is to inform the remote peer that the
-session is still active after a long period of inactivity. A close frame
-indicates that the remote peer wishes to close the WebSocket connection.
-The connection is considered gracefully closed when each side has sent
-and received a close frame.
+发送 ping 表示发送方希望收到 pong 响应。pong 是对 ping 的回复，也可以在任何时候主动发送。主动发送 pong 的一个用途是，在长时间没有数据传输时，告知远端对端连接仍然活跃。close 帧表示对端请求关闭 WebSocket 连接。当双方都完成发送并接收到 close 帧后，连接视为已正常关闭。
 
-During read operations, Beast automatically reads and processes control
-frames. If a control callback is registered, the callback is notified of
-the incoming control frame. The implementation will respond to pings
-automatically. The receipt of a close frame initiates the WebSocket
-close procedure, eventually resulting in the error code
-[link beast.ref.boost__beast__websocket__error `error::closed`]
-being delivered to the caller in a subsequent read operation, assuming
-no other error takes place.
+在执行读取操作期间，Beast 会自动读取并处理控制帧。如果注册了控制回调函数，该回调会收到传入控制帧的通知。实现会自动响应 ping。当收到 close 帧时，会触发 WebSocket 关闭流程，最终在后续的读取操作中（假设没有发生其他错误）向调用方传递错误码 [link beast.ref.boost__beast__websocket__error error::closed]。
 
-A consequence of this automatic behavior is that caller-initiated read
-operations can cause socket writes. However, these writes will not
-compete with caller-initiated write operations. For the purposes of
-correctness with respect to the stream invariants, caller-initiated
-read operations still only count as a read. This means that callers can
-have a simultaneously active read, write, and ping/pong operation in
-progress, while the implementation also automatically handles control
-frames.
+这种自动行为会导致一个后果：调用方发起的读操作，可能触发套接字写入。但这类写入不会与调用方主动发起的写操作产生竞争。从流不变性的正确性来看，调用方发起的读操作仍只视为读取。这意味着调用方可同时进行读、写和 ping/pong 操作，同时实现也会在后台自动处理控制帧。
 
-[heading Control Callback]
+[heading 控制回调]
 
-Ping, pong, and close messages are control frames which may be sent at
-any time by either peer on an established WebSocket connection. They
-are sent using the functions
-[link beast.ref.boost__beast__websocket__stream.ping `ping`],
-[link beast.ref.boost__beast__websocket__stream.pong `pong`].
-and
-[link beast.ref.boost__beast__websocket__stream.close `close`].
-To be notified of control frames, callers may register a
-['control callback] using
-[link beast.ref.boost__beast__websocket__stream.control_callback `control_callback`].
-The object provided with this option should be callable with the following
-signature:
+ping、pong 和 close 消息属于控制帧，在已建立的 WebSocket 连接上，任何一端都可以随时发送。它们分别通过 [link beast.ref.boost__beast__websocket__stream.ping `ping`]、[link beast.ref.boost__beast__websocket__stream.pong `pong`] 和 [link beast.ref.boost__beast__websocket__stream.close `close`] 函数发送。若要接收控制帧的通知，调用方可通过 [link beast.ref.boost__beast__websocket__stream.control_callback `control_callback`] 注册一个控制回调。该选项提供的对象应满足以下签名要求：
 
 [code_websocket_5_1]
 
-When a control callback is registered, it will be invoked for all pings,
-pongs, and close frames received through either synchronous read functions
-or asynchronous read functions. The type of frame and payload text are
-passed as parameters to the control callback. If the frame is a close
-frame, the close reason may be obtained by calling
-[link beast.ref.boost__beast__websocket__stream.reason `reason`].
+当注册控制回调后，无论是通过同步读函数还是异步读函数接收到的所有 ping、pong 和 close 帧，都会触发该回调。帧类型和有效载荷文本会作为参数传递给控制回调。如果帧为 close 帧，可通过调用 [link beast.ref.boost__beast__websocket__stream.reason `reason`] 获取关闭原因。
 
-Unlike regular completion handlers used in calls to asynchronous initiation
-functions, the control callback only needs to be set once. The callback is
-not reset after being called. The same callback is used for both synchronous
-and asynchronous reads. The callback is passive; in order to be called,
-a stream read operation must be active.
+与异步发起函数调用中使用的普通完成处理器不同，控制回调只需设置一次，调用后不会被重置。该回调同时用于同步和异步读取。回调是“被动”的——必须有一个流读取操作处于活动状态，回调才会被触发。
 
 [note
-    When an asynchronous read function receives a control frame, the
+    当异步读函数收到控制帧时，
     control callback is invoked in the same manner as that used to
     invoke the final completion handler of the corresponding read
     function.
 ]
 
-[heading Close Frames]
+[heading 关闭帧]
 
-The WebSocket protocol defines a procedure and control message for
-initiating a close of the session. In this procedure, a host requests
-the close by sending a
-[@https://tools.ietf.org/html/rfc6455#section-5.5.1 ['close frame]].
-To request a close use a close function such as
-[link beast.ref.boost__beast__websocket__stream.close.overload2 `close`] or
-[link beast.ref.boost__beast__websocket__stream.async_close `async_close`]:
+WebSocket 协议定义了启动会话关闭的过程和控制消息。在该过程中，主机通过发送 [@https://tools.ietf.org/html/rfc6455#section-5.5.1 关闭帧] 来请求关闭。若要请求关闭，可使用 `close` 或 `async_close` 等关闭函数：
 
 [code_websocket_5_2]
 
-The close function will send a close frame, read and discard incoming
-message data until receiving a close frame, and then shut down the
-underlying connection before returning.
+关闭函数会发送关闭帧，然后读取并丢弃所有传入的消息数据，直到收到关闭帧为止，最后在返回之前关闭底层连接。
 
-When a close frame is received by during a read operation, the implementation
-will automatically respond with a close frame and then shut down the
-underlying connection before returning. In this case, the read operation
-will complete with the code
-[link beast.ref.boost__beast__websocket__error `error::closed`].
-This indicates to the caller that the connection has been closed cleanly.
+当读操作期间收到关闭帧时，实现会自动回复一个关闭帧，然后在返回之前关闭底层连接。在这种情况下，读操作会以错误码 [link beast.ref.boost__beast__websocket__error `error::closed`] 完成，这表示连接已被正常关闭。
 
 [important
-    To receive the
+    要接受
     [link beast.ref.boost__beast__websocket__error `error::closed`]
     error, a read operation is required.
 ]
 
-[heading Auto-fragment]
+[heading 自动分帧]
 
-To ensure timely delivery of control frames, large outgoing messages can
-be broken up into smaller sized frames. The automatic fragment option
-turns on this feature, and the write buffer size option determines the
-maximum size of the fragments:
+为确保控制帧的及时传递，可以将较大的出站消息拆分为较小的帧。自动分片选项用于开启此功能，而写入缓冲区大小选项则决定分片的最大大小：
 
 [code_websocket_5_3]
 
