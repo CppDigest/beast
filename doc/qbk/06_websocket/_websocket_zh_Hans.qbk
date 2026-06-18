@@ -11,20 +11,12 @@
 
 [/-----------------------------------------------------------------------------]
 
-The WebSocket Protocol enables two-way communication between a client running
-untrusted code in a controlled environment to a remote host that has opted-in
-to communications from that code. The protocol consists of an opening handshake
-followed by basic message framing, layered over TCP.  The goal of this
-technology is to provide a mechanism for browser-based applications needing
-two-way communication with servers without relying on opening multiple HTTP
-connections.
+WebSocket 协议允许在受控环境中运行的不受信任代码，与愿意接受该代码通信的远程主机进行双向数据交换。该协议由一个起始握手阶段和随后的基本消息帧格式组成，整个通信基于 TCP 实现。这项技术的主要目的是，为需要与服务器进行双向通信的浏览器应用提供一种解决方案，避免依赖打开多个 HTTP 连接。
 
-Beast provides developers with a robust WebSocket implementation
-built on Boost.Asio with a consistent asynchronous model using a modern C++
-approach.
+Beast 为开发者提供一套健壮的 WebSocket 实现，该实现基于 Boost.Asio 构建，并采用现代 C++ 方式和一致的异步模型。
 
 [note
-    This documentation assumes familiarity with __Asio__ and
+    本文档假定读者已熟悉 Asio 及
     the protocol specification described in __rfc6455__.
     Sample code and identifiers appearing in this section is written
     as if these declarations are in effect:
@@ -36,52 +28,30 @@ approach.
 
 [/-----------------------------------------------------------------------------]
 
-[heading Construction]
+[heading 构造]
 
-A WebSocket connection requires a stateful object, represented in Beast by a
-single class template
-[link beast.ref.boost__beast__websocket__stream `websocket::stream`].
-The interface uses the layered stream model. A websocket stream object contains
-another stream object, called the "next layer", which it uses to perform I/O.
-Descriptions of each template parameter follow:
+WebSocket 连接需要一个有状态的对象，在 Beast 中由类模板 [link beast.ref.boost__beast__websocket__stream `websocket::stream`] 表示。该接口采用分层流模型。WebSocket 流对象包含另一个流对象，称为“下一层”，用于执行 I/O 操作。各模板参数说明如下：
 
 [code_websocket_1h]
 
-[table WebSocket Stream Template Parameters
-[[Name][Description]]
+[table WebSocket 流模板参数
+[[名称][描述]]
 [
     [`NextLayer`]
-    [
-      The type of the next layer. An object of this type will be constructed
-      and maintained for the lifetime of the stream. All reads and writes
-      will go through the next layer. This type must meet the requirements
-      of either __SyncStream__, __AsyncStream__, or both, depending on the
-      style of I/O that is to be performed.
-    ]
+    [下一层类型。该类型的对象将在流的整个生命周期内被构造并维护。所有读写操作都将通过该下一层进行。此类型必须满足 __SyncStream__、__AsyncStream__ 或两者的要求，具体取决于所执行的 I/O 风格。]
 ][
     [`deflateSupported`]
-    [
-      When this value is `true`, the stream will support (but not require)
-      the [@https://tools.ietf.org/html/rfc7692 permessage-deflate extension].
-      Whether or not the stream actually requests or accepts the extension
-      during a handshake depends on a separate configurable option.
+    [当该值为 `true` 时，流将支持（但不强制使用）[@https://tools.ietf.org/html/rfc7692 每消息压缩扩展]。流在握手期间是否实际请求或接受该扩展，取决于另一个可配置选项。
 
-      When the value is `false` the extension is disabled. Streams will
-      never request the extension in the client role or accept a request
-      for the extension in the server role. An additional benefit of
-      disabling the extension is that compilation will be faster, and
-      the resulting program executable will contain less code.
-    ]
+当该值为 `false` 时，扩展将被禁用。流在客户端角色中永远不会请求该扩展，在服务器角色中也不会接受该扩展的请求。禁用扩展的另一个好处是，编译速度会更快，且生成的可执行程序包含的代码会更少。]
 ]]
 
-When a stream is constructed, any arguments provided to the constructor are
-forwarded to the next layer object's constructor. This declares a stream
-over a plain TCP/IP socket using an I/O context:
+当构造流时，传递给构造函数的任何参数都会转发给下一层对象的构造函数。以下声明一个基于普通 TCP/IP 套接字的流，并使用一个 I/O 上下文：
 
 [code_websocket_1f]
 
 [tip
-    Websocket streams use their own protocol-specific timeout feature. When
+    WebSocket 流使用自身协议特定的超时功能。当
     using a websocket stream with the
     [link beast.ref.boost__beast__tcp_stream `tcp_stream`] or
     [link beast.ref.boost__beast__basic_stream `basic_stream`]
@@ -90,58 +60,44 @@ over a plain TCP/IP socket using an I/O context:
     stream is undefined.
 ]
 
-As with most I/O objects, a websocket stream is [*not thread-safe]. Undefined
-behavior results if two different threads access the object concurrently.
-For multi-threaded programs, the `tcp_stream` can be constructed from an
-executor, in this case a strand. The stream declared below will use a
-strand to invoke all completion handlers:
+与大多数 I/O 对象类似，WebSocket 流本身 [*不是线程安全的]。如果两个不同的线程同时访问该对象，将导致未定义行为。对于多线程程序，`tcp_stream` 可以通过执行器（此处为串行器）构造。以下声明的流将使用串行器来调用所有完成处理器：
 
 [code_websocket_2f]
 
-If the next layer supports move-construction, then the websocket stream can be
-constructed from a moved-from object.
+如果下一层支持移动构造，则 WebSocket 流可以通过移动构造的方式从被移动的对象进行构造。
 
 [code_websocket_3f]
 
-The next layer may be accessed by calling
-[link beast.ref.boost__beast__websocket__stream.next_layer.overload1 `stream::next_layer`].
+可通过调用 [link beast.ref.boost__beast__websocket__stream.next_layer.overload1 `stream::next_layer`] 来访问下一层。
 
 [code_websocket_4f]
 
 [/-----------------------------------------------------------------------------]
 
-[heading Using SSL]
+[heading 使用 SSL]
 
-To use WebSockets over SSL, use an instance of the __ssl_stream__
-class template as the template type for the stream. The required
-__io_context__ and __ssl_context__ arguments are forwarded to the
-wrapped stream's constructor:
+若需在 SSL 上使用 WebSocket，可将 __ssl_stream__ 类模板的实例作为流的模板类型。所需的 __io_context__ 和 __ssl_context__ 参数会转发给被包装流的构造函数：
 
 [code_websocket_5f]
 
 [important
-    Code which declares websocket stream objects using Asio SSL types
+    使用 Asio SSL 类型声明 WebSocket 流对象的代码：
     must include the file [include_file boost/beast/websocket/ssl.hpp].
 ]
 
-As before, the underlying SSL stream may be accessed by calling `next_layer`.
+与之前相同，底层 SSL 流可通过调用 `next_layer` 来访问。
 
 [code_websocket_6f]
 
-With multi-layered streams such as the one declared above, accessing an
-individual layer can be cumbersome when using chained calls to `next_layer`.
-The function
-[link beast.ref.boost__beast__get_lowest_layer `get_lowest_layer`]
-returns the last stream in a stack of layers in a layered stream. Here we
-access the lowest layer to cancel all outstanding I/O.
+对于像上述声明的多层流，若使用链式 `next_layer` 调用来访问某一层，过程会较为繁琐。[link beast.ref.boost__beast__get_lowest_layer `get_lowest_layer`] 函数可返回分层流中最后一层（即最底层）。以下示例通过访问最底层来取消所有未完成的 I/O 操作：
 
 [code_websocket_7f]
 
 [/-----------------------------------------------------------------------------]
 
-[heading Non-Blocking Mode]
+[heading 非阻塞模式]
 
-Please note that websocket streams do not support non-blocking modes.
+请注意，WebSocket 流不支持非阻塞模式。
 
 [/-----------------------------------------------------------------------------]
 
