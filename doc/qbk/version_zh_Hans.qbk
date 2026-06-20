@@ -7,13 +7,11 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Beast API Version]
+[section Beast API 版本]
 
-Beast maintains it's own API version, which is more fine-grained than the
-boost release.
+Beast 维护自身的 API 版本号，该版本号比 Boost 版本更细致。
 
-It can be obtained as a string from the `BOOST_BEAST_VERSION` macro 
-or a string through `BOOST_BEAST_VERSION_STRING`.
+该版本号可通过 `BOOST_BEAST_VERSION` 宏获取数值形式，或通过 `BOOST_BEAST_VERSION_STRING` 宏获取字符串形式。
 
 [version]
 
