@@ -7,32 +7,29 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section HTTP Comparison to Other Libraries]
+[section HTTP 与其他库的比较]
 
-There are a few C++ published libraries which implement some of the HTTP
-protocol. We analyze the message model chosen by those libraries and discuss
-the advantages and disadvantages relative to Beast.
+目前已有一些 C++ 库实现了部分 HTTP 协议。我们将分析这些库所采用的消息模型，并讨论它们相对于 Beast 的优缺点。
 
-The general strategy used by the author to evaluate external libraries is
-as follows:
+作者评估外部库的总体策略如下：
 
-* Review the message model. Can it represent a complete request or
+* 审查消息模型。它能否表示一个完整的请求或
   response? What level of allocator support is present? How much
   customization is possible?
 
-* Review the stream abstraction. This is the type of object, such as
+* 审查流抽象层。这是一种对象类型，例如
   a socket, which may be used to parse or serialize (i.e. read and write).
   Can user defined types be specified? What's the level of conformance to
   to Asio or Networking-TS concepts?
 
-* Check treatment of buffers. Does the library manage the buffers
+* 检查缓冲区处理方式。该库是否负责管理缓冲区
   or can users provide their own buffers?
 
-* How does the library handle corner cases such as trailers,
+* 该库如何处理尾部（trailers）等边界情况，
   Expect: 100-continue, or deferred commitment of the body type?
 
 [note
-    Declarations examples from external libraries have been edited:
+    来自外部库的声明示例已做编辑：
     portions have been removed for simplification.
 ]
 
@@ -41,17 +38,8 @@ as follows:
 [heading cpp-netlib]
 
 [@https://github.com/cpp-netlib/cpp-netlib/tree/092cd570fb179d029d1865aade9f25aae90d97b9 [*cpp-netlib]]
-is a network programming library previously intended for Boost but not
-having gone through formal review. As of this writing it still uses the
-Boost name, namespace, and directory structure although the project states
-that Boost acceptance is no longer a goal. The library is based on Boost.Asio
-and bills itself as ['"a collection of network related routines/implementations
-geared towards providing a robust cross-platform networking library"]. It
-cites ['"Common Message Type"] as a feature. As of the branch previous
-linked, it uses these declarations:
-```
-template <class Tag>
-struct basic_message {
+cpp-netlib 是一个网络编程库，原本计划纳入 Boost，但并未通过正式审查。在撰写本文时，它仍然使用 Boost 的名称、命名空间和目录结构，尽管该项目声明不再将纳入 Boost 作为目标。该库基于 Boost.Asio，自称是“一组与网络相关的例程/实现，旨在提供一个健壮的跨平台网络库”。它将“通用消息类型”列为其特性之一。在上述链接的分支中，它使用了以下声明：
+``` template  struct basic_message {
  public:
   typedef Tag tag;
 
@@ -82,24 +70,20 @@ struct basic_message {
 };
 ```
 
-This container is the base class template used to represent HTTP messages.
-It uses a "tag" type style specializations for a variety of trait classes,
-allowing for customization of the various parts of the message. For example,
-a user specializes `headers_container<T>` to determine what container type
-holds the header fields. We note some problems with the container declaration:
+这个容器是用于表示 HTTP 消息的基类模板。它使用“标签（tag）”类型风格来特化各种特征类，从而允许对消息的各个部分进行自定义。例如，用户可以通过特化 `headers_container<T>` 来确定使用何种容器类型来存储头部字段。我们注意到该容器的声明存在一些问题：
 
-* The header and body containers may only be default-constructed.
+* 头部和主体容器只能通过默认构造函数进行构造。
 
-* No stateful allocator support.
+* 不支持有状态分配器。
 
-* There is no way to defer the commitment of the type for `body_` to
+* 无法推迟 `body_` 类型的提交。
   after the headers are read in.
 
-* The message model includes a "source" and "destination." This is
+* 消息模型包含了“源”和“目标”。这是
   extraneous metadata associated with the connection which is not part
   of the HTTP protocol specification and belongs elsewhere.
 
-* The use of `string_type` (a customization point) for source,
+* 对源（source）使用 `string_type`（一个自定义点），
   destination, and body suggests that `string_type` models a
   [*ForwardRange] whose `value_type` is `char`. This representation
   is less than ideal, considering that the library is built on
@@ -109,7 +93,7 @@ holds the header fields. We note some problems with the container declaration:
   is that cpp-netlib implementations will be less efficient than an
   equivalent __NetTS__ conforming implementation.
 
-* The library uses specializations of `string<Tag>` to change the type
+* 该库使用 `string<Tag>` 的特化来改变类型
   of string used everywhere, including the body, field name and value
   pairs, and extraneous metadata such as source and destination. The
   user may only choose a single type: field name, field values, and
@@ -118,36 +102,25 @@ holds the header fields. We note some problems with the container declaration:
   trait is limited to selecting between `std::string` and `std::wstring`.
   We do not find this use-case compelling given the limitations.
 
-* The specialized trait classes generate a proliferation of small
+* 特化的特征类会导致大量小型
   additional framework types. To specialize traits, users need to exit
   their namespace and intrude into the `boost::network::http` namespace.
   The way the traits are used in the library limits the usefulness
   of the traits to trivial purpose.
 
-* The `string<Tag> customization point constrains user defined body types
+* `string<Tag>` 自定义点限制了用户自定义主体类型
   to few possible strategies. There is no way to represent an HTTP message
   body as a filename with accompanying algorithms to store or retrieve data
   from the file system.
 
-The design of the message container in this library is cumbersome
-with its system of customization using trait specializations. The
-use of these customizations is extremely limited due to the way they
-are used in the container declaration, making the design overly
-complex without corresponding benefit.
+该库消息容器的设计非常繁琐，其自定义系统依赖于特征（trait）特化。由于这些自定义机制在容器声明中的使用方式极为受限，导致该设计过于复杂，却未能带来相应的收益。
 
 
 
 [heading Boost.HTTP]
 
 [@https://github.com/BoostGSoC14/boost.http/tree/45fc1aa828a9e3810b8d87e669b7f60ec100bff4 [*boost.http]]
-is a library resulting from the 2014 Google Summer of Code. It was submitted
-for a Boost formal review and rejected in 2015. It is based on Boost.Asio,
-and development on the library has continued to the present. As of the branch
-previously linked, it uses these message declarations:
-```
-template<class Headers, class Body>
-struct basic_message
-{
+是一个源自 2014 年 Google Summer of Code 的库。它曾于 2015 年提交进行 Boost 正式审查，但遭到拒绝。该库基于 Boost.Asio 构建，其开发工作一直持续至今。在之前链接的分支中，它使用了如下的消息声明：``` template struct basic_message {
     typedef Headers headers_type;
     typedef Body body_type;
 
@@ -175,7 +148,7 @@ template<class Headers, class Body>
 struct is_message<basic_message<Headers, Body>>: public std::true_type {};
 ```
 
-* This container cannot model a complete message. The ['start-line] items
+* 该容器无法对完整的消息进行建模。['start-line] 项
   (method and target for requests, reason-phrase for responses) are
   communicated out of band, as is the ['http-version]. A function that
   operates on the message including the start line requires additional
@@ -190,18 +163,18 @@ struct is_message<basic_message<Headers, Body>>: public std::true_type {};
   self->socket.async_write_response(500, string_ref("OK"), reply, yield);
   ```
 
-* `headers_`, `body_`, and `trailers_` may only be default-constructed,
+* `headers_`、`body_` 和 `trailers_` 只能进行默认构造，
   since there are no explicitly declared constructors.
 
-* There is no way to defer the commitment of the [*Body] type to after
+* 无法将 [*Body] 类型的提交推迟到之后进行
   the headers are read in. This is related to the previous limitation
   on default-construction.
 
-* No stateful allocator support. This follows from the previous limitation
+* 不支持有状态分配器。这是由前一个限制导致的
   on default-construction. Buffers for start-line strings must be
   managed externally from the message object since they are not members.
 
-* The trailers are stored in a separate object. Aside from the combinatorial
+* 尾部（trailers）存储在一个单独的对象中。除了组合爆炸的问题之外
   explosion of the number of additional constructors necessary to fully
   support arbitrary forwarded parameter lists for each of the headers, body,
   and trailers members, the requirement to know in advance whether a
@@ -209,7 +182,7 @@ struct is_message<basic_message<Headers, Body>>: public std::true_type {};
   poses an unnecessary complication for general purpose functions that
   operate on messages.
 
-* The declarations imply that `std::vector` is a model of [*Body].
+* 这些声明暗示 `std::vector` 是 [*Body] 的一个模型。
   More formally, that a body is represented by the [*ForwardRange]
   concept whose `value_type` is an 8-bit integer. This representation
   is less than ideal, considering that the library is built on
@@ -220,35 +193,21 @@ struct is_message<basic_message<Headers, Body>>: public std::true_type {};
   with body containers than an equivalent __NetTS__ conforming
   implementation.
 
-* The [*Body] customization point constrains user defined types to
+* [*Body] 自定义点将用户自定义类型限制为
   very limited implementation strategies. For example, there is no way
   to represent an HTTP message body as a filename with accompanying
   algorithms to store or retrieve data from the file system.
 
-This representation addresses a narrow range of  use cases. It has
-limited potential for customization and performance. It is more difficult
-to use because it excludes the start line fields from the model.
+* 这种表示法仅能解决一小部分用例。其自定义潜力和性能表现均十分有限。由于该模型将起始行（start line）字段排除在外，导致其使用难度增加。
 
 
 
 [heading C++ REST SDK (cpprestsdk)]
 
 [@https://github.com/Microsoft/cpprestsdk/tree/381f5aa92d0dfb59e37c0c47b4d3771d8024e09a [*cpprestsdk]]
-is a Microsoft project which ['"...aims to help C++ developers connect to and
-interact with services"]. It offers the most functionality of the libraries
-reviewed here, including support for Websocket services using its websocket++
-dependency. It can use native APIs such as HTTP.SYS when building Windows
-based applications, and it can use Boost.Asio. The WebSocket module uses
-Boost.Asio exclusively.
+是一个微软项目，其目标是“帮助 C++ 开发者连接服务并与之交互”。在本文所评测的库中，它的功能最为全面，包括通过其 websocket++ 依赖项来支持 WebSocket 服务。在构建基于 Windows 的应用程序时，它能够使用诸如 HTTP.SYS 等原生 API，同时也支持使用 Boost.Asio。其中，WebSocket 模块专门且排他性地使用了 Boost.Asio。
 
-As cpprestsdk is developed by a large corporation, it contains quite a bit
-of functionality and necessarily has more interfaces. We will break down
-the interfaces used to model messages into more manageable pieces. This
-is the container used to store the HTTP header fields:
-```
-class http_headers
-{
-public:
+由于 cpprestsdk 由大型公司（微软）开发，它包含了相当多的功能，因此也必然拥有更多的接口。我们将把用于建模消息的接口拆解为更易于管理的部分。以下是用于存储 HTTP 头字段的容器： ``` class http_headers { public:
     ...
 
 private:
@@ -256,25 +215,15 @@ private:
 };
 ```
 
-This declaration is quite bare-bones. We note the typical problems of
-most field containers:
+这个声明相当简陋。我们注意到大多数字段容器都存在一些典型问题：
 
-* The container may only be default-constructed.
+* 该容器只能进行默认构造。
 
-* No support for allocators, stateful or otherwise.
+* 不支持分配器，无论是有状态分配器还是其他类型的分配器。
 
-* There are no customization points at all.
+* 完全没有任何自定义点。
 
-Now we analyze the structure of
-the larger message container. The library uses a handle/body idiom. There
-are two public message container interfaces, one for requests (`http_request`)
-and one for responses (`http_response`). Each interface maintains a private
-shared pointer to an implementation class. Public member function calls
-are routed to the internal implementation. This is the first implementation
-class, which forms the base class for both the request and response
-implementations:
-```
-namespace details {
+现在，我们来分析更大的消息容器的结构。该库使用了句柄/主体惯用法（handle/body idiom）。它提供了两个公开的消息容器接口，一个用于请求（`http_request`），另一个用于响应（`http_response`）。每个接口都维护着一个指向实现类的私有共享指针。公开的成员函数调用会被路由到内部的实现。以下是第一个实现类，它构成了请求和响应实现类的基类： ``` namespace details {
 
 class http_msg_base
 {
@@ -306,23 +255,9 @@ protected:
 };
 ```
 
-To understand these declarations we need to first understand that cpprestsdk
-uses the asynchronous model defined by Microsoft's
-[@https://msdn.microsoft.com/en-us/library/dd504870.aspx [*Concurrency Runtime]].
-Identifiers from the [@https://msdn.microsoft.com/en-us/library/jj987780.aspx [*`pplx` namespace]]
-define common asynchronous patterns such as tasks and events. The
-`concurrency::streams::istream` parameter and `m_data_available` data member
-indicates a lack of separation of concerns. The representation of HTTP messages
-should not be conflated with the asynchronous model used to serialize or
-parse those messages in the message declarations.
+要理解这些声明，需要先了解 cpprestsdk 使用了微软的 [@https://msdn.microsoft.com/en-us/library/dd504870.aspx [*Concurrency Runtime]] 所定义的异步模型。来自 [@https://msdn.microsoft.com/en-us/library/jj987780.aspx [*`pplx` namespace]] 的标识符定义了任务和事件等通用异步模式。`concurrency::streams::istream` 参数和 `m_data_available` 数据成员表明存在关注点分离缺失的问题。在消息声明中，不应将 HTTP 消息的表示形式与用于序列化或解析这些消息的异步模型混为一谈。
 
-The next declaration forms the complete implementation class referenced by the
-handle in the public interface (which follows after):
-```
-/// Internal representation of an HTTP request message.
-class _http_request final : public http::details::http_msg_base, public std::enable_shared_from_this<_http_request>
-{
-public:
+以下声明构成了公开接口中的句柄所引用的完整实现类（该类位于后续）：``` /// HTTP 请求消息的内部表示。 class _http_request final : public http::details::http_msg_base, public std::enable_shared_from_this<_http_request> { public:
     _ASYNCRTIMP _http_request(http::method mtd);
 
     _ASYNCRTIMP _http_request(std::unique_ptr<http::details::_http_server_context> server_context);
@@ -346,26 +281,20 @@ private:
 } // namespace details
 ```
 
-As before, we note that the implementation class for HTTP requests concerns
-itself more with the mechanics of sending the message asynchronously than
-it does with actually modeling the HTTP message as described in __rfc7230__:
+与之前一样，可以看出，HTTP 请求的实现类更关注于异步发送消息的机制，而不是按照 __rfc7230__ 中的描述对 HTTP 消息进行实际建模：
 
-* The constructor accepting `std::unique_ptr<http::details::_http_server_context`
+* 接受 `std::unique_ptr<http::details::_http_server_context` 的构造函数
   breaks encapsulation and separation of concerns. This cannot be extended
   for user defined server contexts.
 
-* The "cancellation token" is stored inside the message. This breaks the
+* “取消令牌”被存储在消息内部。这破坏了
   separation of concerns.
 
-* The `_reply_impl` function implies that the message implementation also
+* `_reply_impl` 函数意味着消息的实现也
   shares responsibility for the means of sending back an HTTP reply. This
   would be better if it was completely separate from the message container.
 
-Finally, here is the public class which represents an HTTP request:
-```
-class http_request
-{
-public:
+最后，下面是代表 HTTP 请求的公共类：``` class http_request { public:
     const http::method &method() const { return _m_impl->method(); }
 
     void set_method(const http::method &method) const { _m_impl->method() = method; }
@@ -412,45 +341,32 @@ private:
 };
 ```
 
-It is clear from this declaration that the goal of the message model in
-this library is driven by its use-case (interacting with REST servers)
-and not to model HTTP messages generally. We note problems similar to
-the other declarations:
+从这个声明中可以清楚地看出，该库中消息模型的目标是由其用例（与 REST 服务器交互）驱动的，而不是为了对 HTTP 消息进行通用建模。我们注意到存在与其他声明类似的问题：
 
-* There are no compile-time customization points at all. The only
+* 完全没有编译期自定义点。唯一
   customization is in the `concurrency::streams::istream` and
   `concurrency::streams::ostream` reference parameters. Presumably,
   these are abstract interfaces which may be subclassed by users
   to achieve custom behaviors.
 
-* The extraction of the body is conflated with the asynchronous model.
+* 消息体的提取与异步模型混为一谈。
 
-* No way to define an allocator for the container used when extracting
+* 无法为提取数据时所使用的容器定义分配器
   the body.
 
-* A body can only be extracted once, limiting the use of this container
+* 消息体只能提取一次，这限制了该容器的使用
   when using a functional programming style.
 
-* Setting the body requires either a vector or a `concurrency::streams::istream`.
+* 设置消息体需要使用向量或 `concurrency::streams::istream`。
   No user defined types are possible.
 
-* The HTTP request container conflates HTTP response behavior (see the
+* HTTP 请求容器混淆了 HTTP 响应行为（见
   `set_response_stream` member). Again this is likely purpose-driven but
   the lack of separation of concerns limits this library to only the
   uses explicitly envisioned by the authors.
 
-The general theme of the HTTP message model in cpprestsdk is "no user
-definable customizations". There is no allocator support, and no
-separation of concerns. It is designed to perform a specific set of
-behaviors. In other words, it does not follow the open/closed principle.
+cpprestsdk 中 HTTP 消息模型的总体主题是“不支持用户可定义的自定义功能”。它没有分配器支持，也没有关注点分离。它的设计目的是执行特定的行为集。换句话说，它没有遵循开闭原则。
 
-Tasks in the Concurrency Runtime operate in a fashion similar to
-`std::future`, but with some improvements such as continuations which
-are not yet in the C++ standard. The costs of using a task based
-asynchronous interface instead of completion handlers is well
-documented: synchronization points along the call chain of composed
-task operations which cannot be optimized away. See:
-[@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3747.pdf
-[*A Universal Model for Asynchronous Operations]] (Kohlhoff).
+Concurrency Runtime 中的任务操作方式与 `std::future` 类似，但进行了一些改进，例如 C++ 标准中尚未包含的 continuation（续体）。使用基于任务的异步接口而非完成处理程序（completion handlers）的代价已有详细记录：在组合任务操作的调用链上存在无法优化的同步点。参见：[@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3747.pdf [*A Universal Model for Asynchronous Operations]] (Kohlhoff)。
 
 [endsect]
