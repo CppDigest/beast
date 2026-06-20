@@ -9,9 +9,7 @@
 
 [section FAQ]
 
-To set realistic expectations and prevent a litany of duplicate review
-statements, these notes address the most common questions and comments
-about Beast and other HTTP libraries that have gone through formal review.
+为确立合理预期并避免大量重复的评审意见，本说明针对 Beast 及其他经过正式评审的 HTTP 库最常见的疑问和评论进行解答。
 
 [variablelist
 [[
@@ -23,277 +21,95 @@ about Beast and other HTTP libraries that have gone through formal review.
     Boost.Asio which retains the Boost.Asio memory
     management style and asynchronous model. 
 ]]
-[[
-    "Beast does not offer an HTTP server?"
-][
-    Beast has a functional HTTP server in the example directory. The
-    server supports both HTTP and WebSocket using synchronous and
-    asynchronous shared or dedicated ports. In addition, the server
-    supports encrypted TLS connections if OpenSSL is available, on
-    dedicated ports. And the server comes with a "multi-port", a
-    flexible single port which supports both encrypted and unencrypted
-    connections, both HTTP and WebSocket, all on the same port. The
-    server is not part of Beast's public interfaces, as that
-    functionality is outside the scope of the library. The author
-    feels that attempting to broaden the scope of the library will
-    reduce its appeal for standardization.
+[[“Beast 不提供 HTTP 服务器？”
+][Beast 在示例目录中提供功能完备的 HTTP 服务器。该服务器支持 HTTP 和 WebSocket，可通过同步或异步方式使用共享端口或专用端口。此外，若存在 OpenSSL，该服务器支持在专用端口上建立加密的 TLS 连接。该服务器提供“多端口”模式，这是一种灵活的单端口模式，可在同一端口上同时支持加密与非加密连接，以及 HTTP 和 WebSocket。该服务器未纳入 Beast 的公共接口，因为相关功能超出该库的范畴。作者认为，试图扩大库的范围会降低其标准化的吸引力。
 ]]
-[[
-    "Beast does not offer an HTTP client?"
-][
-    "I just want to download a resource using HTTP" is a common
-    cry from users and reviewers. Such functionality is beyond
-    the scope of Beast. Building a full featured HTTP client is
-    a difficult task and large enough to deserve its own library.
-    There are many things to deal with such as the various message
-    body encodings, complex parsing of headers, difficult header
-    semantics such as Range and Cache-Control, redirection,
-    Expect:100-continue, connection retrying, domain name
-    resolution, TLS, and much, much more. It is the author's
-    position that Boost first needs a common set of nouns and
-    verbs for manipulating HTTP at the protocol level; Beast
-    provides that language.
+[[“Beast 不提供 HTTP 客户端？”
+][“我只想通过 HTTP 下载资源”，这是用户和评审人员经常提出的诉求。此类功能超出 Beast 的范畴。构建一个功能完备的 HTTP 客户端是一项艰巨的任务，其体量足以成为一个独立的库。其中存在诸多需要处理的事项，例如各类消息体编码、复杂的标头解析、Range 和 Cache-Control 等晦涩的标头语义、重定向、Expect: 100-continue、连接重试、域名解析、TLS 等。作者认为，Boost 首先需要一套用于在协议层面操作 HTTP 的通用名词和动词，而 Beast 正是提供该语言的库。
 ]]
-[[
-    "There's no HTTP/2 support yet!"
-][
-    Many reviewers feel that HTTP/2 support is an essential feature of
-    a HTTP library. The authors agree that HTTP/2 is important but also
-    feel that the most sensible implementation is one that does not re-use
-    the same network reading and writing interface for 2 as that for 1.0
-    and 1.1.
+[[“目前还不支持 HTTP/2！”
+][许多评审人员认为，HTTP/2 支持是 HTTP 库的必备功能。作者认同 HTTP/2 的重要性，但也认为最合理的实现方式是不应让 HTTP/2 复用 HTTP/1.0 和 HTTP/1.1 相同的网络读写接口。
 
-    The Beast HTTP message model was designed with the new protocol
-    in mind and should be evaluated in that context. There are plans
-    to add HTTP/2 in the future, but there is no rush to do so.
-    Users can work with HTTP/1 now; we should not deny them that
-    functionality today to wait for a newer protocol tomorrow.
-    It is the author's position that there is sufficient value in
-    Beast's HTTP/1-only implementation that the lack of HTTP/2
-    should not be a barrier to acceptance.
+Beast 的 HTTP 消息模型在设计时已考虑到新协议，应在该语境下进行评估。未来存在增加 HTTP/2 支持的计划，但目前无需急于推进。用户当前即可使用 HTTP/1，不应为了等待未来的新协议而剥夺用户当前的功能使用权。作者认为，Beast 仅支持 HTTP/1 的实现已具备足够价值，缺乏 HTTP/2 不应成为阻碍其被接纳的理由。
 
-    The Beast HTTP message model is suitable for HTTP/2 and can be re-used.
-    The IETF HTTP Working Group adopted message compatibility with HTTP/1.x
-    as an explicit goal. A parser can simply emit full headers after
-    decoding the compressed HTTP/2 headers. The stream ID is not logically
-    part of the message but rather message metadata and should be
-    communicated out-of-band (see below). HTTP/2 sessions begin with a
-    traditional HTTP/1.1 Upgrade similar in fashion to the WebSocket
-    upgrade. An HTTP/2 implementation can use existing Beast.HTTP primitives
-    to perform this handshake.
+Beast 的 HTTP 消息模型适用于 HTTP/2 并可被复用。IETF HTTP 工作组已将消息与 HTTP/1.x 兼容作为明确目标。解析器在解码压缩的 HTTP/2 标头后，可直接输出完整标头。流 ID 在逻辑上不属于消息本身，而是消息元数据，应通过带外方式进行通信（见下文）。HTTP/2 会话以传统的 HTTP/1.1 升级握手开始，其方式与 WebSocket 升级类似。HTTP/2 的实现可使用现有的 Beast.HTTP 原语来执行该握手。
 ]]
-[[
-    "This should work with standalone-Asio!"
-][
-    Beast uses more than Boost.Asio, it depends on various other parts
-    of Boost. The standalone Asio is currently farther ahead than the
-    Boost version. Keeping Beast maintained against both versions of
-    Asio is beyond the resources of the author at the present time.
-    Compatibility with non-Boost libraries should not be an acceptance
-    criteria. Beast is currently designed to be a part of Boost:
-    nothing more, nothing less. Looking at the bigger picture, it
-    is the author's goal to propose this library for standardization.
-    A logical track for achieving this is as follows:
+[[“这应该能配合 standalone-Asio 使用！”
+][Beast 不仅依赖 Boost.Asio，还依赖 Boost 的其他组件。目前 standalone Asio 的版本领先于 Boost 中的版本。作者当前没有足够的资源来同时维护 Beast 对这两个 Asio 版本的兼容性。与非 Boost 库的兼容性不应作为接纳标准。Beast 的设计定位就是作为 Boost 的一部分，仅此而已。从宏观角度来看，作者的目标是推动该库走向标准化。实现这一目标的合理路径如下：
 
-    [ordered_list
-    [
-        Boost library acceptance.
-    ][
-        Port to the Boost.Asio version of Networking-TS (This has to wait
-        until Boost's version of Asio is updated).
-    ][
-        Wait for Networking-TS to become an official part of C++.
-    ][
-        Port to the standard library versions of networking (gcc, clang, msvc).
-    ][
-        Develop proposed language (This can happen concurrently with steps 3 and 4)
-    ]]
+[ordered_list [ 被接纳为 Boost 库。][ 移植到 Boost.Asio 版本的 Networking-TS（这需等待 Boost 中的 Asio 版本更新）。][ 等待 Networking-TS 成为 C++ 的正式组成部分。][ 移植到标准库版本的 networking（gcc、clang、msvc）。][ 开发提议的语言特性（此步骤可与第 3、4 步并行推进）]]
 ]]
-[[
-    "You need benchmarks!"
-][
-    The energy invested in Beast went into the design of the interfaces,
-    not performance. That said, the most sensitive parts of Beast have
-    been optimized or designed with optimization in mind. The slow parts
-    of WebSocket processing have been optimized, and the HTTP parser design
-    is lifted from another extremely popular project which has performance
-    as a design goal (see [@https://github.com/h2o/picohttpparser]).
+[[“你需要基准测试！”
+][投入在 Beast 上的精力主要集中在接口设计上，而非性能。话虽如此，Beast 中最敏感的部分已经过优化或设计时已考虑到优化。WebSocket 处理的缓慢部分已得到优化，而 HTTP 解析器的设计借鉴自另一个以性能为设计目标的极受欢迎的项目（参见 [@https://github.com/h2o/picohttpparser]）。
 
-    From: [@http://www.boost.org/development/requirements.html]
+引自：[@http://www.boost.org/development/requirements.html]
 
-        "Aim first for clarity and correctness; optimization should
-         be only a secondary concern in most Boost libraries."
+“在大多数 Boost 库中，首先应追求清晰和正确；优化应仅是次要关注点。”
 
-    As the library matures it will undergo optimization passes; benchmarks
-    will logically accompany this process. There is a small benchmarking
-    program included in the tests which compares the performance of
-    Beast's parser to the NodeJS reference parser, as well as some
-    benchmarks which compare the performance of various Beast dynamic
-    buffer implementations against Asio's.
+随着库的成熟，它将经历优化阶段；基准测试自然会伴随这一过程。测试中包含一个小型基准测试程序，用于比较 Beast 解析器与 NodeJS 参考解析器的性能，以及一些比较各种 Beast 动态缓冲区实现与 Asio 性能的基准测试。
 ]]
-[[
-    "Beast is a terrible name!"
-][
-    The name "Boost.Http" or "Boost.WebSocket" would mislead users into
-    believing they could perform an HTTP request on a URL or put up a
-    WebSocket client or server in a couple of lines of code. Where
-    would the core utilities go? Very likely it would step on the
-    owner of Boost.Asio's toes to put things in the boost/asio 
-    directory; at the very least, it would create unrequested,
-    additional work for the foreign repository.
-    
-    "Beast" is sufficiently vague as to not suggest any particular
-    functionality, while acting as a memorable umbrella term for a
-    family of low level containers and algorithms. People in the know
-    or with a need for low-level network protocol operations will
-    have no trouble finding it, and the chances of luring a novice
-    into a bad experience are greatly reduced.
-    There is precedent for proper names: "Hana", "Fusion", "Phoenix",
-    and "Spirit" come to mind. Is "Beast" really any worse than say,
-    "mp11" for example?
-    Beast also already has a growing body of users and attention from
-    the open source community, the name Beast comes up in reddit posts
-    and StackOverflow as the answer to questions about which HTTP or
-    WebSocket library to use.
+[[“Beast 这个名字太糟糕了！”
+][“Boost.Http”或“Boost.WebSocket”这样的名称会误导用户，让他们以为只需几行代码就能通过 URL 发起 HTTP 请求，或搭建一个 WebSocket 客户端或服务器。那么，核心工具该放在哪里呢？如果将内容放入 boost/asio 目录，很可能会冒犯 Boost.Asio 的维护者；至少也会给该外部仓库带来不必要的额外工作。
+
+“Beast”这个名字足够模糊，不会暗示任何特定的功能，同时又作为一个令人印象深刻的总括术语，涵盖了一系列底层的容器和算法。了解该库或有底层网络协议操作需求的人很容易找到它，而将新手诱入糟糕体验的可能性则大大降低。使用专有名称是有先例的：“Hana”、“Fusion”、“Phoenix”和“Spirit”都是例子。例如，“Beast”真的比“mp11”更糟糕吗？此外，Beast 已经拥有越来越多的用户，并受到开源社区的关注；在 Reddit 帖子和 StackOverflow 上，当人们询问该使用哪个 HTTP 或 WebSocket 库时，Beast 经常作为答案出现。
 ]]
 
 
 
-[[
-    "Some more advanced examples, e.g. including TLS with client/server
-    certificates would help."
-][
-    The server-framework example demonstrates how to implement a server
-    that supports TLS using certificates. There are also websocket and
-    HTTP client examples which use TLS. Furthermore, management of
-    certificates is beyond the scope of the public interfaces of the
-    library. Asio already provides documentation, interfaces, and
-    examples for performing these tasks - Beast does not intend to
-    reinvent them or to redundantly provide this information.
+[[“再多一些高级示例会有帮助，比如包含带有客户端/服务器证书的 TLS 的示例。”
+][server-framework 示例演示了如何实现一个使用证书支持 TLS 的服务器。此外，还有使用 TLS 的 WebSocket 和 HTTP 客户端示例。而且，证书管理超出了该库公共接口的范畴。Asio 已经提供了执行这些任务的文档、接口和示例——Beast 不打算重新发明它们，也不打算冗余地提供这些信息。
 ]]
 
-[[
-    "A built-in HTTP router?"
-][
-    We presume this means a facility to match expressions against the URI
-    in HTTP requests, and dispatch them to calling code. The authors feel
-    that this is a responsibility of higher level code. Beast does
-    not try to offer a web server. That said, the server-framework
-    example has a concept of request routing called a Service. Two
-    services are provided, one for serving files and the other for
-    handling WebSocket upgrade requests.
+[[“内置的 HTTP 路由器？”
+][我们理解这指的是一个用于将表达式与 HTTP 请求中的 URI 进行匹配，并将其分派给调用代码的机制。作者认为这是更高层代码的职责。Beast 并不试图提供一个 Web 服务器。话虽如此，server-framework 示例中提供了一个名为 Service 的请求路由概念。该示例提供了两种服务，一种用于提供文件服务，另一种用于处理 WebSocket 升级请求。
 ]]
 
-[[
-    "HTTP Cookies? Forms/File Uploads?"
-][
-    Cookies, or managing these types of HTTP headers in general, is the
-    responsibility of higher levels. Beast just tries to get complete
-    messages to and from the calling code. It deals in the HTTP headers just
-    enough to process the message body and leaves the rest to callers. However,
-    for forms and file uploads the symmetric interface of the message class
-    allows HTTP requests to include arbitrary body types including those needed
-    to upload a file or fill out a form.
+[[“HTTP Cookies？表单/文件上传？”
+][“Cookie，或者说一般性地管理这类 HTTP 头部，属于更高层级的职责。Beast 只是尽量将完整的消息传递到调用代码中或从调用代码中传出。它对 HTTP 头部的处理仅限于解析消息体所需的程度，其余部分则留给调用者自行处理。不过，对于表单和文件上传，消息类的对称接口允许 HTTP 请求包含任意的消息体类型，包括上传文件或填写表单所需的类型。”
 ]]
 
-[[
-    "...supporting TLS (is this a feature? If not this would be a show-stopper),
-    etc."
-][
-    Beast works with the Stream concept, so it automatically works with the
-    `boost::asio::ssl::stream` that you have already set up through Asio.
+[[“……支持 TLS（这是一个功能吗？如果不是，这将是一个致命缺陷），等等。”
+][Beast 基于 Stream 概念，因此能自动兼容通过 Asio 已配置好的 `boost::asio::ssl::stream`。
 ]]
 
-[[
-    "There should also be more examples of how to integrate the http service
-    with getting files from the file system, generating responses CGI-style"
-][
-    The design goal for the library is to not try to invent a web server.
-    We feel that there is a strong need for a basic implementation that
-    models the HTTP message and provides functions to send and receive them
-    over Asio. Such an implementation should serve as a building block upon
-    which higher abstractions such as the aforementioned HTTP service or
-    cgi-gateway can be built.
+[[“还应提供更多示例，展示如何将 HTTP 服务与从文件系统获取文件、生成 CGI 风格的响应进行集成。”
+][该库的设计目标并非试图构建一个 Web 服务器。我们深感需要一种基础实现，用于对 HTTP 消息进行建模，并提供通过 Asio 发送和接收这些消息的函数。此类实现应作为构建块，用于构建前述 HTTP 服务或 CGI 网关等更高级别的抽象。
 
-    There are several HTTP servers in the example directory which deliver
-    files, as well as some tested and compiled code snippets which can be
-    used as a starting point for interfacing with other processes.
+在示例目录中，存在多个用于提供文件服务的 HTTP 服务器，以及部分经过测试和编译的代码片段，这些内容可作为与其他进程进行交互的起点。
 ]]
 
-[[
-    "You should send a 100-continue to ask for the rest of the body if required."
-][
-    Deciding on whether to send the "Expect: 100-continue" header or
-    how to handle it on the server side is the caller's responsibility;
-    Beast provides the functionality to send or inspect the header before
-    sending or reading the body.
+[[“如果确实需要，应当发送 100-continue 以请求剩余的请求体。”
+][是否发送 "Expect: 100-continue" 头部，或者如何在服务端处理该头部，均由调用者自行负责；Beast 提供相应的功能，用于在发送或读取消息体之前发送或检查该头部。
 ]]
 
 
 
-[[
-    "I would also like to see instances of this library being used
-    in production. That would give some evidence that the design
-    works in practice."
-][
-    Beast has already been on public servers receiving traffic and handling
-    hundreds of millions of dollars' worth of financial transactions daily.
-    The servers run [*rippled], open source software
-    ([@https://github.com/ripple/rippled repository])
-    implementing the
-    [@https://ripple.com/files/ripple_consensus_whitepaper.pdf [*Ripple Consensus Protocol]],
-    technology provided by [@http://ripple.com Ripple].
+[[“我也希望看到该库在生产环境中使用的实例。这将为其设计在实践中切实可行提供佐证。”
+][Beast 已部署于公开服务器，接收流量并每日处理价值数亿美元的金融交易。这些服务器运行的是 *rippled*，这是一款开源软件（[@https://github.com/ripple/rippled repository]），实现了 [@https://ripple.com/files/ripple_consensus_whitepaper.pdf *Ripple Consensus Protocol*]，该技术由 [@http://ripple.com Ripple] 提供。
 
-    Furthermore, the repository has grown significantly in popularity in
-    2017. There are many users, and some of them participate directly in
-    the repository by reporting issues, performing testing, and in some
-    cases submitting pull requests with code contributions.
+此外，该仓库在 2017 年人气显著增长。目前存在大量用户，其中部分用户通过报告问题、执行测试，甚至在某些情况下提交包含代码贡献的拉取请求，直接参与仓库的维护。
 ]]
 
 
 
-[[
-    What about WebSocket message compression?
-][
-    Beast WebSocket supports the permessage-deflate extension described in
-    [@https://tools.ietf.org/html/draft-ietf-hybi-permessage-compression-00 draft-ietf-hybi-permessage-compression-00].
-    The library comes with a header-only, C++11 port of ZLib's "deflate" codec
-    used in the implementation of the permessage-deflate extension.
+[[那 WebSocket 消息压缩呢？
+][Beast WebSocket 支持 [@https://tools.ietf.org/html/draft-ietf-hybi-permessage-compression-00 draft-ietf-hybi-permessage-compression-00] 中描述的 permessage-deflate 扩展。该库附带一个仅含头文件的 C++11 版本 ZLib "deflate" 编解码器，用于实现 permessage-deflate 扩展。
 ]]
-[[
-    Where is the WebSocket TLS/SSL interface?
-][
-    The `websocket::stream` wraps the socket or stream that you provide
-    (for example, a `boost::asio::ip::tcp::socket` or a
-    `boost::asio::ssl::stream`). You establish your TLS connection using the
-    interface on `ssl::stream` like shown in all of the Asio examples, then
-    construct your `websocket::stream` around it.
+[[WebSocket TLS/SSL 接口位于何处？
+][`websocket::stream` 对传入的套接字或流（例如 `boost::asio::ip::tcp::socket` 或 `boost::asio::ssl::stream`）进行封装。使用 `ssl::stream` 的接口建立 TLS 连接（如所有 Asio 示例所示），随后围绕该连接构建 `websocket::stream`。
 
-    The WebSocket implementation [*does] provide support for shutting down
-    the TLS connection through the use of the ADL compile-time virtual functions
-    [link beast.ref.boost__beast__websocket__teardown `teardown`] and
-    [link beast.ref.boost__beast__websocket__async_teardown `async_teardown`]. These will
-    properly close the connection as per rfc6455 and overloads are available
-    for TLS streams. Callers may provide their own overloads of these functions
-    for user-defined next layer types.
+WebSocket 实现确实支持关闭 TLS 连接，该操作通过 ADL 编译期虚函数 [link beast.ref.boost__beast__websocket__teardown `teardown`] 和 [link beast.ref.boost__beast__websocket__async_teardown `async_teardown`] 进行。这些函数针对 TLS 流提供了重载，能够按照 rfc6455 规范正确关闭连接。针对用户自定义的底层流类型，调用者可以提供这些函数的自定义重载。
 ]]
-[[
-    Windows and OpenSSL: How do I install and build with OpenSSL on Microsoft Windows?
-][
-    An easy method is to use command-line package installers chocolatey or scoop. Examples:
-    "choco install -y openssl --x86 --version 1.1.1.700" or 
-    "scoop install openssl@1.1.1g -a 32bit -g"
+[[Windows 与 OpenSSL：如何在 Microsoft Windows 上安装并使用 OpenSSL 进行构建？
+][一种简便方法是使用命令行包管理器 Chocolatey 或 Scoop。示例如下：`choco install -y openssl --x86 --version 1.1.1.700` 或 `scoop install openssl@1.1.1g -a 32bit -g`
 
-    If you've installed OpenSSL to a directory with spaces in the name, it's often
-    preferable to create a symbolic link so that you may use a simpler path, such as:
+如果将 OpenSSL 安装到了名称包含空格的目录中，建议创建符号链接以使用更简单的路径，例如：
+`mklink /D "OpenSSL" "Program Files (x86)\\OpenSSL-Win32"`
 
-    mklink /D "OpenSSL" "Program Files (x86)\\OpenSSL-Win32"
+将环境变量 `OPENSSL_ROOT` 设置为新安装目录的位置：
+`set OPENSSL_ROOT=C:/OpenSSL`
 
-    Set the environment variable OPENSSL_ROOT to the location of the new install:
-
-    set OPENSSL_ROOT=C:/OpenSSL
-
-    Then, proceed to build. Refer to beast/.dockers/windows-vs-32/Dockerfile for an example of building the test cases with OpenSSL.
+随后进行构建。有关使用 OpenSSL 构建测试用例的示例，请参考 `beast/.dockers/windows-vs-32/Dockerfile`。
 ]]
 ]
 
