@@ -7,55 +7,34 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section Design Choices]
+[section 设计选择]
 
-The implementations were originally driven by business needs of cryptocurrency
-server applications (e.g.  [@https://github.com/ripple/rippled rippled]),
-written in C++. These needs were not met by existing solutions so Beast
-was written from scratch as a solution. Beast's design philosophy avoids
-flaws exhibited by other libraries:
+这些实现最初是由加密货币服务器应用（例如 [rippled](https://github.com/ripple/rippled)）的业务需求驱动的，使用 C++ 编写。由于现有方案无法满足这些需求，因此从零开始编写了 Beast 作为解决方案。Beast 的设计哲学避免了其他库所表现出的缺陷：
 
-* Don't try to do too much.
+* 不要试图包揽过多功能。
 
-* Don't sacrifice performance.
+* 绝不牺牲性能。
 
-* Mimic __Asio__; familiarity breeds confidence.
+* 模仿 Asio；熟悉感带来信心。
 
-* Role-symmetric interfaces; client and server the same (or close to it).
+* 角色对称的接口；客户端与服务端一致（或高度相似）。
 
-* Leave important decisions, such as allocating memory or
+* 将重要决策权（如内存分配或
   managing flow control, to the user.
 
-Beast uses the __DynamicBuffer__ concept presented in the __NetTS__,
-and relies heavily on the __ConstBufferSequence__ and
-__MutableBufferSequence__ concepts for passing buffers to functions.
-The authors have found the dynamic buffer and buffer sequence interfaces to
-be optimal for interacting with Asio, and for other tasks such as incremental
-parsing of data in buffers (for example, parsing websocket frames stored
-in a [link beast.ref.boost__beast__static_buffer `static_buffer`]).
+Beast 采用了 NetTS 中提出的 DynamicBuffer 概念，并高度依赖 ConstBufferSequence 和 MutableBufferSequence 概念来向函数传递缓冲区。作者发现，动态缓冲区和缓冲区序列接口不仅非常适合与 Asio 交互，也非常适合其他任务，例如对缓冲区中的数据进行增量解析（比如解析存储在 [link beast.ref.boost__beast__static_buffer `static_buffer`] 中的 WebSocket 帧）。
 
-During the development of Beast the authors have studied other software
-packages and in particular the comments left during the Boost Review process
-of other packages offering similar functionality. In this section and the
-FAQs that follow we attempt to answer those questions that are also applicable
-to Beast.
+在开发 Beast 的过程中，作者研究了其他软件包，特别是针对其他提供类似功能的软件包在 Boost 审查过程中留下的评论。在本节以及随后的常见问题解答（FAQs）中，我们将尝试回答那些同样适用于 Beast 的问题。
 
-For HTTP we model the message to maximize flexibility of implementation
-strategies while allowing familiar verbs such as [*`read`] and [*`write`].
-The HTTP interface is further driven by the needs of the WebSocket module,
-as a WebSocket session requires a HTTP Upgrade handshake exchange at the
-start. Other design goals:
+对于 HTTP，我们对消息进行建模，以最大限度地提高实现策略的灵活性，同时允许使用诸如 [*`read`] 和 [*`write`] 等熟悉的动词。HTTP 接口的设计还进一步受 WebSocket 模块需求的驱动，因为 WebSocket 会话在开始时需要一次 HTTP 升级握手交换。其他设计目标：
 
-* Keep it simple.
+* 保持简单。
 
-* Stay low level; don't invent a whole web server or client.
+* 保持底层；不要重新发明一整套 Web 服务器或客户端。
 
-* Allow for customizations, if the user needs it.
+* 允许用户根据需要进行自定义。
 
-The following video presentation was delivered at
-[@https://cppcon.org/ CppCon]
-in 2016. It provides a light introduction to some of the earliest
-interfaces of Beast (which have since changed).
+以下视频演示是在 2016 年的 [@https://cppcon.org/ CppCon] 上发表的。它简要介绍了 Beast 的一些早期接口（这些接口此后已发生变化）。
 
 [/ "Introducing Beast..."]
 [block'''
