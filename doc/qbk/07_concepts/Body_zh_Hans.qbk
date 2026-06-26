@@ -7,54 +7,38 @@
     Official repository: https://github.com/boostorg/beast
 ]
 
-[section:Body Body]
+[section:Body 消息体]
 
-A [*Body] type is supplied as a template argument to the __message__ class. It
-controls both the type of the data member of the resulting message object, and
-the algorithms used during parsing and serialization.
+[*Body] 类型作为模板参数传递给 __message__ 类。它决定结果消息对象中数据成员的类型，以及解析和序列化所用算法。
 
-[heading Associated Types]
+[heading 关联类型]
 
 * [link beast.ref.boost__beast__http__is_body `is_body`]
 * __BodyReader__
 * __BodyWriter__
 
-[heading Requirements]
+[heading 要求]
 
-In this table:
+在下表中：
 
-* `B` is a type meeting the requirements of [*Body].
-* `m` is a value of type `message<b,B,F>` where `b` is a `bool` value
+* `B` 是一个满足 [*Body] 要求的类型。
+* `m` 是类型为 `message<b,B,F>` 的值，其中 `b` 为 `bool` 类型的值。
   and `F` is a type meeting the requirements of __Fields__.
 
-[table Valid expressions
-[[Expression] [Type] [Semantics, Pre/Post-conditions]]
+[table 有效表达式
+[[表达式] [类型] [语义、前置条件与后置条件]]
 [
     [`B::value_type`]
     []
-    [
-        The return type of the `message::body` member function.
-        If this is not movable or not copyable, the containing message
-        will be not movable or not copyable.
-    ]
+    [`message::body` 成员函数返回的类型。如果该类型不支持移动或复制，则包含它的消息对象同样不支持移动或复制。]
 ][
     [`B::reader`]
     []
-    [
-        If present, indicates that the body can be parsed. The type
-        must meet the requirements of __BodyReader__. The implementation
-        constructs an object of this type to obtain buffers into which
-        parsed body octets are placed.
-    ]
+    [若该类型存在，则表示消息体可被解析。该类型必须满足 __BodyReader__ 的要求。实现会构造该类型的对象，用于获取存放已解析消息体八位字节的缓冲区。]
 ][
     [`B::writer`]
     []
-    [
-        If present, indicates that the body is serializable. The type
-        must meet the requirements of __BodyWriter__. The implementation
-        constructs an object of this type to obtain buffers representing
-        the message body for serialization.
-    ]
+    [若存在该类型，则用于表示该主体可序列化。该类型必须满足 __BodyWriter__ 的要求。该实现用于构造该类型的对象，以获取用于表示消息主体序列化内容的缓冲区。]
 ][
     [
     ```
@@ -63,44 +47,25 @@ In this table:
     ```
     ]
     [`std::uint64_t`]
-    [
-        This static member function is optional. It returns the payload
-        size of `body` in bytes not including any chunked transfer encoding.
-        The return value may be zero, to indicate that the message is known
-        to have no payload. The function shall not exit via an exception.
+    [该静态成员函数为可选。它返回消息体的大小（以字节为单位），不包含任何分块传输编码。返回值可能为零，表示已知消息不包含有效载荷。该函数不应通过异常退出。
 
-        When this function is present:
+当该函数存在时：
 
-        * The function shall not fail
+* 函数不应失败。
+* 调用 [link beast.ref.boost__beast__http__message.payload_size `message::payload_size`] 将返回与 `size` 相同的值。
+* 调用 [link beast.ref.boost__beast__http__message.prepare_payload `message::prepare_payload`] 将移除 Transfer-Encoding 字段中的 "chunked"（如果它作为最后一个编码出现），并将 Content-Length 字段设置为返回的值。
 
-        * A call to
-        [link beast.ref.boost__beast__http__message.payload_size `message::payload_size`]
-        will return the same value as `size`.
+否则，当该函数省略时：
 
-        * A call to
-        [link beast.ref.boost__beast__http__message.prepare_payload `message::prepare_payload`]
-        will remove "chunked" from the Transfer-Encoding field if it appears
-        as the last encoding, and will set the Content-Length field to the
-        returned value.
-
-        Otherwise, when the function is omitted:
-
-        * A call to
-        [link beast.ref.boost__beast__http__message.payload_size `message::payload_size`]
-        will return `boost::none`.
-
-        * A call to
-        [link beast.ref.boost__beast__http__message.prepare_payload `message::prepare_payload`]
-        will erase the Content-Length field, and add "chunked" as the last
-        encoding in the Transfer-Encoding field if it is not already present.
-    ]
+* 调用 [link beast.ref.boost__beast__http__message.payload_size `message::payload_size`] 将返回 `boost::none`。
+* 调用 [link beast.ref.boost__beast__http__message.prepare_payload `message::prepare_payload`] 将擦除 Content-Length 字段，并在 Transfer-Encoding 字段中添加 "chunked" 作为最后一个编码（如果尚未存在）。]
 ]]
 
-[heading Exemplar]
+[heading 示例]
 
 [concept_Body]
 
-[heading Models]
+[heading 模型]
 
 * [link beast.ref.boost__beast__http__basic_dynamic_body `basic_dynamic_body`]
 * [link beast.ref.boost__beast__http__basic_file_body `basic_file_body`]
