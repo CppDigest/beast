@@ -130,108 +130,53 @@ __AsyncReadStream__ 与 __AsyncWriteStream__ 概念用于定义 [异步流] 的�
 
 [heading 通用模型]
 
-Because completion handlers cause an inversion of the flow of control,
-sometimes other methods of attaching a continuation are desired. Networking
-provides the
-[@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3747.pdf ['Universal Model for Asynchronous Operations]],
-providing a customizable means for transforming the signature of the initiating
-function to use other types of objects and methods in place of a completion
-handler callback. For example to call to write a string to a socket
-asynchronously, using a `std::future` to receive the number of bytes transferred
-thus looks like this:
+由于完成处理器会导致控制流反转，有时需要其他方式来附加延续。网络库提供 [@http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3747.pdf [异步操作通用模型]]，该模型提供一种可定制的方法，用于改变发起函数的签名，以便使用其他类型的对象和方法来替代完成处理器回调。例如，使用 `std::future` 接收传输字节数来异步向套接字写入字符串的调用方式如下：
 
 [code_core_1_refresher_4s]
 
-This functionality is enabled by passing the variable
-[@boost:/doc/html/boost_asio/reference/use_future.html `net::use_future`]
-(of type
-[@boost:/doc/html/boost_asio/reference/use_future_t.html `net::use_future_t<>`])
-in place of the completion handler. The same `async_write` function overload
-can work with a
-[@https://en.wikipedia.org/wiki/Fiber_(computer_science) ['fiber]]
-launched with
-[@boost:/doc/html/boost_asio/reference/spawn/overload1.html `asio::spawn`]:
+此功能通过将变量 [@boost:/doc/html/boost_asio/reference/use_future.html `net::use_future`]（类型为 [@boost:/doc/html/boost_asio/reference/use_future_t.html `net::use_future_t<>`]）传递给完成处理器位置来实现。同一个 `async_write` 函数重载还可以与通过 [@boost:/doc/html/boost_asio/reference/spawn/overload1.html `asio::spawn`] 启动的 [@https://en.wikipedia.org/wiki/Fiber_(computer_science) [纤程]] 配合使用：
 
 [code_core_1_refresher_5s]
 
-In both of these cases, an object with a specific type is used in place of
-the completion handler, and the return value of the initiating function
-is transformed from `void` to `std::future<std::size_t>` or `std::size_t`.
-The handler is sometimes called a
-__CompletionToken__
-when used in this context. The return type transformation is supported by
-customization points in the initiating function signature. Here is the
-signature for
-[@boost:/doc/html/boost_asio/reference/async_write/overload1.html `net::async_write`]:
+在这两种情况下，都使用具有特定类型的对象来替代完成处理器，且发起函数的返回值也从 `void` 转变为 `std::future<std::size_t>` 或 `std::size_t`。在这种上下文中，该处理器有时被称为 __CompletionToken__。发起函数签名中的定制点支持这种返回值类型的转换。以下是 [@boost:/doc/html/boost_asio/reference/async_write/overload1.html `net::async_write`] 的签名：
 
-Note that a `spawn` function itself has a completion signature,
-but we're ignoring it's result in the example by using `asio::detached`.
+需要注意的是，`spawn` 函数本身也带有完成签名，但示例中通过使用 `asio::detached` 忽略了它的结果。
 
 [code_core_1_refresher_9]
 
-The type of the function's return value is determined by the
-[@boost:/doc/html/boost_asio/reference/async_result.html `net::async_result`]
-customization point, which comes with specializations for common library
-types such as `std::future` and may also be specialized for user-defined
-types. The body of the initiating function calls the
-[@boost:/doc/html/boost_asio/reference/async_initiate.html `net::async_initiate`]
-helper to capture the arguments and forward them to the specialization of
-`async_result`. An additional "initiation function" object is provided which
-`async_result` may use to immediately launch the operation, or defer the launch
-of the operation until some point in the future (this is called "lazy
-execution"). The initiation function object receives the internal completion
-handler which matches the signature expected by the initiating function:
+函数返回值类型由 [@boost:/doc/html/boost_asio/reference/async_result.html `net::async_result`] 定制点决定。该定制点为 `std::future` 等常用库类型提供特化版本，同时也支持用户自定义类型的特化。发起函数的函数体通过调用 [@boost:/doc/html/boost_asio/reference/async_initiate.html `net::async_initiate`] 辅助函数来捕获参数并将其转发给 `async_result` 的特化版本。此外，还提供一个额外的“发起函数”对象，`async_result` 可利用该对象立即启动操作，或将操作启动延迟到未来某个时刻（即“延迟执行”）。该发起函数对象接收一个内部完成处理器，其签名与发起函数所期望的签名相匹配。
 
 [code_core_1_refresher_10]
 
-This transformed, internal handler is responsible for the finalizing step that
-delivers the result of the operation to the caller. For example, when using
-`net::use_future` the internal handler will deliver the result by calling
-[@https://en.cppreference.com/w/cpp/thread/promise/set_value `std::promise::set_value`]
-on the promise object returned by the initiating function.
+这个经过转换的内部处理器负责执行最终步骤，将操作结果传递给调用方。例如，当使用 `net::use_future` 时，内部处理器会通过调用发起函数返回的 promise 对象上的 [@https://en.cppreference.com/w/cpp/thread/promise/set_value `std::promise::set_value`] 来传递结果。
 
 [/-----------------------------------------------------------------------------]
 
-[heading Using Networking]
+[heading 使用网络库]
 
-Most library stream algorithms require a __socket__, __ssl_stream__, or
-other __Stream__ object that has already established communication with
-a remote peer. This example is provided as a reminder of how to work with
-sockets:
+大多数库中的流算法都需要一个已与远程对等端建立通信的 __socket__、__ssl_stream__ 或其他 __Stream__ 对象。以下示例用于回顾如何使用套接字：
 
 [snippet_core_2]
 
-Throughout this documentation identifiers with the following names have
-special meaning:
+在本文档中，以下名称的标识符具有特殊含义：
 
-[table Global Variables
-[[Name][Description]]
+[table 全局变量
+[[名称][描述]]
 [[
     [@boost:/doc/html/boost_asio/reference/io_context.html [*`ioc`]]
-][
-    A variable of type __io_context__ which is running on one separate thread,
-    and upon which an __executor_work_guard__ object has been constructed.
+][一个类型为 __io_context__ 的变量，该变量在单独线程上运行，且已为其构造一个 __executor_work_guard__ 对象。
 ]]
 [[
     [@boost:/doc/html/boost_asio/reference/ip__tcp/socket.html [*`sock`]]
-][
-    A variable of type
-    [@boost:/doc/html/boost_asio/reference/ip__tcp/socket.html `tcp::socket`]
-    which has already been connected to a remote host.
+][一个类型为 [@boost:/doc/html/boost_asio/reference/ip__tcp/socket.html `tcp::socket`] 的变量，该变量已连接到远程主机。
 ]]
 [[
     [@boost:/doc/html/boost_asio/reference/ssl__stream.html [*`ssl_sock`]]
-][
-    A variable of type
-    [@boost:/doc/html/boost_asio/reference/ssl__stream.html `net::ssl::stream<tcp::socket>`]
-    which is already connected and has handshaked with a remote host.
+][一个类型为 [@boost:/doc/html/boost_asio/reference/ssl__stream.html `net::ssl::stream<tcp::socket>`] 的变量，该变量已与远程主机建立连接并完成握手。
 ]]
 [[
     [link beast.ref.boost__beast__websocket__stream [*`ws`]]
-][
-    A variable of type
-    [link beast.ref.boost__beast__websocket__stream `websocket::stream<tcp::socket>`]
-    which is already connected with a remote host.
+][一个类型为 [link beast.ref.boost__beast__websocket__stream `websocket::stream<tcp::socket>`] 的变量，该变量已与远程主机建立连接。
 ]]
 ]
 

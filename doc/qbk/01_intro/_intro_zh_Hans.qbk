@@ -36,7 +36,7 @@ Beast 授权用户基于 HTTP/1 和 WebSocket 构建自己的库、客户端及�
 [section 要求]
 
 [important
-    该库面向熟悉 Asio 的程序员。用户
+    该库面向熟悉 __Asio__的程序员。用户
     wish to use asynchronous interfaces should already know how to
     create concurrent network programs using callbacks or coroutines.
 ]

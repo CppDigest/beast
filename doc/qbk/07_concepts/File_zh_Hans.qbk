@@ -5,173 +5,90 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 ]
 
-[section:File File]
+[section:File 文件]
 
-The [*File] concept abstracts access to files in the underlying file system.
-To support other platform interfaces, users may author their own [*File]
-types which meet these requirements.
+[*File] 概念抽象了对底层文件系统中文件的访问。为了支持其他平台接口，用户可以编写满足这些要求的自有 [*File] 类型。
 
-[heading Associated Types]
+[heading 关联类型]
 
 * [link beast.ref.boost__beast__file_mode `file_mode`]
 * [link beast.ref.boost__beast__is_file `is_file`]
 
-[heading Requirements]
+[heading 要求]
 
-In this table:
+在下表中：
 
-* `F` is a [*File] type
-* `f` is an instance of `F`
-* `p` is a value of type `char const*` which points to a null
+* `F` 是一个 [*File] 类型。
+* `f` 是 `F` 的一个实例。
+* `p` 是一个 `char const*` 类型的值，指向一个空字符（null）
       terminated utf-8 encoded string.
-* `m` is an instance of [link beast.ref.boost__beast__file_mode `file_mode`]
-* `n` is a number of bytes, convertible to `std::size_t`
-* `o` is a byte offset in the file, convertible to `std::uint64_t`
-* `b` is any non-const pointer to memory
-* `c` is any possibly-const pointer to memory
-* `ec` is a reference of type [link beast.ref.boost__beast__error_code `error_code`]
+* `m` 是一个 [link beast.ref.boost__beast__file_mode `file_mode`] 的实例。
+* `n` 是字节数，可转换为 `std::size_t` 类型。
+* `o` 是文件中的字节偏移量，可转换为 `std::uint64_t` 类型。
+* `b` 是指向内存的任意非常量指针。
+* `c` 是指向内存的任意可能为常量的指针。
+* `ec` 是一个 [link beast.ref.boost__beast__error_code `error_code`] 类型的引用。
 
-[table Valid expressions
-[[Expression] [Type] [Semantics, Pre/Post-conditions]]
-[[Operation] [Return Type] [Semantics, Pre/Post-conditions]]
+[table 有效表达式
+[[表达式] [类型] [语义，前置/后置条件]]
+[[操作] [返回类型] [语义，前置/后置条件]]
 [
     [`F()`]
     [ ]
-    [
-        Default constructable
-    ]
+    [默认构造（Default constructible）]
 ]
 [
     [`f.~F()`]
     [ ]
-    [
-        Destructible.
-        If `f` refers to an open file, it is first closed
-        as if by a call to `close` with the error ignored.
-    ]
+    [可析构。若 `f` 引用一个打开的文件，则先将其关闭，其行为等同于调用 `close`，且忽略可能产生的错误。]
 ]
 [
     [`f.is_open()`]
     [`bool`]
-    [
-        Returns `true` if `f` refers to an open file, `false` otherwise.
-    ]
+    [若 `f` 引用一个打开的文件，则返回 `true`，否则返回 `false`。]
 ]
 [
     [`f.close(ec)`]
     []
-    [
-        If `f` refers to an open file, this function attempts to
-        close the file.
-        Regardless of whether an error occurs or not, a subsequent
-        call to `f.is_open()` will return `false`.
-        The function will ensure that `!ec` is `true` if there was
-        no error or set to the appropriate error code if an error
-        occurred. 
-    ]
+    [若 `f` 引用一个打开的文件，此函数将尝试将其关闭。无论关闭过程中是否发生错误，后续对 `f.is_open()` 的调用均会返回 `false`。同时，该函数会根据实际执行情况设置错误代码：若未发生错误，则确保 `!ec` 为 `true`；若发生错误，则将其设置为相应的错误代码。]
 ]
 [
     [`f.open(p,m,ec)`]
     []
-    [
-        Attempts to open the file at the path specified by `p`
-        with the mode specified by `m`.
-        Upon success, a subsequent call to `f.is_open()` will
-        return `true`.
-        If `f` refers to an open file, it is first closed
-        as if by a call to `close` with the error ignored.
-        The function will ensure that `!ec` is `true` if there was
-        no error or set to the appropriate error code if an error
-        occurred. 
-
-    ]
+    [该函数尝试以 `m` 指定的模式打开 `p` 指定的路径对应的文件。若 `f` 引用一个打开的文件，则先将其关闭，其行为等同于调用 `close`，且忽略可能产生的错误。若打开成功，后续对 `f.is_open()` 的调用均会返回 `true`。同时，该函数会根据实际执行情况设置错误代码：若未发生错误，则确保 `!ec` 为 `true`；若发生错误，则将其设置为相应的错误代码。]
 ]
 [
     [`f.size(ec)`]
     [`std::uint64_t`]
-    [
-        If `f` refers to an open file, this function attempts to
-        determine the file size and return its value.
-        If `f` does not refer to an open file, the function will
-        set `ec` to `errc::invalid_argument` and return 0.
-        The function will ensure that `!ec` is `true` if there was
-        no error or set to the appropriate error code if an error
-        occurred. 
-    ]
+    [若 `f` 引用一个打开的文件，该函数将尝试获取并返回其文件大小。若 `f` 未引用一个打开的文件，该函数会将 `ec` 设置为 `errc::invalid_argument` 并返回 0。同时，该函数会根据实际执行情况设置错误代码：若未发生错误，则确保 `!ec` 为 `true`；若发生错误，则将其设置为相应的错误代码。]
 ]
 [
     [`f.pos(ec)`]
     [`std::uint64_t`]
-    [
-        If `f` refers to an open file, this function attempts to
-        determine the current file offset and return it.
-        If `f` does not refer to an open file, the function will
-        set `ec` to `errc::invalid_argument` and return 0.
-        The function will ensure that `!ec` is `true` if there was
-        no error or set to the appropriate error code if an error
-        occurred. 
-    ]
+    [若 `f` 引用一个打开的文件，该函数将尝试获取并返回当前文件偏移量。若 `f` 未引用一个打开的文件，该函数会将 `ec` 设置为 `errc::invalid_argument` 并返回 0。同时，该函数会根据实际执行情况设置错误代码：若未发生错误，则确保 `!ec` 为 `true`；若发生错误，则将其设置为相应的错误代码。]
 ]
 [
     [`f.seek(o,ec)`]
     []
-    [
-        Attempts to reposition the current file offset to the value
-        `o`, which represents a byte offset relative to the beginning
-        of the file.
-        If `f` does not refer to an open file, the function will
-        set `ec` to `errc::invalid_argument` and return immediately.
-        The function will ensure that `!ec` is `true` if there was
-        no error or set to the appropriate error code if an error
-        occurred. 
-    ]
+    [该函数尝试将当前文件偏移量重新定位到 `o`，该值表示相对于文件起始位置的字节偏移量。若 `f` 未引用一个打开的文件，该函数会将 `ec` 设置为 `errc::invalid_argument` 并立即返回。同时，该函数会根据实际执行情况设置错误代码：若未发生错误，则确保 `!ec` 为 `true`；若发生错误，则将其设置为相应的错误代码。]
 ]
 [
     [`f.read(b,n,ec)`]
     [`std::size_t`]
-    [
-        Attempts to read `n` bytes starting at the current file offset
-        from the open file referred to by `f`.
-        Bytes read are stored in the memory buffer at address `b` which
-        must be at least `n` bytes in size.
-        The function advances the file offset by the amount read, and
-        returns the number of bytes actually read, which may be less
-        than `n`.
-        If `f` does not refer to an open file, the function will
-        set `ec` to `errc::invalid_argument` and return immediately.
-        The function will ensure that `!ec` is `true` if there was
-        no error or set to the appropriate error code if an error
-        occurred.
-        If an end-of-file condition is detected prior to reading any
-        bytes, the function will ensure that `!ec` is `true` and the
-        return value shall be 0.
-    ]
+    [该函数尝试从 `f` 引用的打开文件中，自当前文件偏移量处读取 `n` 个字节。读取的字节将存储到地址 `b` 处的内存缓冲区中，该缓冲区的大小必须至少为 `n` 个字节。该函数会将文件偏移量推进已读取的字节数，并返回实际读取的字节数，该值可能小于 `n`。若 `f` 未引用一个打开的文件，该函数会将 `ec` 设置为 `errc::invalid_argument` 并立即返回。同时，该函数会根据实际执行情况设置错误代码：若未发生错误，则确保 `!ec` 为 `true`；若发生错误，则将其设置为相应的错误代码。若在读取任何字节之前检测到文件结束条件，该函数将确保 `!ec` 为 `true`，且返回值为 0。]
 ]
 [
     [`f.write(c,n,ec)`]
     [`std::size_t`]
-    [
-        Attempts to write `n` bytes from the buffer pointed to by `c` to
-        the current file offset of the open file referred to by `f`. 
-        The memory buffer at `c` must point to storage of at least `n`
-        bytes meant to be copied to the file.
-        The function advances the file offset by the amount written,
-        and returns the number of bytes actually written, which may be
-        less than `n`.
-        If `f` does not refer to an open file, the function will
-        set `ec` to `errc::invalid_argument` and return immediately.
-        The function will ensure that `!ec` is `true` if there was
-        no error or set to the appropriate error code if an error
-        occurred. 
-    ]
+    [该函数尝试将 `c` 指向的缓冲区中的 `n` 个字节写入 `f` 引用的打开文件的当前文件偏移量处。`c` 处的内存缓冲区必须指向大小至少为 `n` 个字节的存储，用于复制到文件。该函数会将文件偏移量推进已写入的字节数，并返回实际写入的字节数，该值可能小于 `n`。若 `f` 未引用一个打开的文件，该函数会将 `ec` 设置为 `errc::invalid_argument` 并立即返回。同时，该函数会根据实际执行情况设置错误代码：若未发生错误，则确保 `!ec` 为 `true`；若发生错误，则将其设置为相应的错误代码。]
 ]
 ]
 
-[heading Exemplar]
+[heading 示例]
 
 [concept_File]
 
-[heading Models]
+[heading 模型]
 
 * [link beast.ref.boost__beast__file_posix `file_posix`]
 * [link beast.ref.boost__beast__file_stdio `file_stdio`]
