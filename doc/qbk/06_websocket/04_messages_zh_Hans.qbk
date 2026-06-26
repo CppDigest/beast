@@ -9,93 +9,65 @@
 
 [/-----------------------------------------------------------------------------]
 
-[section:messages Messages]
+[section:messages 消息]
 
-Once a websocket session is established, messages can be sent unsolicited by
-either peer at any time. A message is made up of one or more ['messages frames].
-Each frame is prefixed with the size of the payload in bytes, followed by the
-data. A frame also contains a flag (called 'fin') indicating whether or not it
-is the last frame of the message. When a message is made up from only one frame,
-it is possible to know immediately what the size of the message will be.
-Otherwise, the total size of the message can only be determined once
-the last frame is received.
+WebSocket 会话建立后，任何一端都可以随时主动发送消息。每条消息由一个或多个消息帧组成。每个帧的前部是有效载荷的字节长度，随后是数据内容。帧还包含一个名为 fin 的标志，用于标识该帧是否为消息的最后一帧。如果消息只由一个帧构成，则可以立即获知消息大小。否则，消息的总大小只能在接收到最后一帧时才能确定。
 
-The boundaries between frames of a multi-frame message are not not considered
-part of the message. Intermediaries such as proxies which forward the websocket
-traffic are free to "reframe" (split frames and combine them) the message in
-arbitrary ways. These intermediaries include Beast, which can reframe messages
-automatically in some cases depending on the options set on the stream.
+多帧消息中，各帧的边界不属于消息内容的一部分。像代理这类转发 WebSocket 流量的中间节点，可以自由地对消息进行“重帧处理”（即拆分或合并帧）。Beast 也属于这类中间节点，它会根据流上配置的选项，在某些场景下自动重帧消息。
 
 [caution
-    An algorithm should never depend on the way that incoming or outgoing
+    算法不应依赖入站或出站消息的帧结构方式。
     messages are split up into frames.
 ]
 
-Messages can be either text or binary. A message sent as text must contain
-consist of valid utf8, while a message sent as binary may contain arbitrary
-data. In addition to message frames, websocket provides ['control frames]
-in the form of ping, pong, and close messages which have a small upper limit
-on their payload size. Depending on how a message is framed, control frames
-may have more opportunities to be sent in-between.
+消息可以是文本类型或二进制类型。以文本形式发送的消息必须包含有效的 UTF-8 编码，而以二进制形式发送的消息则可以包含任意数据。除了消息帧之外，WebSocket 还提供控制帧，包括 ping、pong 和 close 消息，这些控制帧的有效载荷大小有较小的上限限制。根据消息的帧结构方式，控制帧可能有更多的机会在传输间隙发送。
 
-[heading Sending]
+[heading 发送]
 
-These stream members are used to write websocket messages:
+以下流成员函数用于写入 WebSocket 消息：
 
-[table WebSocket Stream Write Operations
-[[Function][Description]]
+[table WebSocket 流写入操作
+[[函数][描述]]
 [
     [
         [link beast.ref.boost__beast__websocket__stream.write.overload2 `write`],
         [link beast.ref.boost__beast__websocket__stream.async_write `async_write`]
-    ][
-        Send a buffer sequence as a complete message.
-    ]
+    ][将缓冲区序列作为完整消息发送。]
 ][
     [
         [link beast.ref.boost__beast__websocket__stream.write_some.overload2 `write_some`],
         [link beast.ref.boost__beast__websocket__stream.async_write_some `async_write_some`]
-    ][
-        Send a buffer sequence as part of a message.
-    ]
+    ][将缓冲区序列作为消息的一部分发送。]
 ]]
 
-This example shows how to send a buffer sequence as a complete message.
+本示例展示如何将缓冲区序列作为完整消息发送。
 
 [code_websocket_4_1]
 
-The same message could be sent in two or more frames thusly.
+同一消息也可以通过两个或多个帧来发送，如下所示：
 
-[heading Receiving]
+[heading 接受]
 
-[table WebSocket Stream Read Operations
-[[Function][Description]]
+[table WebSocket 流读取操作
+[[函数][描述]]
 [
     [
         [link beast.ref.boost__beast__websocket__stream.read.overload2 `read`],
         [link beast.ref.boost__beast__websocket__stream.async_read `async_read`]
-    ][
-        Read a complete message into a __DynamicBuffer__.
-    ]
+    ][将完整消息读入 __DynamicBuffer__。]
 ][
     [
         [link beast.ref.boost__beast__websocket__stream.read_some.overload2 `read_some`],
         [link beast.ref.boost__beast__websocket__stream.async_read_some.overload1 `async_read_some`]
-    ][
-        Read part of a message into a __DynamicBuffer__.
-    ]
+    ][将消息的部分内容读入 __DynamicBuffer__。]
 ][
     [
         [link beast.ref.boost__beast__websocket__stream.read_some.overload4 `read_some`],
         [link beast.ref.boost__beast__websocket__stream.async_read_some.overload2 `async_read_some`]
-    ][
-        Read part of a message into a __MutableBufferSequence__.
-    ]
+    ][将消息的部分内容读入 MutableBufferSequence。]
 ]]
 
-After the WebSocket handshake is accomplished, callers may send and receive
-messages using the message oriented interface. This interface requires that
-all of the buffers representing the message are known ahead of time:
+完成 WebSocket 握手后，调用方可以使用面向消息的接口收发消息。该接口要求表示消息的所有缓冲区必须事先已知：
 
 [code_websocket_4_2]
 
@@ -105,17 +77,15 @@ all of the buffers representing the message are known ahead of time:
     all be made from the same implicit or explicit strand.
 ]
 
-[heading Frames]
+[heading 消息帧]
 
-Some use-cases make it impractical or impossible to buffer the entire
-message ahead of time:
+某些场景下，提前将整个消息缓冲起来并不现实或不可行：
 
-* Streaming multimedia to an endpoint.
-* Sending a message that does not fit in memory at once.
-* Providing incremental results as they become available.
+* 将流式多媒体数据发送到终端。
+* 发送无法一次性装入内存的消息。
+* 在结果可用时逐步提供。
 
-For these cases, the partial data oriented interface may be used. This
-example reads and echoes a complete message using this interface:
+在这些情况下，可以使用面向部分数据的接口。以下示例使用该接口读取并回显完整消息：
 
 [code_websocket_4_3]
 
